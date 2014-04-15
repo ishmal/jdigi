@@ -46,7 +46,7 @@ var Window = (function() {
         }
 
 
-        var make = { return 1; }
+        var make = function(x) { return 1; };
     
         switch(type) {
             case Window.RECTANGULAR : break;
@@ -62,7 +62,7 @@ var Window = (function() {
             value.push(make(i));
             
         return value;
-    }
+    };
 
 })();
 
@@ -94,35 +94,35 @@ var Fir = (function() {
         var arr = [];
         for (var i=0 ; i<size ; i++) {
             var v = f(i-center) * W[i];
-            sum += v
+            sum += v;
             arr.push(v);
         }
-        for (var i=0 ; i<size ; i++)
-            arr[i] /= sum;
+        for (var j=0 ; j<size ; j++)
+            arr[j] /= sum;
         return arr;
     }
 
     function lowpass(size) {
         return genCoeffs(size, window, function(i) {
-             return (i == 0) ? omega / math.Pi : math.sin(omega * i) / (math.Pi * i);
+             return (i === 0) ? omega / math.Pi : math.sin(omega * i) / (math.Pi * i);
         });
     }
     
     function highpass(size) {
         return genCoeffs(size, window, function(i) {
-             return (i == 0) ? omega / math.Pi : math.sin(omega * i) / (math.Pi * i);
+             return (i === 0) ? omega / math.Pi : math.sin(omega * i) / (math.Pi * i);
         });
     }
     
     function bandpass(size) {
         return genCoeffs(size, window, function(i) {
-             return (i == 0) ? omega / math.Pi : math.sin(omega * i) / (math.Pi * i);
+             return (i === 0) ? omega / math.Pi : math.sin(omega * i) / (math.Pi * i);
         });
     }
     
     function bandreject(size) {
         return genCoeffs(size, window, function(i) {
-             return (i == 0) ? omega / math.Pi : math.sin(omega * i) / (math.Pi * i);
+             return (i === 0) ? omega / math.Pi : math.sin(omega * i) / (math.Pi * i);
         });
     }
     
@@ -139,38 +139,8 @@ var Fir = (function() {
             case this.BR: coeffs = bandreject(size, window); break;
             default : throw new IllegalArgumentException("Fir type " + type + " not implemented.");
         }
-
-        
-        
-    
-    
     };
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-    };
-
-
-
-
-
-
-
-
-
-
-
-
-
-}).();
+})();
