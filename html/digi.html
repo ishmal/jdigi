@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+
+
+
+
+<script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+
+<script>
+
+function DigiTest(anchorName) {
+
+    var self = this;
+    
+    var anchor = $(anchorName);
+
+    //Let's get the local implementations
+    window.requestAnimationFrame = window.requestAnimationFrame ||
+                                   window.msRequestAnimationFrame ||
+                                   window.mozRequestAnimationFrame ||
+                                   window.webkitRequestAnimationFrame;
+
+    window.AudioContext = window.AudioContext ||
+                          window.webkitAudioContext;
+
+    navigator.getUserMedia = navigator.getUserMedia ||
+                             navigator.webkitGetUserMedia ||
+                             navigator.mozGetUserMedia ||
+                             navigator.msGetUserMedia;
+
+
+    function trace(msg) {
+        if (typeof console !== "undefined") 
+            console.log("Digi: " + msg);
+    }
+
+    function error(msg) {
+        if (typeof console !== "undefined") 
+            console.log("Digi error: " + msg);
+    }
+
+    var actx = new AudioContext();
+    var sampleRate = actx.sampleRate
+
+
+    /**
+     * Provides a Waterfall display on incoming spectrum data
+     */
+    function Waterfall(parent, width, height, bins) {
+    
+        
+        function createIndices(targetsize, sourcesize) {
+            var xs = [];
+            for (var i=0 ; i < width ; i++) {
+                xs.push(Math.floor(i * sourcesize / targetsize));
+            }
+            return xs;
+        }
+        
+        var indices = createIndices(width, bins);
+        
+        
+        /**
+         * Make a palette. tweak this often
+         */                 
+        function makePalette() {
+            var xs = [];
+            for (var i = 0 ; i < 256 ; i++) {
+                var r = (i < 170) ? 0 : (i-170) * 3;
+                var g = (i <  85) ? 0 : (i < 170) ? (i-85) * 3 : 255;
+                var b = (i <  85) ? i * 3 : 255;
+                var col = 255;
+                col = (col << 8) + b;
+                col = (col << 8) + g;
+                col = (col << 8) + r;
+                xs.push(col);
+            }
+            return xs;
+        }
+        
+        var palette = makePalette();
+        
+        var canvas = $("<canvas>").width(width).height(height);
+        parent.append(canvas);
+        var ctx      = canvas.get(0).getContext('2d'); 
+        var nrPixels = width*height;
+        var lastRow  = nrPixels - width;
+        var img      = ctx.createImageData(width, height);
+        var buf      = new ArrayBuffer(img.data.length);
+        var buf8     = new Uint8ClampedArray(buf);
+        var buf32    = new Uint32Array(buf);
+
+        var counter = 0;
+        
+        function drawSpectrum(data) {
+            //trace("len:" + data.length);
+            //ctx.clearRect(0,0,width,height);
+            //
+            ctx.fillStyle = 'midnightblue';
+            //ctx.fillRect(0,0,width,height);
+            ctx.beginPath();
+            ctx.moveTo(0, height);
+            for (var x=0; x<width ; x++) {
+                var v = Math.log(1.0 + data[indices[x]]);
+                var y = height - 10 - 50*v;
+                trace("x:" + x + " y:" + y);
+                ctx.lineTo(x, y);
+            }   
+            ctx.lineTo(width-1,height-1);
+            ctx.closePath();
+            //var bbox = ctx.getBBox();
+            ctx.fillStyle = 'rgba(255, 0, 0, 1.0)';
+            ctx.fill();           
+        }
+        
+        
+        function drawWaterfall(data) {
+        
+            //there's gotta be a faster way
+            for (var dest = 0, src = width ; src < nrPixels ; dest++, src++) {
+                buf32[dest] = buf32[src];
+            }
+
+            var idx = lastRow;
+            for (var x=0; x<width ; x++) {
+                var v = Math.log(1.0 + data[indices[x]]);
+                var y = height - 10 - 50*v;
+                //trace("x:" + x + " y:" + y);
+                var pix = palette[y & 255];
+                buf32[idx++] = pix;
+            }   
+            
+            img.data.set(buf8);
+            
+            ctx.putImageData(img, 0, 0);
+        }
+        
+        
+        this.update = function(data) {
+            //drawSpectrum(data);
+            drawWaterfall(data);
+        }
+    
+    }
+    
+    var fftSize = 2048;
+    var waterfall = new Waterfall(anchor, 800, 600, fftSize/2);
+    
+
+    function receive(data) {
+    
+    
+    }
+    
+    
+    function transmit(data) {
+    
+    
+    }
+
+
+    function AudioInput() {
+    
+        var analyser = null;
+        var source = null;
+        var isRunning = false;
+        
+        function start() {
+            source.buffer = audioBuffer;
+            source.loop = true;
+            source.noteOn(0.0);
+            isRunning = true; 
+        }
+        
+        
+        function stop() {
+            if (source) {
+                source.noteOff(0);
+                source.disconnect();
+            }
+            isRunning = false;
+        }
+        
+        function process() {
+            var data = new Uint8Array(analyser.frequencyBinCount);
+            analyser.getByteFrequencyData(data);
+            //trace("process:" + data.length);
+            waterfall.update(data);
+            //requestAnimationFrame(process);
+        }
+        
+        function startStream(stream) {
+        
+            stop();
+        
+            source = actx.createBufferSource();
+            analyser = actx.createAnalyser();
+            analyser.fftSize = fftSize;
+
+            var audioInput = actx.createMediaStreamSource(stream);
+            audioInput.connect(analyser);
+            isRunning = true;
+
+            
+            var scriptProcessor = actx.createScriptProcessor(4096, 1 ,0);
+            scriptProcessor.onaudioprocess = function(event) {            
+                receive(event.inputBuffer);
+            };
+            analyser.connect(scriptProcessor);
+
+            //requestAnimationFrame(process);
+            setInterval(process, 100);
+          }
+
+        navigator.getUserMedia({ audio : true }, startStream, function(errormsg) {
+            error(errormsg);
+        });
+           
+    }//AudioInput
+    
+    new AudioInput();
+
+} //DigiTest
+
+
+
+$(document).ready(function() {
+
+    new DigiTest("#digi");
+
+});
+
+
+
+</script>
+
+</head>
+
+<body>
+<h3>FFT Test</h3>
+
+
+<div id="digi"></div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</body>
+</html>
