@@ -14,6 +14,8 @@ function DigiTest(anchorName) {
 
     var self = this;
     
+    var fftSize = 2048;
+
     var anchor = $(anchorName);
 
     //Let's get the local implementations
@@ -61,6 +63,27 @@ function DigiTest(anchorName) {
         
         var indices = createIndices(width, bins);
         
+        var canvas = $("<canvas>").width(width).height(height);
+        parent.append(canvas);
+        var ctx      = canvas.get(0).getContext('2d'); 
+        var nrPixels = width*height;
+        var lastRow  = nrPixels - width;
+        var imgData  = ctx.getImageData(0, 0, width, height);
+        var buf      = new ArrayBuffer(imgData.data.length);
+        var buf8     = new Uint8ClampedArray(buf);
+        var buf32    = new Uint32Array(buf);
+
+        // Determine whether Uint32 is little- or big-endian.
+        function testBigEndian() {
+            var tbuf = new ArrayBuffer(4);
+            var tbuf8 = new Uint8ClampedArray(tbuf);
+            var tbuf32 = new Uint32Array(tbuf);
+            tbuf32[0] = 0x0a0b0c0d;
+            return (tbuf[4] === 0x0a && tbuf[5] === 0x0b &&
+                    tbuf[6] === 0x0c && tbuf[7] === 0x0d);
+        }
+        
+        var bigEndian = testBigEndian();
         
         /**
          * Make a palette. tweak this often
@@ -71,30 +94,29 @@ function DigiTest(anchorName) {
                 var r = (i < 170) ? 0 : (i-170) * 3;
                 var g = (i <  85) ? 0 : (i < 170) ? (i-85) * 3 : 255;
                 var b = (i <  85) ? i * 3 : 255;
-                var col = 255;
-                col = (col << 8) + b;
-                col = (col << 8) + g;
-                col = (col << 8) + r;
-                xs.push(col);
+                if (bigEndian) {
+                    var col = (r << 24) | (g << 16) | (b << 8) | 255;
+                    xs.push(col);
+                } else {
+                    var col = (255 << 24) | (b << 16) | (g << 8) | r;
+                    xs.push(col);
+                }
             }
             return xs;
         }
         
         var palette = makePalette();
         
-        var canvas = $("<canvas>").width(width).height(height);
-        parent.append(canvas);
-        var ctx      = canvas.get(0).getContext('2d'); 
-        var nrPixels = width*height;
-        var lastRow  = nrPixels - width;
-        var img      = ctx.createImageData(width, height);
-        var buf      = new ArrayBuffer(img.data.length);
-        var buf8     = new Uint8ClampedArray(buf);
-        var buf32    = new Uint32Array(buf);
 
         var counter = 0;
         
-        function drawSpectrum(data) {
+        
+        var _buf = [];
+        for (var i = 0 ; i < fftSize ; i++)
+            _buf.push(0.0);
+        
+        function drawSpectrum() {
+            var data = _buf;
             //trace("len:" + data.length);
             //ctx.clearRect(0,0,width,height);
             //
@@ -115,9 +137,10 @@ function DigiTest(anchorName) {
             ctx.fill();           
         }
         
+            
+        function drawWaterfall() {
         
-        function drawWaterfall(data) {
-        
+            var data = _buf;
             //there's gotta be a faster way
             for (var dest = 0, src = width ; src < nrPixels ; dest++, src++) {
                 buf32[dest] = buf32[src];
@@ -126,26 +149,32 @@ function DigiTest(anchorName) {
             var idx = lastRow;
             for (var x=0; x<width ; x++) {
                 var v = Math.log(1.0 + data[indices[x]]);
-                var y = height - 10 - 50*v;
+                var y = 50*v;
                 //trace("x:" + x + " y:" + y);
-                var pix = palette[y & 255];
+                var pix = palette[v & 255];
                 buf32[idx++] = pix;
             }   
             
-            img.data.set(buf8);
+            imgData.data.set(buf8);
             
-            ctx.putImageData(img, 0, 0);
+            ctx.putImageData(imgData, 0, 0);
+        }
+        
+        function redraw() {
+            //trace("draw");
+            //drawSpectrum();
+            drawWaterfall();
         }
         
         
         this.update = function(data) {
-            //drawSpectrum(data);
-            drawWaterfall(data);
+            _buf = new Uint8Array(data);
         }
+        
+        setInterval(redraw, 100);
     
-    }
+    }//Waterfall
     
-    var fftSize = 2048;
     var waterfall = new Waterfall(anchor, 800, 600, fftSize/2);
     
 
@@ -214,9 +243,20 @@ function DigiTest(anchorName) {
             setInterval(process, 100);
           }
 
-        navigator.getUserMedia({ audio : true }, startStream, function(errormsg) {
-            error(errormsg);
-        });
+        function startup() {
+            navigator.getUserMedia(
+                { 
+                  video: false,
+                  audio : true
+                }, 
+                startStream,
+                function(userMediaError) {
+                    error(userMediaError.name + " : " + userMediaError.message);
+                }
+            );
+        }
+        
+        startup();
            
     }//AudioInput
     
