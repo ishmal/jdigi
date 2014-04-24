@@ -15,7 +15,8 @@ function DigiTest(anchorName) {
 
     var self = this;
     
-    var fftSize = 2048;
+    var FFT_SIZE = 2048;
+    var BINS = FFT_SIZE/2;
 
     var anchor = $(anchorName);
 
@@ -45,7 +46,13 @@ function DigiTest(anchorName) {
     }
 
     var actx = new AudioContext();
-    var sampleRate = actx.sampleRate
+    var sampleRate = actx.sampleRate;
+    
+    var startBtn = $("<button>").html("Start").click(function() {
+        startup();
+    });
+    anchor.append(startBtn);
+    
 
 
     /**
@@ -56,8 +63,10 @@ function DigiTest(anchorName) {
         
         function createIndices(targetsize, sourcesize) {
             var xs = [];
-            for (var i=0 ; i < width ; i++) {
-                xs.push(Math.floor(i * sourcesize / targetsize));
+            var ratio = sourcesize / targetsize;
+            for (var i=0 ; i < targetsize ; i++) {
+                var idx = Math.floor(i * ratio);
+                xs.push(idx);
             }
             return xs;
         }
@@ -113,9 +122,7 @@ function DigiTest(anchorName) {
         var counter = 0;
         
         
-        var _buf = [];
-        for (var i = 0 ; i < fftSize ; i++)
-            _buf.push(0.0);
+        var _buf = new Float32Array(BINS);
         
         function drawSpectrum() {
             var data = _buf;
@@ -129,7 +136,7 @@ function DigiTest(anchorName) {
             for (var x=0; x<width ; x++) {
                 var v = Math.log(1.0 + data[indices[x]]);
                 var y = height - 10 - 50*v;
-                trace("x:" + x + " y:" + y);
+                //trace("x:" + x + " y:" + y);
                 ctx.lineTo(x, y);
             }   
             ctx.lineTo(width-1,height-1);
@@ -142,20 +149,24 @@ function DigiTest(anchorName) {
             
         function drawWaterfall() {
         
-            var data = _buf;
+            var data = _buf;            
+            
             /*
             for (var dest = 0, src = width ; src < nrPixels ; dest++, src++) {
                 buf32[dest] = buf32[src];
             }
             */
             buf32.set(buf32.subarray(width, buf32.length)); //<-cool, if this works
+            //trace("data:" + data[50]);
 
             var idx = lastRow;
             for (var x=0; x<width ; x++) {
-                var v = Math.log(1.0 + data[indices[x]]);
-                var y = 50*v;
-                //trace("x:" + x + " y:" + y);
-                var pix = palette[v & 255];
+                var v = Math.abs(data[indices[x]]);
+                //if (x==50) trace("v:" + v);
+                var p = Math.log(1.0 + v) * 30;
+                //if (x==50)trace("x:" + x + " p:" + p);
+                var pix = palette[p & 255];
+                if (x==50)trace("p:" + p + "  pix:" + pix.toString(16));
                 buf32[idx++] = pix;
             }   
             
@@ -172,14 +183,14 @@ function DigiTest(anchorName) {
         
         
         this.update = function(data) {
-            _buf = new Uint8Array(data);
+            _buf = new Float32Array(data);
         }
         
         setInterval(redraw, 100);
     
     }//Waterfall
     
-    var waterfall = new Waterfall(anchor, 800, 600, fftSize/2);
+    var waterfall = new Waterfall(anchor, 800, 600, BINS);
     
 
     function receive(data) {
@@ -195,23 +206,31 @@ function DigiTest(anchorName) {
     
     function createDecimatorAudioNode(ctx, decimation) {
     
-        var bufferSize = 8192;
+        var mask = 0x1FFF;
+        var bufferSize = mask+1;
         
         var decimator = new Resampler(decimation);
         
+        var outbuf = new Float32Array(bufferSize);
+        
         var node = ctx.createScriptProcessor(bufferSize, 1, 1);
-        node.onAudioProcess = function(e) {
-            var input = e.inputBuffer.getChannelData(0);
+        node.onaudioprocess = function(e) {
+            var input  = e.inputBuffer.getChannelData(0);
             var output = e.outputBuffer.getChannelData(0);
             var optr = 0;
             function decout(v) {
-                output[optr++] = v;
+                //make hook here
+                outbuf[optr++] = v;
+                optr &= mask;
             }
             for (var i=0 ; i < bufferSize ; i++) {
                 decimator.decimate(input[i], decout);
             }
-            trace("here");
-            //we have optr samples of data. Here is where we hook in out digi stuff
+            var iptr = optr;
+            for (var i=0 ; i < bufferSize ; i++) {
+                output[i] = outbuf[iptr++];
+                iptr &= mask;
+            }
         };
         
         return node;
@@ -249,13 +268,11 @@ function DigiTest(anchorName) {
             //requestAnimationFrame(process);
         }
         
-        function startStream(stream) {
         
-            stop();
+        function startStream(stream) {
         
             var source = actx.createMediaStreamSource(stream);
 
-        
             var inputNode = createDecimatorAudioNode(actx, 6);
             source.connect(inputNode);
 
@@ -263,43 +280,39 @@ function DigiTest(anchorName) {
 
             analyser = actx.createAnalyser();
             analyser.smoothingTimeConstant = 0;
-            analyser.fftSize = 2048;
+            analyser.fftSize = FFT_SIZE;
+            var xs = new Float32Array(BINS);
 
             inputNode.connect(analyser);
         
-            var spectrumGetter = actx.createScriptProcessor(4096, 1 ,0);
-            scriptProcessor.onaudioprocess = function(event) { 
-                var xs = new Uint8Array(2048); 
-                analyser.getByteFrequencyData(array);          
-                waterfall.update(array);
+            var spectrumGetter = actx.createScriptProcessor(8192, 1 ,1);
+            spectrumGetter.onaudioprocess = function(event) { 
+                analyser.getFloatFrequencyData(xs);  
+                //trace("x:" + xs[50]);        
+                waterfall.update(xs);
             };
-            analyser.connect(spectrumGetter);
+            spectrumGetter.connect(actx.destination);
 
             //requestAnimationFrame(process);
             setInterval(process, 100);
         }
 
-        function startup() {
-            navigator.getUserMedia(
-                { 
-                  video: false,
-                  audio : true
-                }, 
-                startStream,
-                function(userMediaError) {
+        this.start = function() { 
+            navigator.getUserMedia( { audio : true }, startStream, function(userMediaError) {
                     error(userMediaError.name + " : " + userMediaError.message);
-                }
-            );
+            });
         }
         
-        startup();
            
     }//AudioInput
     
-    new AudioInput();
+    var audioInput = new AudioInput();
+    
+    function startup() {
+        audioInput.start();    
+    }
 
 } //DigiTest
-
 
 
 $(document).ready(function() {
@@ -316,7 +329,6 @@ $(document).ready(function() {
 
 <body>
 <h3>FFT Test</h3>
-
 
 <div id="digi"></div>
 

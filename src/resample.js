@@ -131,7 +131,7 @@ function Resampler(decimation) {
     function decimate2(v,f) {
         buf[idx++] = v;
         if (idx >= decimation) {
-            idx = 0;
+            idx = 2;
             d0 = d2;
             d1 = d3;
             d2 = buf[0];
@@ -151,7 +151,7 @@ function Resampler(decimation) {
     function decimate3(v, f) {
         buf[idx++] = v;
         if (idx >= decimation) {
-            idx = 0;
+            idx = 2;
             d0 = d3;
             d1 = d4;
             d2 = buf[0];
@@ -174,7 +174,7 @@ function Resampler(decimation) {
     function decimate4(v, f) {
         buf[idx++] = v;
         if (idx >= decimation) {
-            idx = 0;
+            idx = 2;
             d0 = d4;
             d1 = d5;
             d2 = buf[0];
@@ -200,7 +200,7 @@ function Resampler(decimation) {
     function decimate5(v, f) {
         buf[idx++] = v;
         if (idx >= decimation) {
-            idx = 0;
+            idx = 2;
             d0 = d5;
             d1 = d6;
             d2 = buf[0];
@@ -229,7 +229,7 @@ function Resampler(decimation) {
     function decimate6(v, f) {
         buf[idx++] = v;
         if (idx >= decimation){
-            idx = 0;
+            idx = 2;
             d0 = d6;
             d1 = d7;
             d2 = buf[0];
@@ -238,12 +238,12 @@ function Resampler(decimation) {
             d5 = buf[3];
             d6 = buf[4];
             d7 = buf[5];
-            var sum = d0 * c0600 + d1 * c0606 + d2 * c0612 +
+            var sum = /*d0 * c0600 +*/ d1 * c0606 + d2 * c0612 +
                       d1 * c0601 + d2 * c0607 + d3 * c0613 +
                       d2 * c0602 + d3 * c0608 + d4 * c0614 +
                       d3 * c0603 + d4 * c0609 + d5 * c0615 +
                       d4 * c0604 + d5 * c0610 + d6 * c0616 +
-                      d5 * c0605 + d6 * c0611 + d7 * c0617;
+                      d5 * c0605 + d6 * c0611/* + d7 * c0617*/;
             f(sum);
             }
     }
@@ -261,7 +261,7 @@ function Resampler(decimation) {
     function decimate7(v, f) {
         buf[idx++] = v;
         if (idx >= decimation) {
-            idx = 0;
+            idx = 2;
             d0 = d7;
             d1 = d8;
             d2 = buf[0];
