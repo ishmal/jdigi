@@ -7,6 +7,7 @@
 
 
 <script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+<script src="../src/resample.js"></script>
 
 <script>
 
@@ -69,7 +70,8 @@ function DigiTest(anchorName) {
         var nrPixels = width*height;
         var lastRow  = nrPixels - width;
         var imgData  = ctx.getImageData(0, 0, width, height);
-        var buf      = new ArrayBuffer(imgData.data.length);
+        var imglen   = imgData.data.length;
+        var buf      = new ArrayBuffer(imglen);
         var buf8     = new Uint8ClampedArray(buf);
         var buf32    = new Uint32Array(buf);
 
@@ -141,10 +143,12 @@ function DigiTest(anchorName) {
         function drawWaterfall() {
         
             var data = _buf;
-            //there's gotta be a faster way
+            /*
             for (var dest = 0, src = width ; src < nrPixels ; dest++, src++) {
                 buf32[dest] = buf32[src];
             }
+            */
+            buf32.set(buf32.subarray(width, buf32.length)); //<-cool, if this works
 
             var idx = lastRow;
             for (var x=0; x<width ; x++) {
@@ -188,6 +192,31 @@ function DigiTest(anchorName) {
     
     
     }
+    
+    function createDecimatorAudioNode(ctx, decimation) {
+    
+        var bufferSize = 8192;
+        
+        var decimator = new Resampler(decimation);
+        
+        var node = ctx.createScriptProcessor(bufferSize, 1, 1);
+        node.onAudioProcess = function(e) {
+            var input = e.inputBuffer.getChannelData(0);
+            var output = e.outputBuffer.getChannelData(0);
+            var optr = 0;
+            function decout(v) {
+                output[optr++] = v;
+            }
+            for (var i=0 ; i < bufferSize ; i++) {
+                decimator.decimate(input[i], decout);
+            }
+            trace("here");
+            //we have optr samples of data. Here is where we hook in out digi stuff
+        };
+        
+        return node;
+    
+    }
 
 
     function AudioInput() {
@@ -224,24 +253,31 @@ function DigiTest(anchorName) {
         
             stop();
         
-            source = actx.createBufferSource();
-            analyser = actx.createAnalyser();
-            analyser.fftSize = fftSize;
+            var source = actx.createMediaStreamSource(stream);
 
-            var audioInput = actx.createMediaStreamSource(stream);
-            audioInput.connect(analyser);
+        
+            var inputNode = createDecimatorAudioNode(actx, 6);
+            source.connect(inputNode);
+
             isRunning = true;
 
-            
-            var scriptProcessor = actx.createScriptProcessor(4096, 1 ,0);
-            scriptProcessor.onaudioprocess = function(event) {            
-                receive(event.inputBuffer);
+            analyser = actx.createAnalyser();
+            analyser.smoothingTimeConstant = 0;
+            analyser.fftSize = 2048;
+
+            inputNode.connect(analyser);
+        
+            var spectrumGetter = actx.createScriptProcessor(4096, 1 ,0);
+            scriptProcessor.onaudioprocess = function(event) { 
+                var xs = new Uint8Array(2048); 
+                analyser.getByteFrequencyData(array);          
+                waterfall.update(array);
             };
-            analyser.connect(scriptProcessor);
+            analyser.connect(spectrumGetter);
 
             //requestAnimationFrame(process);
             setInterval(process, 100);
-          }
+        }
 
         function startup() {
             navigator.getUserMedia(
