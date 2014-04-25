@@ -73,28 +73,18 @@ function DigiTest(anchorName) {
         
         var indices = createIndices(width, bins);
         
-        var canvas = $("<canvas>").width(width).height(height);
+        var canvas = $("<canvas width='" + width + "' height='" + height + "'>");
         parent.append(canvas);
         var ctx      = canvas.get(0).getContext('2d'); 
-        var nrPixels = width*height;
-        var lastRow  = nrPixels - width;
-        var imgData  = ctx.getImageData(0, 0, width, height);
+        var imgData  = ctx.createImageData(width, height);
         var imglen   = imgData.data.length;
-        var buf      = new ArrayBuffer(imglen);
-        var buf8     = new Uint8ClampedArray(buf);
-        var buf32    = new Uint32Array(buf);
+        var buf8     = new Uint8ClampedArray(imglen);
+        var rowsize  = imglen / height;
+        var lastRow  = imglen - rowsize;
 
-        // Determine whether Uint32 is little- or big-endian.
-        function testBigEndian() {
-            var tbuf = new ArrayBuffer(4);
-            var tbuf8 = new Uint8ClampedArray(tbuf);
-            var tbuf32 = new Uint32Array(tbuf);
-            tbuf32[0] = 0x0a0b0c0d;
-            return (tbuf[4] === 0x0a && tbuf[5] === 0x0b &&
-                    tbuf[6] === 0x0c && tbuf[7] === 0x0d);
-        }
         
-        var bigEndian = testBigEndian();
+        
+        
         
         /**
          * Make a palette. tweak this often
@@ -105,13 +95,8 @@ function DigiTest(anchorName) {
                 var r = (i < 170) ? 0 : (i-170) * 3;
                 var g = (i <  85) ? 0 : (i < 170) ? (i-85) * 3 : 255;
                 var b = (i <  85) ? i * 3 : 255;
-                if (bigEndian) {
-                    var col = (r << 24) | (g << 16) | (b << 8) | 255;
-                    xs.push(col);
-                } else {
-                    var col = (255 << 24) | (b << 16) | (g << 8) | r;
-                    xs.push(col);
-                }
+                var col = [ r, g, b, 255 ];
+                xs.push(col);
             }
             return xs;
         }
@@ -148,7 +133,6 @@ function DigiTest(anchorName) {
         
             
         function drawWaterfall() {
-        
             var data = _buf;            
             
             /*
@@ -156,7 +140,7 @@ function DigiTest(anchorName) {
                 buf32[dest] = buf32[src];
             }
             */
-            buf32.set(buf32.subarray(width, buf32.length)); //<-cool, if this works
+            buf8.set(buf8.subarray(rowsize, imglen)); //<-cool, if this works
             //trace("data:" + data[50]);
 
             var idx = lastRow;
@@ -166,14 +150,18 @@ function DigiTest(anchorName) {
                 var p = Math.log(1.0 + v) * 30;
                 //if (x==50)trace("x:" + x + " p:" + p);
                 var pix = palette[p & 255];
-                if (x==50)trace("p:" + p + "  pix:" + pix.toString(16));
-                buf32[idx++] = pix;
+                //if (x==50)trace("p:" + p + "  pix:" + pix.toString(16));
+                buf8[idx++] = pix[0];
+                buf8[idx++] = pix[1];
+                buf8[idx++] = pix[2];
+                buf8[idx++] = pix[3];
             }   
             
             imgData.data.set(buf8);
             
             ctx.putImageData(imgData, 0, 0);
         }
+        
         
         function redraw() {
             //trace("draw");
@@ -190,7 +178,7 @@ function DigiTest(anchorName) {
     
     }//Waterfall
     
-    var waterfall = new Waterfall(anchor, 800, 600, BINS);
+    var waterfall = new Waterfall(anchor, 800, 400, BINS);
     
 
     function receive(data) {
@@ -207,7 +195,7 @@ function DigiTest(anchorName) {
     function createDecimatorAudioNode(ctx, decimation) {
     
         var mask = 0x1FFF;
-        var bufferSize = mask+1;
+        var bufferSize = mask+1; //8192
         
         var decimator = new Resampler(decimation);
         
@@ -265,7 +253,7 @@ function DigiTest(anchorName) {
             analyser.getByteFrequencyData(data);
             //trace("process:" + data.length);
             waterfall.update(data);
-            //requestAnimationFrame(process);
+            requestAnimationFrame(process);
         }
         
         
@@ -285,7 +273,7 @@ function DigiTest(anchorName) {
 
             inputNode.connect(analyser);
         
-            var spectrumGetter = actx.createScriptProcessor(8192, 1 ,1);
+            var spectrumGetter = actx.createScriptProcessor(2048, 1 ,1);
             spectrumGetter.onaudioprocess = function(event) { 
                 analyser.getFloatFrequencyData(xs);  
                 //trace("x:" + xs[50]);        
@@ -293,8 +281,7 @@ function DigiTest(anchorName) {
             };
             spectrumGetter.connect(actx.destination);
 
-            //requestAnimationFrame(process);
-            setInterval(process, 100);
+            requestAnimationFrame(process);
         }
 
         this.start = function() { 

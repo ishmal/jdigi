@@ -131,7 +131,7 @@ function Resampler(decimation) {
     function decimate2(v,f) {
         buf[idx++] = v;
         if (idx >= decimation) {
-            idx = 2;
+            idx = 0;
             d0 = d2;
             d1 = d3;
             d2 = buf[0];
@@ -151,15 +151,15 @@ function Resampler(decimation) {
     function decimate3(v, f) {
         buf[idx++] = v;
         if (idx >= decimation) {
-            idx = 2;
+            idx = 0;
             d0 = d3;
             d1 = d4;
             d2 = buf[0];
             d3 = buf[1];
             d4 = buf[2];
-            var sum = d0 * c0300 + d1 * c0303 + d2 * c0306 +
+            var sum = /*d0 * c0300 + */d1 * c0303 + d2 * c0306 +
                       d1 * c0301 + d2 * c0304 + d3 * c0307 +
-                      d2 * c0302 + d3 * c0305 + d4 * c0308;
+                      d2 * c0302 + d3 * c0305/* + d4 * c0308*/;
             f(sum);
             }
     }
@@ -174,17 +174,17 @@ function Resampler(decimation) {
     function decimate4(v, f) {
         buf[idx++] = v;
         if (idx >= decimation) {
-            idx = 2;
+            idx = 0;
             d0 = d4;
             d1 = d5;
             d2 = buf[0];
             d3 = buf[1];
             d4 = buf[2];
             d5 = buf[3];
-            var sum = d0 * c0400 + d1 * c0404 + d2 * c0408 +
+            var sum = /*d0 * c0400 + */d1 * c0404 + d2 * c0408 +
                       d1 * c0401 + d2 * c0405 + d3 * c0409 +
                       d2 * c0402 + d3 * c0406 + d4 * c0410 +
-                      d3 * c0403 + d4 * c0407 + d5 * c0411;
+                      d3 * c0403 + d4 * c0407/* + d5 * c0411*/;
             f(sum);
             }
     }
@@ -200,7 +200,7 @@ function Resampler(decimation) {
     function decimate5(v, f) {
         buf[idx++] = v;
         if (idx >= decimation) {
-            idx = 2;
+            idx = 0;
             d0 = d5;
             d1 = d6;
             d2 = buf[0];
@@ -208,11 +208,11 @@ function Resampler(decimation) {
             d4 = buf[2];
             d5 = buf[3];
             d6 = buf[4];
-            var sum = d0 * c0500 + d1 * c0505 + d2 * c0510 +
+            var sum = /*d0 * c0500 + */d1 * c0505 + d2 * c0510 +
                       d1 * c0501 + d2 * c0506 + d3 * c0511 +
                       d2 * c0502 + d3 * c0507 + d4 * c0512 +
                       d3 * c0503 + d4 * c0508 + d5 * c0513 +
-                      d4 * c0504 + d5 * c0509 + d6 * c0514;
+                      d4 * c0504 + d5 * c0509/* + d6 * c0514*/;
             f(sum);
             }
     }
@@ -229,7 +229,7 @@ function Resampler(decimation) {
     function decimate6(v, f) {
         buf[idx++] = v;
         if (idx >= decimation){
-            idx = 2;
+            idx = 0;
             d0 = d6;
             d1 = d7;
             d2 = buf[0];
@@ -261,7 +261,7 @@ function Resampler(decimation) {
     function decimate7(v, f) {
         buf[idx++] = v;
         if (idx >= decimation) {
-            idx = 2;
+            idx = 0;
             d0 = d7;
             d1 = d8;
             d2 = buf[0];
@@ -271,13 +271,13 @@ function Resampler(decimation) {
             d6 = buf[4];
             d7 = buf[5];
             d8 = buf[6];
-            var sum = d0 * c0700 + d1 * c0707 + d2 * c0714 +
+            var sum = /*d0 * c0700 + */d1 * c0707 + d2 * c0714 +
                       d1 * c0701 + d2 * c0708 + d3 * c0715 +
                       d2 * c0702 + d3 * c0709 + d4 * c0716 +
                       d3 * c0703 + d4 * c0710 + d5 * c0717 +
                       d4 * c0704 + d5 * c0711 + d6 * c0718 +
                       d5 * c0705 + d6 * c0712 + d7 * c0719 +
-                      d6 * c0706 + d7 * c0713 + d8 * c0720;
+                      d6 * c0706 + d7 * c0713/* + d8 * c0720*/;
             f(sum);
             }
     }
