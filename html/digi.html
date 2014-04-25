@@ -49,7 +49,7 @@ function DigiTest(anchorName) {
     var sampleRate = actx.sampleRate;
     
     var startBtn = $("<button>").html("Start").click(function() {
-        startup();
+        start();
     });
     anchor.append(startBtn);
     
@@ -83,9 +83,6 @@ function DigiTest(anchorName) {
         var lastRow  = imglen - rowsize;
 
         
-        
-        
-        
         /**
          * Make a palette. tweak this often
          */                 
@@ -104,9 +101,6 @@ function DigiTest(anchorName) {
         var palette = makePalette();
         
 
-        var counter = 0;
-        
-        
         var _buf = new Float32Array(BINS);
         
         function drawSpectrum() {
@@ -136,8 +130,8 @@ function DigiTest(anchorName) {
             var data = _buf;            
             
             /*
-            for (var dest = 0, src = width ; src < nrPixels ; dest++, src++) {
-                buf32[dest] = buf32[src];
+            for (var dest = 0, src = rowsize ; src < imglen ; dest++, src++) {
+                buf8[dest] = buf8[src];
             }
             */
             buf8.set(buf8.subarray(rowsize, imglen)); //<-cool, if this works
@@ -163,10 +157,23 @@ function DigiTest(anchorName) {
         }
         
         
+        var _continue = false;
+        
         function redraw() {
             //trace("draw");
             //drawSpectrum();
             drawWaterfall();
+            if (_continue)
+                requestAnimationFrame(redraw);
+        }
+        
+        this.start = function() {
+            _continue = true;
+            requestAnimationFrame(redraw);        
+        }
+        
+        this.stop = function() {
+            _continue = false;      
         }
         
         
@@ -174,7 +181,6 @@ function DigiTest(anchorName) {
             _buf = new Float32Array(data);
         }
         
-        setInterval(redraw, 100);
     
     }//Waterfall
     
@@ -229,32 +235,7 @@ function DigiTest(anchorName) {
     function AudioInput() {
     
         var analyser = null;
-        var source = null;
         var isRunning = false;
-        
-        function start() {
-            source.buffer = audioBuffer;
-            source.loop = true;
-            source.noteOn(0.0);
-            isRunning = true; 
-        }
-        
-        
-        function stop() {
-            if (source) {
-                source.noteOff(0);
-                source.disconnect();
-            }
-            isRunning = false;
-        }
-        
-        function process() {
-            var data = new Uint8Array(analyser.frequencyBinCount);
-            analyser.getByteFrequencyData(data);
-            //trace("process:" + data.length);
-            waterfall.update(data);
-            requestAnimationFrame(process);
-        }
         
         
         function startStream(stream) {
@@ -267,7 +248,6 @@ function DigiTest(anchorName) {
             isRunning = true;
 
             analyser = actx.createAnalyser();
-            analyser.smoothingTimeConstant = 0;
             analyser.fftSize = FFT_SIZE;
             var xs = new Float32Array(BINS);
 
@@ -281,7 +261,6 @@ function DigiTest(anchorName) {
             };
             spectrumGetter.connect(actx.destination);
 
-            requestAnimationFrame(process);
         }
 
         this.start = function() { 
@@ -289,14 +268,24 @@ function DigiTest(anchorName) {
                     error(userMediaError.name + " : " + userMediaError.message);
             });
         }
+
+        this.stop = function() {
+        
+        }
         
            
     }//AudioInput
     
     var audioInput = new AudioInput();
     
-    function startup() {
+    function start() {
         audioInput.start();    
+        waterfall.start();
+    }
+
+    function stop() {
+        audioInput.stop();    
+        waterfall.stop();
     }
 
 } //DigiTest
