@@ -58,17 +58,17 @@ function FFT(N) {
 
     var butterflies = [];
     (function () {
-        var span = N2;
-        for (var w=1 ; w < N ; w *= 2) {
+        for (var span=1 ; span<=N2 ; span += span) {
             var left = [];
             var right = [];
-            for (var i=0 ; i < w ; i++) {
-                for (var j=i ; j < i+span ; j++) {
-                   left.push(j);
-                   right.push(j+span);
+            var n = 0;
+            for (submatrix=0; submatrix<N2/span; submatrix++) {
+                for (node=0; node<span*2; node++) {
+                   left.push(n);
+                   right.push(n+span);
                 }
+            n += span;
             }
-            span /= 2;
             butterflies.push({left:left, right:right});
         }
     })();
