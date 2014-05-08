@@ -221,51 +221,29 @@ function DigiTest(anchorName) {
     
     }
     
-    function createDecimatorAudioNode(ctx, decimation) {
+    function createInputAudioNode(ctx, decimation) {
     
-        var bufferSize = 8192
+        var bufferSize = 2048
         
         var decimator = new Resampler(decimation);
         
-        var circbuf = new Float32Array(bufferSize);
+        var obuf = new Float32Array(bufferSize/decimation);
+        var optr = 0;
         /**/
-        var node = ctx.createScriptProcessor(bufferSize, 1, 1);
+        var node = ctx.createScriptProcessor(bufferSize, 1, 0);
         node.onaudioprocess = function(e) {
             var input  = e.inputBuffer.getChannelData(0);
-            var output = e.outputBuffer.getChannelData(0);
-            var optr = 0;
             for (var i=0 ; i < bufferSize ; i++) {
                 decimator.decimate(input[i], function(v) {
                     //make hook here
-                    circbuf[optr++] = v;
+                    obuf[optr++] = v;
                     if (optr>=bufferSize)
                         optr = 0;
                 })
+            var obuf = new Float32Array(bufferSize);
             }
-            var iptr = optr;
-            var tot;
-            for (var i=0 ; i < bufferSize ; i++) {
-                output[i] = circbuf[iptr++];
-                tot += output[i];
-                if (iptr>=bufferSize)
-                    iptr = 0;
-            }
+
         };
-        /**/
-        /*
-        var node = ctx.createScriptProcessor(bufferSize, 1, 1);
-        node.onaudioprocess = function(e) {
-            var input  = e.inputBuffer.getChannelData(0);
-            var output = e.outputBuffer.getChannelData(0);
-            var optr = 0;
-            for (var i=0 ; i < bufferSize ; i++) {
-                decimator.decimate(input[i], function(v) {
-                    //make hook here
-                    output[optr++] = v;
-                });
-            }
-        };
-        */
         
         return node;
     
@@ -292,28 +270,11 @@ function DigiTest(anchorName) {
         
             var source = actx.createMediaStreamSource(stream);
 
-            var inputNode = keep(createDecimatorAudioNode(actx, 6));
+            var inputNode = keep(createInputAudioNode(actx, 6));
             source.connect(inputNode);
+            source.connect(actx.destination);
 
             isRunning = true;
-
-            analyser = actx.createAnalyser();
-            analyser.fftSize = FFT_SIZE;
-            analyser.smoothingTimeConstant = 0;
-
-            inputNode.connect(analyser);
-        
-            var spectrumGetter = keep(actx.createScriptProcessor(2048, 1 ,1));
-            spectrumGetter.onaudioprocess = (function() {
-                var ana = analyser;
-                return function(event) { 
-                    var array = new Uint8Array(analyser.frequencyBinCount);
-                    ana.getByteFrequencyData(array);      
-                    waterfall.update(array);
-                };
-            })();
-            analyser.connect(spectrumGetter);
-            spectrumGetter.connect(actx.destination);
 
         }
 
