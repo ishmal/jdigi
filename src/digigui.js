@@ -21,7 +21,7 @@ function Waterfall(par, anchor, width, height, bins) {
     var indices = createIndices(width, bins);
     
     var canvas = $("<canvas width='" + width + "' height='" + height + "'>");
-    parent.append(canvas);
+    anchor.append(canvas);
     var ctx      = canvas.get(0).getContext('2d'); 
     var imgData  = ctx.createImageData(width, height);
     var imglen   = imgData.data.length;
@@ -195,7 +195,7 @@ function Waterfall(par, anchor, width, height, bins) {
 
 function DigiGui(anchorName) {
 
-    call(this, Digi);
+    Digi.call(this);
     
     window.requestAnimationFrame =
         window.requestAnimationFrame ||
@@ -210,7 +210,7 @@ function DigiGui(anchorName) {
     });
     anchor.append(startBtn);
     
-    var waterfall = new Waterfall(this, anchor, 800, 300, BINS);
+    var waterfall = new Waterfall(this, anchor, 800, 300, this.BINS);
     
     /**
      * Overridden from Digi

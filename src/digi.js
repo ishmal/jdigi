@@ -74,6 +74,10 @@ function Digi() {
     var FFT_SIZE = 2048;
     var FFT_MASK = FFT_SIZE - 1;
     var BINS     = FFT_SIZE/2;
+    
+    this.FFT_SIZE = FFT_SIZE;
+    this.FFT_MASK = FFT_MASK;
+    this.BINS     = BINS;
 
 
     window.AudioContext = window.AudioContext ||
@@ -121,11 +125,6 @@ function Digi() {
     }        
     this.update = update;
 
-
-  
-
-    
-    
     
     function transmit(data) {
     
@@ -145,11 +144,13 @@ function Digi() {
         audioInput.start();    
         waterfall.start();
     }
+    this.start = start;
 
     function stop() {
         audioInput.stop();    
         waterfall.stop();
     }
+    this.stop = stop;
 
 } //DigiTest
 
