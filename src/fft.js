@@ -67,12 +67,15 @@ function FFT(N) {
         var outi = [];
         for (var idx = 0 ; idx< N ; idx++) {
             //todo:  apply Hann window here
-            outr.push(input[bitReversedIndices[idx]]);
+            var bri = bitReversedIndices[idx];
+            var v = input[bri];
+            //console.log("v:" + bri + " : " + v);
+            outr.push(v);
             outi.push(0);
         }
         
         for (var stage=0 ; stage<nrStgs ; stage++) {
-            var stageData = stges[stage];
+            var stageData = stgs[stage];
             for (var i = 0; i < n2; i++) {
                 var parms   = stageData[i];
                 var wr      = parms.wr;
@@ -90,13 +93,36 @@ function FFT(N) {
             }
         }
 
-      var output = { r : outr, i: outi };
-      return output;
-      }
+        var output = { r : outr, i: outi };
+        return output;
+    }
+      
+    function powerSpectrum(input) {
+    
+        var out = execute(input);
+        var rarr = out.r;
+        var iarr = out.i;
+        
+        var len = rarr.length;
+        
+        var ps = [];
+        for (var j = 0 ; j < len ; j++) {
+            var r = rarr[j];
+            var i = iarr[j];
+            //console.log("v:" + r + " / " + i);
+            //ps.push(Math.sqrt(r*r + i*i));
+            ps.push(r*r + i*i);
+        }
+    
+        return ps;
+    }
+    this.powerSpectrum = powerSpectrum;
 
 }
 
 
+/*
 exports._test = {
     FFT: FFT
 };
+*/

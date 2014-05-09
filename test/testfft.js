@@ -1,7 +1,7 @@
 
 
 var assert = require("assert");
-var app = require("../src/math.js");
+var app = require("../src/fft.js");
 
 describe('Math Tests', function(){
   describe('FFT', function(){
