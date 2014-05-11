@@ -105,7 +105,7 @@ function Digi() {
     /**
      * Override this in the GUI
      */
-    this.receiveSpectrum  = function(data) {}
+    this.receiveSpectrum  = function(data) {};
 
 
     var fft = new FFT(FFT_SIZE);

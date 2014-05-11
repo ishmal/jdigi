@@ -24,14 +24,13 @@ Complex.prototype.mag =
 Complex.prototype.arg =
     function() { return Math.atan2(this.i, this.r); };
 Complex.prototype.toString =
-    function() { return "(" + r.toString() + "," + i.toString() + ")"; }
+    function() { return "(" + r.toString() + "," + i.toString() + ")"; };
 Complex.ZERO =
     new Complex(0,0);
 Complex.ONE =
     new Complex(1,0);
 Complex.I =
     new Complex(0,1);
-}
 
 
 

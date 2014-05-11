@@ -123,16 +123,16 @@ function Resampler(decimation) {
     var r8 = 0.0;
     var r9 = 0.0;
     
-    vai i0 = 0.0;
-    vai i1 = 0.0;
-    vai i2 = 0.0;
-    vai i3 = 0.0;
-    vai i4 = 0.0;
-    vai i5 = 0.0;
-    vai i6 = 0.0;
-    vai i7 = 0.0;
-    vai i8 = 0.0;
-    vai i9 = 0.0;
+    var i0 = 0.0;
+    var i1 = 0.0;
+    var i2 = 0.0;
+    var i3 = 0.0;
+    var i4 = 0.0;
+    var i5 = 0.0;
+    var i6 = 0.0;
+    var i7 = 0.0;
+    var i8 = 0.0;
+    var i9 = 0.0;
 
     var bufr = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0];
     var bufi = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0];
@@ -459,7 +459,7 @@ function Resampler(decimation) {
             i5 = bufi[3];
             i6 = bufi[4];
             i7 = bufi[5];
-            vai sumi = /*i0*c0600 +*/ i1*c0606 + i2*c0612 +
+            var sumi = /*i0*c0600 +*/ i1*c0606 + i2*c0612 +
                        i1*c0601 + i2*c0607 + i3*c0613 +
                        i2*c0602 + i3*c0608 + i4*c0614 +
                        i3*c0603 + i4*c0609 + i5*c0615 +

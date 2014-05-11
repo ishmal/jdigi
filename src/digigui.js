@@ -45,16 +45,16 @@ function Waterfall(par, anchor, width, height, bins) {
         var canvasY = 0;
         var currentElement = this;
 
-        do{
+        do {
             totalOffsetX += currentElement.offsetLeft - currentElement.scrollLeft;
             totalOffsetY += currentElement.offsetTop - currentElement.scrollTop;
         }
-        while(currentElement = currentElement.offsetParent)
+        while((currentElement = currentElement.offsetParent));
 
         canvasX = event.pageX - totalOffsetX;
         canvasY = event.pageY - totalOffsetY;
 
-        return {x:canvasX, y:canvasY}
+        return {x:canvasX, y:canvasY};
     }
 
     /**
