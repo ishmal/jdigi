@@ -110,198 +110,487 @@ function Resampler(decimation) {
     var c0719 = -0.000571381;
     var c0720 = -0.00000;
 
-    var d0 = 0.0;
-    var d1 = 0.0;
-    var d2 = 0.0;
-    var d3 = 0.0;
-    var d4 = 0.0;
-    var d5 = 0.0;
-    var d6 = 0.0;
-    var d7 = 0.0;
-    var d8 = 0.0;
-    var d9 = 0.0;
-
     var idx = 0;
-    var buf = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0];
+    
+    var r0 = 0.0;
+    var r1 = 0.0;
+    var r2 = 0.0;
+    var r3 = 0.0;
+    var r4 = 0.0;
+    var r5 = 0.0;
+    var r6 = 0.0;
+    var r7 = 0.0;
+    var r8 = 0.0;
+    var r9 = 0.0;
+    
+    vai i0 = 0.0;
+    vai i1 = 0.0;
+    vai i2 = 0.0;
+    vai i3 = 0.0;
+    vai i4 = 0.0;
+    vai i5 = 0.0;
+    vai i6 = 0.0;
+    vai i7 = 0.0;
+    vai i8 = 0.0;
+    vai i9 = 0.0;
+
+    var bufr = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0];
+    var bufi = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0];
     
     function decimate1(v, f) { f(v); }
     function interpolate1(v, f) { f(v); }
 
+    //#############################################
+    //# 2
+    //#############################################
         
     function decimate2(v,f) {
-        buf[idx++] = v;
+        bufr[idx++] = v;
         if (idx >= decimation) {
             idx = 0;
-            d0 = d2;
-            d1 = d3;
-            d2 = buf[0];
-            d3 = buf[1];
-            var sum = /*d0 * c0200 +*/ d1 * c0202 + d2 * c0204 +
-                      d1 * c0201 + d2 * c0203/* + d3 * c0205*/;
+            r0 = r2;
+            r1 = r3;
+            r2 = bufr[0];
+            r3 = bufr[1];
+            var sum = /*r0 * c0200 +*/ r1 * c0202 + r2 * c0204 +
+                      r1 * c0201 + r2 * c0203/* + r3 * c0205*/;
             f(sum);
             }
     }
 
     function interpolate2(v, f) {
-        d0 = d1; d1 = d2; d2 = v;
-        f(/*d0 * c0200 + */d1 * c0202 + d2 * c0204);
-        f(d0 * c0201 + d1 * c0203/* + d2 * c0205*/);
+        r0 = r1; r1 = r2; r2 = v;
+        f(/*r0 * c0200 + */r1 * c0202 + r2 * c0204);
+        f(r0 * c0201 + r1 * c0203/* + r2 * c0205*/);
     }
 
-    function decimate3(v, f) {
-        buf[idx++] = v;
+    function decimate2x(v,f) {
+        bufr[idx]   = v.r;
+        bufi[idx++] = v.i;
         if (idx >= decimation) {
             idx = 0;
-            d0 = d3;
-            d1 = d4;
-            d2 = buf[0];
-            d3 = buf[1];
-            d4 = buf[2];
-            var sum = /*d0 * c0300 + */d1 * c0303 + d2 * c0306 +
-                      d1 * c0301 + d2 * c0304 + d3 * c0307 +
-                      d2 * c0302 + d3 * c0305/* + d4 * c0308*/;
+            r0 = r2;
+            r1 = r3;
+            r2 = bufr[0];
+            r3 = bufr[1];
+            var sumr = /*r0*c0200 +*/ r1*c0202 + r2*c0204 +
+                      r1*c0201 + r2*c0203/* + r3*c0205*/;
+            i0 = i2;
+            i1 = i3;
+            i2 = bufi[0];
+            i3 = bufi[1];
+            var sumi = /*i0*c0200 +*/ i1*c0202 + i2*c0204 +
+                      i1*c0201 + i2*c0203/* + i3*c0205*/;
+            f(new Complex(sumr, sumi));
+            }
+    }
+
+    function interpolate2x(v, f) {
+        r0 = r1; r1 = r2; r2 = v.r;
+        i0 = i1; i1 = i2; i2 = v.i;
+        f(new Complex(/*r0*c0200 + */r1*c0202 + r2*c0204, /*i0*c0200 + */i1*c0202 + i2*c0204));
+        f(new Complex(r0*c0201 + r1*c0203/* + r2*c0205*/, i0*c0201 + i1*c0203/* + i2*c0205*/));
+    }
+
+    //#############################################
+    //# 3
+    //#############################################
+
+    function decimate3(v, f) {
+        bufr[idx++] = v;
+        if (idx >= decimation) {
+            idx = 0;
+            r0 = r3;
+            r1 = r4;
+            r2 = bufr[0];
+            r3 = bufr[1];
+            r4 = bufr[2];
+            var sum = /*r0*c0300 + */r1*c0303 + r2*c0306 +
+                      r1*c0301 + r2*c0304 + r3*c0307 +
+                      r2*c0302 + r3*c0305/* + r4*c0308*/;
             f(sum);
             }
     }
 
     function interpolate3(v, f) {
-        d0 = d1; d1 = d2; d2 = v;
-        f(d0 * c0300 + d1 * c0303 + d2 * c0306);
-        f(d0 * c0301 + d1 * c0304 + d2 * c0307);
-        f(d0 * c0302 + d1 * c0305 + d2 * c0308);
+        r0 = r1; r1 = r2; r2 = v;
+        f(r0*c0300 + r1*c0303 + r2*c0306);
+        f(r0*c0301 + r1*c0304 + r2*c0307);
+        f(r0*c0302 + r1*c0305 + r2*c0308);
     }
 
-    function decimate4(v, f) {
-        buf[idx++] = v;
+    function decimate3x(v, f) {
+        bufr[idx]   = v.r;
+        bufi[idx++] = v.i;
         if (idx >= decimation) {
             idx = 0;
-            d0 = d4;
-            d1 = d5;
-            d2 = buf[0];
-            d3 = buf[1];
-            d4 = buf[2];
-            d5 = buf[3];
-            var sum = /*d0 * c0400 + */d1 * c0404 + d2 * c0408 +
-                      d1 * c0401 + d2 * c0405 + d3 * c0409 +
-                      d2 * c0402 + d3 * c0406 + d4 * c0410 +
-                      d3 * c0403 + d4 * c0407/* + d5 * c0411*/;
+            r0 = r3;
+            r1 = r4;
+            r2 = bufr[0];
+            r3 = bufr[1];
+            r4 = bufr[2];
+            var sumr = /*r0*c0300 + */r1*c0303 + r2*c0306 +
+                       r1*c0301 + r2*c0304 + r3*c0307 +
+                       i2*c0302 + i3*c0305/* + i4*c0308*/;
+            i0 = i3;
+            i1 = i4;
+            i2 = bufi[0];
+            i3 = bufi[1];
+            i4 = bufi[2];
+            var sumi = /*i0*c0300 + */i1*c0303 + i2*c0306 +
+                       i1*c0301 + i2*c0304 + i3*c0307 +
+                       i2*c0302 + i3*c0305/* + i4*c0308*/;
+            f(new Complex(sumr, sumi));
+            }
+    }
+
+    function interpolate3x(v, f) {
+        r0 = r1; r1 = r2; r2 = v.r;
+        i0 = i1; i1 = i2; i2 = v.i;
+        f(new Complex(r0*c0300 + r1*c0303 + r2*c0306, i0*c0300 + i1*c0303 + i2*c0306));
+        f(new Complex(r0*c0301 + r1*c0304 + r2*c0307, i0*c0301 + i1*c0304 + i2*c0307));
+        f(new Complex(r0*c0302 + r1*c0305 + r2*c0308, i0*c0302 + i1*c0305 + i2*c0308));
+    }
+
+    //#############################################
+    //# 4
+    //#############################################
+
+    function decimate4(v, f) {
+        bufr[idx++] = v;
+        if (idx >= decimation) {
+            idx = 0;
+            r0 = r4;
+            r1 = r5;
+            r2 = bufr[0];
+            r3 = bufr[1];
+            r4 = bufr[2];
+            r5 = bufr[3];
+            var sum = /*r0*c0400 + */r1*c0404 + r2*c0408 +
+                      r1*c0401 + r2*c0405 + r3*c0409 +
+                      r2*c0402 + r3*c0406 + r4*c0410 +
+                      r3*c0403 + r4*c0407/* + r5*c0411*/;
             f(sum);
             }
     }
 
     function interpolate4(v, f) {
-        d0 = d1; d1 = d2; d2 = v;
-        f(d0 * c0400 + d1 * c0404 + d2 * c0408);
-        f(d0 * c0401 + d1 * c0405 + d2 * c0409);
-        f(d0 * c0402 + d1 * c0406 + d2 * c0410);
-        f(d0 * c0403 + d1 * c0407 + d2 * c0411);
+        r0 = r1; r1 = r2; r2 = v;
+        f(r0*c0400 + r1*c0404 + r2*c0408);
+        f(r0*c0401 + r1*c0405 + r2*c0409);
+        f(r0*c0402 + r1*c0406 + r2*c0410);
+        f(r0*c0403 + r1*c0407 + r2*c0411);
     }
 
-    function decimate5(v, f) {
-        buf[idx++] = v;
+    function decimate4x(v, f) {
+        bufr[idx]   = v.r;
+        bufi[idx++] = v.i;
         if (idx >= decimation) {
             idx = 0;
-            d0 = d5;
-            d1 = d6;
-            d2 = buf[0];
-            d3 = buf[1];
-            d4 = buf[2];
-            d5 = buf[3];
-            d6 = buf[4];
-            var sum = /*d0 * c0500 + */d1 * c0505 + d2 * c0510 +
-                      d1 * c0501 + d2 * c0506 + d3 * c0511 +
-                      d2 * c0502 + d3 * c0507 + d4 * c0512 +
-                      d3 * c0503 + d4 * c0508 + d5 * c0513 +
-                      d4 * c0504 + d5 * c0509/* + d6 * c0514*/;
+            r0 = r4;
+            r1 = r5;
+            r2 = bufr[0];
+            r3 = bufr[1];
+            r4 = bufr[2];
+            r5 = bufr[3];
+            var sumr = /*r0*c0400 + */r1*c0404 + r2*c0408 +
+                       r1*c0401 + r2*c0405 + r3*c0409 +
+                       r2*c0402 + r3*c0406 + r4*c0410 +
+                       r3*c0403 + r4*c0407/* + r5*c0411*/;
+            i0 = i4;
+            i1 = i5;
+            i2 = bufi[0];
+            i3 = bufi[1];
+            i4 = bufi[2];
+            i5 = bufi[3];
+            var sumi = /*i0*c0400 + */i1*c0404 + i2*c0408 +
+                       i1*c0401 + i2*c0405 + i3*c0409 +
+                       i2*c0402 + i3*c0406 + i4*c0410 +
+                       i3*c0403 + i4*c0407/* + i5*c0411*/;
+            f(new Complex(sumr, sumi));
+            }
+    }
+
+    function interpolate4x(v, f) {
+        r0 = r1; r1 = r2; r2 = v.r;
+        i0 = i1; i1 = i2; i2 = v.i;
+        f(new Complex(r0*c0400 + r1*c0404 + r2*c0408, i0*c0400 + i1*c0404 + i2*c0408));
+        f(new Complex(r0*c0401 + r1*c0405 + r2*c0409, i0*c0401 + i1*c0405 + i2*c0409));
+        f(new Complex(r0*c0402 + r1*c0406 + r2*c0410, i0*c0402 + i1*c0406 + i2*c0410));
+        f(new Complex(r0*c0403 + r1*c0407 + r2*c0411, i0*c0403 + i1*c0407 + i2*c0411));
+    }
+
+    //#############################################
+    //# 5
+    //#############################################
+
+    function decimate5(v, f) {
+        bufr[idx++] = v;
+        if (idx >= decimation) {
+            idx = 0;
+            r0 = r5;
+            r1 = r6;
+            r2 = bufr[0];
+            r3 = bufr[1];
+            r4 = bufr[2];
+            r5 = bufr[3];
+            r6 = bufr[4];
+            var sum = /*r0*c0500 + */r1*c0505 + r2*c0510 +
+                      r1*c0501 + r2*c0506 + r3*c0511 +
+                      r2*c0502 + r3*c0507 + r4*c0512 +
+                      r3*c0503 + r4*c0508 + r5*c0513 +
+                      r4*c0504 + r5*c0509/* + r6*c0514*/;
             f(sum);
             }
     }
 
     function interpolate5(v, f) {
-        d0 = d1; d1 = d2; d2 = v;
-        f(d0 * c0500 + d1 * c0505 + d2 * c0510);
-        f(d0 * c0501 + d1 * c0506 + d2 * c0511);
-        f(d0 * c0502 + d1 * c0507 + d2 * c0512);
-        f(d0 * c0503 + d1 * c0508 + d2 * c0513);
-        f(d0 * c0504 + d1 * c0509 + d2 * c0514);
+        r0 = r1; r1 = r2; r2 = v;
+        f(r0*c0500 + r1*c0505 + r2*c0510);
+        f(r0*c0501 + r1*c0506 + r2*c0511);
+        f(r0*c0502 + r1*c0507 + r2*c0512);
+        f(r0*c0503 + r1*c0508 + r2*c0513);
+        f(r0*c0504 + r1*c0509 + r2*c0514);
     }
 
+    function decimate5x(v, f) {
+        bufr[idx]   = v.r;
+        bufi[idx++] = v.i;
+        if (idx >= decimation) {
+            idx = 0;
+            r0 = r5;
+            r1 = r6;
+            r2 = bufr[0];
+            r3 = bufr[1];
+            r4 = bufr[2];
+            r5 = bufr[3];
+            r6 = bufr[4];
+            var sumr = /*r0*c0500 + */r1*c0505 + r2*c0510 +
+                       r1*c0501 + r2*c0506 + r3*c0511 +
+                       r2*c0502 + r3*c0507 + r4*c0512 +
+                       r3*c0503 + r4*c0508 + r5*c0513 +
+                       r4*c0504 + r5*c0509/* + r6*c0514*/;
+            i0 = i5;
+            i1 = i6;
+            i2 = bufi[0];
+            i3 = bufi[1];
+            i4 = bufi[2];
+            i5 = bufi[3];
+            i6 = bufi[4];
+            var sumi = /*i0*c0500 + */i1*c0505 + i2*c0510 +
+                       i1*c0501 + i2*c0506 + i3*c0511 +
+                       i2*c0502 + i3*c0507 + i4*c0512 +
+                       i3*c0503 + i4*c0508 + i5*c0513 +
+                       i4*c0504 + i5*c0509/* + i6*c0514*/;
+            f(new Complex(sumr, sumi));
+            }
+    }
+
+    function interpolate5x(v, f) {
+        r0 = r1; r1 = r2; r2 = v.r;
+        i0 = i1; i1 = i2; i2 = v.i;
+        f(new Complex(r0*c0500 + r1*c0505 + r2*c0510, i0*c0500 + i1*c0505 + i2*c0510));
+        f(new Complex(r0*c0501 + r1*c0506 + r2*c0511, i0*c0501 + i1*c0506 + i2*c0511));
+        f(new Complex(r0*c0502 + r1*c0507 + r2*c0512, i0*c0502 + i1*c0507 + i2*c0512));
+        f(new Complex(r0*c0503 + r1*c0508 + r2*c0513, i0*c0503 + i1*c0508 + i2*c0513));
+        f(new Complex(r0*c0504 + r1*c0509 + r2*c0514, i0*c0504 + i1*c0509 + i2*c0514));
+    }
+
+    //#############################################
+    //# 6
+    //#############################################
+
     function decimate6(v, f) {
-        buf[idx++] = v;
+        bufr[idx++] = v;
         if (idx >= decimation){
             idx = 0;
-            d0 = d6;
-            d1 = d7;
-            d2 = buf[0];
-            d3 = buf[1];
-            d4 = buf[2];
-            d5 = buf[3];
-            d6 = buf[4];
-            d7 = buf[5];
-            var sum = /*d0 * c0600 +*/ d1 * c0606 + d2 * c0612 +
-                      d1 * c0601 + d2 * c0607 + d3 * c0613 +
-                      d2 * c0602 + d3 * c0608 + d4 * c0614 +
-                      d3 * c0603 + d4 * c0609 + d5 * c0615 +
-                      d4 * c0604 + d5 * c0610 + d6 * c0616 +
-                      d5 * c0605 + d6 * c0611/* + d7 * c0617*/;
+            r0 = r6;
+            r1 = r7;
+            r2 = bufr[0];
+            r3 = bufr[1];
+            r4 = bufr[2];
+            r5 = bufr[3];
+            r6 = bufr[4];
+            r7 = bufr[5];
+            var sum = /*r0*c0600 +*/ r1*c0606 + r2*c0612 +
+                      r1*c0601 + r2*c0607 + r3*c0613 +
+                      r2*c0602 + r3*c0608 + r4*c0614 +
+                      r3*c0603 + r4*c0609 + r5*c0615 +
+                      r4*c0604 + r5*c0610 + r6*c0616 +
+                      r5*c0605 + r6*c0611/* + r7*c0617*/;
             f(sum);
             }
     }
 
     function interpolate6(v, f) {
-        d0 = d1; d1 = d2; d2 = v;
-        f(d0 * c0600 + d1 * c0606 + d2 * c0612);
-        f(d0 * c0601 + d1 * c0607 + d2 * c0613);
-        f(d0 * c0602 + d1 * c0608 + d2 * c0614);
-        f(d0 * c0603 + d1 * c0609 + d2 * c0615);
-        f(d0 * c0604 + d1 * c0610 + d2 * c0616);
-        f(d0 * c0605 + d1 * c0611 + d2 * c0617);
+        r0 = r1; r1 = r2; r2 = v;
+        f(r0*c0600 + r1*c0606 + r2*c0612);
+        f(r0*c0601 + r1*c0607 + r2*c0613);
+        f(r0*c0602 + r1*c0608 + r2*c0614);
+        f(r0*c0603 + r1*c0609 + r2*c0615);
+        f(r0*c0604 + r1*c0610 + r2*c0616);
+        f(r0*c0605 + r1*c0611 + r2*c0617);
     }
 
+    function decimate6x(v, f) {
+        bufr[idx]   = v.r;
+        bufi[idx++] = v.i;
+        if (idx >= decimation){
+            idx = 0;
+            r0 = r6;
+            r1 = r7;
+            r2 = bufr[0];
+            r3 = bufr[1];
+            r4 = bufr[2];
+            r5 = bufr[3];
+            r6 = bufr[4];
+            r7 = bufr[5];
+            var sumr = /*r0*c0600 +*/ r1*c0606 + r2*c0612 +
+                       r1*c0601 + r2*c0607 + r3*c0613 +
+                       r2*c0602 + r3*c0608 + r4*c0614 +
+                       r3*c0603 + r4*c0609 + r5*c0615 +
+                       r4*c0604 + r5*c0610 + r6*c0616 +
+                       r5*c0605 + r6*c0611/* + r7*c0617*/;
+            i0 = i6;
+            i1 = i7;
+            i2 = bufi[0];
+            i3 = bufi[1];
+            i4 = bufi[2];
+            i5 = bufi[3];
+            i6 = bufi[4];
+            i7 = bufi[5];
+            vai sumi = /*i0*c0600 +*/ i1*c0606 + i2*c0612 +
+                       i1*c0601 + i2*c0607 + i3*c0613 +
+                       i2*c0602 + i3*c0608 + i4*c0614 +
+                       i3*c0603 + i4*c0609 + i5*c0615 +
+                       i4*c0604 + i5*c0610 + i6*c0616 +
+                       i5*c0605 + i6*c0611/* + i7*c0617*/;
+            f(new Complex(sumr, sumi));
+            }
+    }
+
+    function interpolate6x(v, f) {
+        r0 = r1; r1 = r2; r2 = v;
+        i0 = i1; i1 = i2; i2 = v;
+        f(new Complex(r0*c0600 + r1*c0606 + r2*c0612, i0*c0600 + i1*c0606 + i2*c0612));
+        f(new Complex(r0*c0601 + r1*c0607 + r2*c0613, i0*c0601 + i1*c0607 + i2*c0613));
+        f(new Complex(r0*c0602 + r1*c0608 + r2*c0614, i0*c0602 + i1*c0608 + i2*c0614));
+        f(new Complex(r0*c0603 + r1*c0609 + r2*c0615, i0*c0603 + i1*c0609 + i2*c0615));
+        f(new Complex(r0*c0604 + r1*c0610 + r2*c0616, i0*c0604 + i1*c0610 + i2*c0616));
+        f(new Complex(r0*c0605 + r1*c0611 + r2*c0617, i0*c0605 + i1*c0611 + i2*c0617));
+    }
+
+    //#############################################
+    //# 7
+    //#############################################
+
     function decimate7(v, f) {
-        buf[idx++] = v;
+        bufr[idx++] = v;
         if (idx >= decimation) {
             idx = 0;
-            d0 = d7;
-            d1 = d8;
-            d2 = buf[0];
-            d3 = buf[1];
-            d4 = buf[2];
-            d5 = buf[3];
-            d6 = buf[4];
-            d7 = buf[5];
-            d8 = buf[6];
-            var sum = /*d0 * c0700 + */d1 * c0707 + d2 * c0714 +
-                      d1 * c0701 + d2 * c0708 + d3 * c0715 +
-                      d2 * c0702 + d3 * c0709 + d4 * c0716 +
-                      d3 * c0703 + d4 * c0710 + d5 * c0717 +
-                      d4 * c0704 + d5 * c0711 + d6 * c0718 +
-                      d5 * c0705 + d6 * c0712 + d7 * c0719 +
-                      d6 * c0706 + d7 * c0713/* + d8 * c0720*/;
+            r0 = r7;
+            r1 = r8;
+            r2 = bufr[0];
+            r3 = bufr[1];
+            r4 = bufr[2];
+            r5 = bufr[3];
+            r6 = bufr[4];
+            r7 = bufr[5];
+            r8 = bufr[6];
+            var sum = /*r0*c0700 + */r1*c0707 + r2*c0714 +
+                      r1*c0701 + r2*c0708 + r3*c0715 +
+                      r2*c0702 + r3*c0709 + r4*c0716 +
+                      r3*c0703 + r4*c0710 + r5*c0717 +
+                      r4*c0704 + r5*c0711 + r6*c0718 +
+                      r5*c0705 + r6*c0712 + r7*c0719 +
+                      r6*c0706 + r7*c0713/* + r8*c0720*/;
             f(sum);
             }
     }
 
     function interpolate7(v, f) {
-        d0 = d1; d1 = d2; d2 = v;
-        f(d0 * c0700 + d1 * c0707 + d2 * c0714);
-        f(d0 * c0701 + d1 * c0708 + d2 * c0715);
-        f(d0 * c0702 + d1 * c0709 + d2 * c0716);
-        f(d0 * c0703 + d1 * c0710 + d2 * c0717);
-        f(d0 * c0704 + d1 * c0711 + d2 * c0718);
-        f(d0 * c0705 + d1 * c0712 + d2 * c0719);
-        f(d0 * c0706 + d1 * c0713 + d2 * c0720);
+        r0 = r1; r1 = r2; r2 = v;
+        f(r0*c0700 + r1*c0707 + r2*c0714);
+        f(r0*c0701 + r1*c0708 + r2*c0715);
+        f(r0*c0702 + r1*c0709 + r2*c0716);
+        f(r0*c0703 + r1*c0710 + r2*c0717);
+        f(r0*c0704 + r1*c0711 + r2*c0718);
+        f(r0*c0705 + r1*c0712 + r2*c0719);
+        f(r0*c0706 + r1*c0713 + r2*c0720);
+    }
+    
+    function decimate7x(v, f) {
+        bufr[idx]   = v.r;
+        bufi[idx++] = v.i;
+        if (idx >= decimation) {
+            idx = 0;
+            r0 = r7;
+            r1 = r8;
+            r2 = bufr[0];
+            r3 = bufr[1];
+            r4 = bufr[2];
+            r5 = bufr[3];
+            r6 = bufr[4];
+            r7 = bufr[5];
+            r8 = bufr[6];
+            var sumr = /*r0*c0700 + */r1*c0707 + r2*c0714 +
+                       r1*c0701 + r2*c0708 + r3*c0715 +
+                       r2*c0702 + r3*c0709 + r4*c0716 +
+                       r3*c0703 + r4*c0710 + r5*c0717 +
+                       r4*c0704 + r5*c0711 + r6*c0718 +
+                       r5*c0705 + r6*c0712 + r7*c0719 +
+                       r6*c0706 + r7*c0713/* + r8*c0720*/;
+            i0 = i7;
+            i1 = i8;
+            i2 = bufi[0];
+            i3 = bufi[1];
+            i4 = bufi[2];
+            i5 = bufi[3];
+            i6 = bufi[4];
+            i7 = bufi[5];
+            i8 = bufi[6];
+            var sumi = /*i0*c0700 + */i1*c0707 + i2*c0714 +
+                       i1*c0701 + i2*c0708 + i3*c0715 +
+                       i2*c0702 + i3*c0709 + i4*c0716 +
+                       i3*c0703 + i4*c0710 + i5*c0717 +
+                       i4*c0704 + i5*c0711 + i6*c0718 +
+                       i5*c0705 + i6*c0712 + i7*c0719 +
+                       i6*c0706 + i7*c0713/* + i8*c0720*/;
+            f(new Complex(sumr, sumi));
+            }
     }
 
+    function interpolate7x(v, f) {
+        r0 = r1; r1 = r2; r2 = v;
+        i0 = i1; i1 = i2; i2 = v;
+        f(new Complex(r0*c0700 + r1*c0707 + r2*c0714, i0*c0700 + i1*c0707 + i2*c0714));
+        f(new Complex(r0*c0701 + r1*c0708 + r2*c0715, i0*c0701 + i1*c0708 + i2*c0715));
+        f(new Complex(r0*c0702 + r1*c0709 + r2*c0716, i0*c0702 + i1*c0709 + i2*c0716));
+        f(new Complex(r0*c0703 + r1*c0710 + r2*c0717, i0*c0703 + i1*c0710 + i2*c0717));
+        f(new Complex(r0*c0704 + r1*c0711 + r2*c0718, i0*c0704 + i1*c0711 + i2*c0718));
+        f(new Complex(r0*c0705 + r1*c0712 + r2*c0719, i0*c0705 + i1*c0712 + i2*c0719));
+        f(new Complex(r0*c0706 + r1*c0713 + r2*c0720, i0*c0706 + i1*c0713 + i2*c0720));
+    }
+
+    //#############################################
+    //# M A I N
+    //#############################################
     
     switch (decimation) {
-        case 1 : this.decimate = decimate1; this.interpolate = interpolate1; break;
-        case 2 : this.decimate = decimate2; this.interpolate = interpolate2; break;
-        case 3 : this.decimate = decimate3; this.interpolate = interpolate3; break;
-        case 4 : this.decimate = decimate4; this.interpolate = interpolate4; break;
-        case 5 : this.decimate = decimate5; this.interpolate = interpolate5; break;
-        case 6 : this.decimate = decimate6; this.interpolate = interpolate6; break;
-        case 7 : this.decimate = decimate7; this.interpolate = interpolate7; break;
+        case 1 : this.decimate  = decimate1;  this.interpolate  = interpolate1;
+                 this.decimatex = decimate1;  this.interpolatex = interpolate1; break;
+        case 2 : this.decimate  = decimate2;  this.interpolate  = interpolate2;
+                 this.decimatex = decimate2x; this.interpolatex = interpolate2x; break;
+        case 3 : this.decimate  = decimate3;  this.interpolate  = interpolate3;
+                 this.decimatex = decimate3x; this.interpolatex = interpolate3x; break;
+        case 4 : this.decimate  = decimate4;  this.interpolate  = interpolate4;
+                 this.decimatex = decimate4x; this.interpolatex = interpolate4x; break;
+        case 5 : this.decimate  = decimate5;  this.interpolate  = interpolate5;
+                 this.decimatex = decimate5x; this.interpolatex = interpolate5x; break;
+        case 6 : this.decimate  = decimate6;  this.interpolate  = interpolate6;
+                 this.decimatex = decimate6x; this.interpolatex = interpolate6x; break;
+        case 7 : this.decimate  = decimate7;  this.interpolate  = interpolate7;
+                 this.decimatex = decimate7x; this.interpolatex = interpolate7x; break;
         default:  throw new IllegalArgumentException("Decimation " + decimation + " not supported");
         }
 }
