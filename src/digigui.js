@@ -8,16 +8,17 @@
  *    the Free Software Foundation, either version 3 of the License, or
  *    (at your option) any later version.
  *
- *    Foobar is distributed in the hope that it will be useful,
+ *    This program is distributed in the hope that it will be useful,
  *    but WITHOUT ANY WARRANTY; without even the implied warranty of
  *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
+ *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 var Digi = require('./digi').Digi;
+var Constants = require('./digi').Constants;
 
 /**
  * Provides a Waterfall display on incoming spectrum data
@@ -118,17 +119,6 @@ function Waterfall(par, anchor, width, height, bins) {
         
     function drawWaterfall(data) {
     
-        for (var i = 0 ; i < BINS ; i++)
-            if (data[i]>0)
-                break;
-        if (i>=BINS)
-            return;
-        
-        /*
-        for (var dest = 0, src = rowsize ; src < imglen ; dest++, src++) {
-            buf8[dest] = buf8[src];
-        }
-        */
         buf8.set(buf8.subarray(rowsize, imglen)); //<-cool, if this works
         //trace("data:" + data[50]);
 
@@ -229,7 +219,7 @@ function DigiGui(anchorName) {
     });
     anchor.append(startBtn);
     
-    var waterfall = new Waterfall(this, anchor, 800, 300, this.BINS);
+    var waterfall = new Waterfall(this, anchor, 800, 300, Constants.BINS);
     
     /**
      * Overridden from Digi

@@ -8,13 +8,13 @@
  *    the Free Software Foundation, either version 3 of the License, or
  *    (at your option) any later version.
  *
- *    Foobar is distributed in the hope that it will be useful,
+ *    This program is distributed in the hope that it will be useful,
  *    but WITHOUT ANY WARRANTY; without even the implied warranty of
  *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
+ *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
  
 var FFT = require("./fft").FFT;
@@ -30,6 +30,12 @@ function Mode(par, sampleRateHint) {
 }
 
 
+var Constants = {
+    FFT_SIZE : 2048,
+    FFT_MASK : 2048 - 1,
+    BINS     : 1024
+};
+
 
 /**
  * This is the top-level GUI-less app
@@ -37,16 +43,7 @@ function Mode(par, sampleRateHint) {
 function Digi() {
 
     var self = this;
-    
-    var FFT_SIZE = 2048;
-    var FFT_MASK = FFT_SIZE - 1;
-    var BINS     = FFT_SIZE/2;
-    
-    this.FFT_SIZE = FFT_SIZE;
-    this.FFT_MASK = FFT_MASK;
-    this.BINS     = BINS;
-
-
+        
     function trace(msg) {
         if (typeof console !== "undefined") 
             console.log("Digi: " + msg);
@@ -56,8 +53,12 @@ function Digi() {
         if (typeof console !== "undefined") 
             console.log("Digi error: " + msg);
     }
-
     
+    var audioInput = new AudioInput(this);
+    
+    this.sampleRate = audioInput.sampleRate;
+    
+
 
     /**
      * Override this in the GUI
@@ -65,8 +66,8 @@ function Digi() {
     this.receiveSpectrum  = function(data) {};
 
 
-    var fft = new FFT(FFT_SIZE);
-    var ibuf = new Float32Array(FFT_SIZE);
+    var fft = new FFT(Constants.FFT_SIZE);
+    var ibuf = new Float32Array(Constants.FFT_SIZE);
     var iptr = 0;
     var icnt = 0;
     var FFT_WINDOW = 700;
@@ -90,12 +91,6 @@ function Digi() {
     
 
 
-    
-    var audioInput = new AudioInput(this);
-    
-    function getSampleRate() {
-        return audioInput.getSampleRate();
-    }
     
     function start() {
         audioInput.start();    
