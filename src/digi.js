@@ -19,28 +19,9 @@
  
 var FFT = require("./fft").FFT;
 var AudioInput = require("./audio").AudioInput;
+var Mode = require("./mode").Mode;
 
 
-
-function Mode(par, sampleRateHint) {
-
-    var self = this;
-
-    this.frequency = 1000;
-
-    this.bandwidth = 31.5;
-    
-    /**
-     * Overload this for each mode
-     */
-    this.update = function(v) {
-    };
-    
-    this.receive = function(v) {
-        self.update(v);
-    };
-    
-}
 
 
 var Constants = {
