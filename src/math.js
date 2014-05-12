@@ -34,6 +34,4 @@ Complex.I =
 
 
 
-exports._test = {
-    Complex: Complex
-};
+module.exports.Complex = Complex;
