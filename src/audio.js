@@ -17,6 +17,8 @@
  *    along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+var Resampler = require("./resample").Resampler;
+
 window.AudioContext = window.AudioContext || window.webkitAudioContext;
 navigator.getUserMedia = navigator.getUserMedia ||
                          navigator.webkitGetUserMedia ||

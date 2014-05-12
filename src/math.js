@@ -2,8 +2,8 @@
                                                                
 
 function Complex(real, imaginary) {
-    this.r = r;
-    this.i = i;
+    this.r = real;
+    this.i = imaginary;
     Object.freeze(this);
 }
 Complex.prototype.add =

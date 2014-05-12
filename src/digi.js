@@ -47,8 +47,6 @@ function Digi() {
     this.BINS     = BINS;
 
 
-
-
     function trace(msg) {
         if (typeof console !== "undefined") 
             console.log("Digi: " + msg);
@@ -60,7 +58,6 @@ function Digi() {
     }
 
     
-
 
     /**
      * Override this in the GUI
@@ -74,16 +71,16 @@ function Digi() {
     var icnt = 0;
     var FFT_WINDOW = 700;
     
-    function update(data) {
+    this.receive = function(data) {
         ibuf[iptr++] = data;
         iptr &= FFT_MASK;
         if (++icnt >= FFT_WINDOW) {
             icnt = 0;
             var ps = fft.powerSpectrum(ibuf);
             //console.log("ps: " + ps[100]);
+            self.receiveSpectrum(ps);
         }        
-    }        
-    this.update = update;
+    };       
 
     
     function transmit(data) {
@@ -94,7 +91,7 @@ function Digi() {
 
 
     
-    var audioInput = new jdigi.AudioInput(this);
+    var audioInput = new AudioInput(this);
     
     function getSampleRate() {
         return audioInput.getSampleRate();

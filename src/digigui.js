@@ -187,12 +187,12 @@ function Waterfall(par, anchor, width, height, bins) {
     
     
      
-    function redraw(data) {
+    this.update = function(data) {
         //trace("draw");
         //drawSpectrum();
         drawWaterfall2(data);
         drawTuner();
-    }
+    };
     
     this.start = function() {
     };
@@ -214,6 +214,7 @@ function Waterfall(par, anchor, width, height, bins) {
 function DigiGui(anchorName) {
 
     Digi.call(this);
+    var self = this;
     
     window.requestAnimationFrame =
         window.requestAnimationFrame ||
@@ -224,7 +225,7 @@ function DigiGui(anchorName) {
     var anchor = $(anchorName);
 
     var startBtn = $("<button>").html("Start").click(function() {
-        this.start();
+        self.start();
     });
     anchor.append(startBtn);
     
@@ -234,7 +235,7 @@ function DigiGui(anchorName) {
      * Overridden from Digi
      */
     this.receiveSpectrum = function(ps) {
-        requestAnimationFrame(function() { redraw(ps); } );
+        requestAnimationFrame(function() { waterfall.update(ps); } );
     };
 
 
