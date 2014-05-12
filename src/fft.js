@@ -120,9 +120,4 @@ function FFT(N) {
 
 }
 
-
-/*
-exports._test = {
-    FFT: FFT
-};
-*/
+exports.FFT = FFT;

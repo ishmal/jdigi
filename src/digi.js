@@ -1,4 +1,8 @@
 
+
+var FFT = require("fft").FFT;
+var Complex = require("math").Complex;
+
 function Mode(par, sampleRateHint) {
 
 

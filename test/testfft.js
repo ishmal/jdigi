@@ -1,12 +1,12 @@
 
 
 var assert = require("assert");
-var app = require("../src/fft.js");
+var fftmod = require("../src/fft");
 
 describe('Math Tests', function(){
   describe('FFT', function(){
     it('FFT should generate proper butterfly indices', function(){
-      var fft = new app._test.FFT(8);
+      var fft = new fftmod.FFT(8);
       var stages = fft.stages;
       var len = stages.length;
       for (var i = 0 ; i < len ; i++) {
