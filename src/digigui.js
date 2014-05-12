@@ -25,7 +25,18 @@ var Constants = require('./digi').Constants;
  */
 function Waterfall(par, anchor, width, height, bins) {
 
+    var self = this;
     
+    var MAX_FREQ = par.sampleRate * 0.5;
+    
+    function trace(msg) {
+        if (typeof console !== "undefined")
+            console.log("Waterfall: " + msg);
+    }
+    function error(msg) {
+        if (typeof console !== "undefined")
+            console.log("Waterfall error : " + msg);
+    }
 
     function createIndices(targetsize, sourcesize) {
         var xs = [];
@@ -41,6 +52,14 @@ function Waterfall(par, anchor, width, height, bins) {
     
     var canvas = $("<canvas width='" + width + "' height='" + height + "'>");
     anchor.append(canvas);
+    
+    var dragging = false;
+    canvas.click(function(event) { mouseFreq(event); })
+        .mousedown(function(event) { dragging=true; })
+        .mouseup(function(event) { dragging=false; })
+        .mousemove(function(event) { if (dragging) mouseFreq(event); });
+
+    
     var ctx      = canvas.get(0).getContext('2d'); 
     var imgData  = ctx.createImageData(width, height);
     var imglen   = imgData.data.length;
@@ -57,25 +76,23 @@ function Waterfall(par, anchor, width, height, bins) {
     var lastRow  = imglen - rowsize;
 
     
-    function relMouseCoords(event){
-        var totalOffsetX = 0;
-        var totalOffsetY = 0;
-        var canvasX = 0;
-        var canvasY = 0;
-        var currentElement = this;
-
-        do {
-            totalOffsetX += currentElement.offsetLeft - currentElement.scrollLeft;
-            totalOffsetY += currentElement.offsetTop - currentElement.scrollTop;
-        }
-        while((currentElement = currentElement.offsetParent));
-
-        canvasX = event.pageX - totalOffsetX;
-        canvasY = event.pageY - totalOffsetY;
-
-        return {x:canvasX, y:canvasY};
+    function mouseFreq(event) {
+        var pt = getMousePos(canvas.get(0), event);
+        //trace("point: " + pt.x + ":" + pt.y);
+        var freq = MAX_FREQ * pt.x /width;
+        //trace("freq:" + freq);
+        frequency = freq;
     }
 
+
+    function getMousePos(canvas, evt) {
+        var rect = canvas.getBoundingClientRect();
+        return {
+          x: evt.clientX - rect.left,
+          y: evt.clientY - rect.top
+        };
+      }
+      
     /**
      * Make a palette. tweak this often
      */                 
@@ -165,16 +182,52 @@ function Waterfall(par, anchor, width, height, bins) {
     
     function drawTuner() {
     
-        var x = 400;
+        var pixPerHz = 1 / MAX_FREQ * width;
     
-        ctx.strokeStyle = "green";
+        var x = frequency * pixPerHz;
+        var bw = par.getBandwidth();
+        var bww  = bw * pixPerHz;
+        var bwhi = (frequency + bw * 0.5) * pixPerHz;
+        var bwlo = (frequency - bw * 0.5) * pixPerHz;
+        
+    
+        ctx.fillStyle = "rgba(255,255,255,0.25)";
+        ctx.fillRect(bwlo, 0, bww, height);
+        ctx.strokeStyle = "cyan";
         ctx.beginPath();
         ctx.moveTo(x, 0);
         ctx.lineTo(x, height);
         ctx.stroke();
+        
+        var top = height-15;
+        
+        for (var hz=0 ; hz < MAX_FREQ ; hz+=100) {
+            if ((hz % 1000) === 0) {
+                ctx.strokeStyle = "red";
+                ctx.beginPath();
+                x = hz * pixPerHz;
+                ctx.moveTo(x, top);
+                ctx.lineTo(x, height);
+                ctx.stroke();
+            } else {
+                ctx.strokeStyle = "white";
+                ctx.beginPath();
+                x = hz * pixPerHz;
+                ctx.moveTo(x, top+10);
+                ctx.lineTo(x, height);
+                ctx.stroke();
+            }     
+        }
+    
+        ctx.fillStyle = "gray";
+        for (hz=0 ; hz < MAX_FREQ ; hz+=500) {
+            x = hz * pixPerHz - 10;
+            ctx.fillText(hz.toString(),x,top+14);
+        }
     
     }
     
+    var frequency = 1000;
     
      
     this.update = function(data) {

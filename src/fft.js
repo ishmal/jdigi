@@ -123,7 +123,7 @@ function FFT(N) {
         var rarr = out.r;
         var iarr = out.i;
         
-        var len = rarr.length;
+        var len = rarr.length >> 1;
         
         var ps = [];
         for (var j = 0 ; j < len ; j++) {

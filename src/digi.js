@@ -24,15 +24,27 @@ var AudioInput = require("./audio").AudioInput;
 
 function Mode(par, sampleRateHint) {
 
+    var self = this;
 
+    this.frequency = 1000;
 
-
+    this.bandwidth = 31.5;
+    
+    /**
+     * Overload this for each mode
+     */
+    this.update = function(v) {
+    };
+    
+    this.receive = function(v) {
+        self.update(v);
+    };
+    
 }
 
 
 var Constants = {
     FFT_SIZE : 2048,
-    FFT_MASK : 2048 - 1,
     BINS     : 1024
 };
 
@@ -55,17 +67,29 @@ function Digi() {
     }
     
     var audioInput = new AudioInput(this);
+    var pskMode = new PskMode(this);
+    var mode = pskMode;
     
     this.sampleRate = audioInput.sampleRate;
     
+    this.getBandwidth = function() {
+        return mode.bandwidth;
+    };
+    
+    this.setFrequency = function(freq, setTuner) {
+        mode.frequency = freq;
+    };
 
+    this.getFrequency = function() {
+        return mode.frequency;
+    };
 
     /**
      * Override this in the GUI
      */
     this.receiveSpectrum  = function(data) {};
 
-
+    var FFT_MASK = Constants.FFT_SIZE - 1;
     var fft = new FFT(Constants.FFT_SIZE);
     var ibuf = new Float32Array(Constants.FFT_SIZE);
     var iptr = 0;
@@ -73,6 +97,7 @@ function Digi() {
     var FFT_WINDOW = 700;
     
     this.receive = function(data) {
+        mode.receive(data);
         ibuf[iptr++] = data;
         iptr &= FFT_MASK;
         if (++icnt >= FFT_WINDOW) {
@@ -104,5 +129,6 @@ function Digi() {
 
 } //Digi
 
+module.exports.Constants=Constants;
 module.exports.Digi=Digi;
 

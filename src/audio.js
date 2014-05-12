@@ -40,7 +40,7 @@ function AudioInput(par) {
 
     var actx = new AudioContext();
     var decimation = 7;
-    var sampleRate = actx.sampleRate / decimation;
+    this.sampleRate = actx.sampleRate / decimation;
 
     var analyser = null;
     var isRunning = false;
