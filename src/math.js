@@ -38,6 +38,8 @@ Complex.prototype.conj =
     function() { return new Complex(this.r, -this.i); };
 Complex.prototype.mag =
     function() { var r = this.r; var i = this.i; return r*r+i*i; };
+Complex.prototype.abs =
+    function() { var r = this.r; var i = this.i; return Math.sqrt(r*r+i*i); };
 Complex.prototype.arg =
     function() { return Math.atan2(this.i, this.r); };
 Complex.prototype.toString =

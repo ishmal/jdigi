@@ -18,6 +18,8 @@
  */
 
 
+var Complex = require("./math").Complex;
+
 var ncoTable = (function() {
 
     var twopi = Math.PI * 2.0;
@@ -39,7 +41,13 @@ var ncoTable = (function() {
  */
 function Nco(frequency, sampleRate)
 {
-    var freq  = (4294967296.0 * frequency / sampleRate)|0;
+    var freq = 0|0;
+    function setFrequency(frequency) {
+        freq  = (4294967296.0 * frequency / sampleRate)|0;
+    }
+    this.setFrequency = setFrequency;
+    setFrequency(frequency);
+    
     var phase = 0|0;
     var table = ncoTable;
     

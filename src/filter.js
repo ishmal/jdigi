@@ -18,12 +18,16 @@
  */
 
 
-FIR = (function() {
+var FIRType = {
+    LP : 0,  // Low pass
+    HP : 1,  // High pass
+    BP : 2,  // Band pass
+    BR : 3   // Band reject
+};
 
-    this.LP = 0;
-    this.HP = 1;
-    this.BP = 2;
-    this.BR = 3;
+
+function FIR(type, size, window) {
+
     
     function average(size) {
         var xs = [];
@@ -76,55 +80,56 @@ FIR = (function() {
         });
     }
     
-    this.create = function(type, size, window) {
-
-        var sizeless = size-1;
-        var coeffs = [];
-        var dlr = new Float32Array(size);
-        var dli = new Float32Array(size);
-        var dptr = 0;
-        
-        function update(v) {
-            dlr[dptr++] = v;
-            dptr %= size;
-            var ptr = dptr;
-            var sum = 0;
-            for (var i=0 ; i < size ; i++) {
-                sum += coeffs[i] * dlr[ptr];
-                ptr = [ptr+sizeless]%size;
-            }
-            return sum;
-        }
-        
-        function updatex(v) {
-            dlr[dptr]   = v.r;
-            dli[dptr++] = v.i;
-            dptr %= size;
-            var ptr = dptr;
-            var sumr = 0;
-            var sumi = 0;
-            for (var i=0 ; i < size ; i++) {
-                sumr += coeffs[i] * dlr[ptr];
-                sumi += coeffs[i] * dli[ptr];
-                ptr = [ptr+sizeless]%size;
-            }
-            return new Complex(sumr, sumi);
-        }
-        
-        
+    var sizeless = size-1;
+    var coeffs = [];
+    var dlr = new Float32Array(size);
+    var dli = new Float32Array(size);
+    var dptr = 0;
     
-        if (typeof window === "undefined")
-            window = 0;
-            
-        switch (type) {
-            case this.LP: coeffs = lowpass(size, window); break;
-            case this.HP: coeffs = highpass(size, window); break;
-            case this.BP: coeffs = bandpass(size, window); break;
-            case this.BR: coeffs = bandreject(size, window); break;
-            default : throw new IllegalArgumentException("Fir type " + type + " not implemented.");
+    this.update = function(v) {
+        dlr[dptr++] = v;
+        dptr %= size;
+        var ptr = dptr;
+        var sum = 0;
+        for (var i=0 ; i < size ; i++) {
+            sum += coeffs[i] * dlr[ptr];
+            ptr = [ptr+sizeless]%size;
         }
+        return sum;
     };
-})();
+    
+    this.updatex = function(v) {
+        dlr[dptr]   = v.r;
+        dli[dptr++] = v.i;
+        dptr %= size;
+        var ptr = dptr;
+        var sumr = 0;
+        var sumi = 0;
+        for (var i=0 ; i < size ; i++) {
+            sumr += coeffs[i] * dlr[ptr];
+            sumi += coeffs[i] * dli[ptr];
+            ptr = [ptr+sizeless]%size;
+        }
+        return new Complex(sumr, sumi);
+    };
+    
 
+    if (typeof window === "undefined")
+        window = 0;
+        
+    function FIRTypeException(msg) {
+        this.message = msg;
+        this.name = "FIRTypeException";
+    }
+        
+    switch (type) {
+        case FIRType.LP: coeffs = lowpass(size, window);    break;
+        case FIRType.HP: coeffs = highpass(size, window);   break;
+        case FIRType.BP: coeffs = bandpass(size, window);   break;
+        case FIRType.BR: coeffs = bandreject(size, window); break;
+        default : throw new FIRTypeException("Fir type " + type + " not implemented.");
+    }
+}
 
 module.exports.FIR=FIR;
+module.exports.FIRType=FIRType;

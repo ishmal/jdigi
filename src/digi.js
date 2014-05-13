@@ -20,7 +20,7 @@
 var FFT = require("./fft").FFT;
 var AudioInput = require("./audio").AudioInput;
 var Mode = require("./mode").Mode;
-
+var PskMode = require("./pskmode").PskMode;
 
 
 
@@ -48,10 +48,11 @@ function Digi() {
     }
     
     var audioInput = new AudioInput(this);
+    this.sampleRate = audioInput.sampleRate;
+
     var pskMode = new PskMode(this);
     var mode = pskMode;
     
-    this.sampleRate = audioInput.sampleRate;
     
     this.getBandwidth = function() {
         return mode.bandwidth;
@@ -78,7 +79,7 @@ function Digi() {
     var FFT_WINDOW = 700;
     
     this.receive = function(data) {
-        mode.receive(data);
+        mode.receiveData(data);
         ibuf[iptr++] = data;
         iptr &= FFT_MASK;
         if (++icnt >= FFT_WINDOW) {

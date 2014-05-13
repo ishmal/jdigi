@@ -17,6 +17,7 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+
 /**
  * A highly experimental resampler with hardcoded calculations
  */
@@ -595,6 +596,11 @@ function Resampler(decimation) {
     //# M A I N
     //#############################################
     
+    function BadDecimationSpecException(message) {
+        this.message = message;
+        this.name = "BadDecimationSpecException";
+    }
+
     switch (decimation) {
         case 1 : this.decimate  = decimate1;  this.interpolate  = interpolate1;
                  this.decimatex = decimate1;  this.interpolatex = interpolate1; break;
@@ -610,7 +616,43 @@ function Resampler(decimation) {
                  this.decimatex = decimate6x; this.interpolatex = interpolate6x; break;
         case 7 : this.decimate  = decimate7;  this.interpolate  = interpolate7;
                  this.decimatex = decimate7x; this.interpolatex = interpolate7x; break;
-        default:  throw new IllegalArgumentException("Decimation " + decimation + " not supported");
+        case 8 : var sub8 = new Resampler(4);
+                 this.decimate = function(v, f) {
+                     decimate2(v, function(v1) {
+                         sub8.decimate(v1, f);
+                     });
+                 };
+                 this.interpolate = function(v, f) {
+                     interpolate2(v, function(v1) {
+                         sub8.interpolate(v1, f);
+                     });
+                 };
+                 break;
+        case 9 : var sub9 = new Resampler(3);
+                 this.decimate = function(v, f) {
+                     decimate3(v, function(v1) {
+                         sub9.decimate(v1, f);
+                     });
+                 };
+                 this.interpolate = function(v, f) {
+                     interpolate3(v, function(v1) {
+                         sub9.interpolate(v1, f);
+                     });
+                 };
+                 break;
+        case 10 : var sub10 = new Resampler(5);
+                 this.decimate = function(v, f) {
+                     decimate2(v, function(v1) {
+                         sub10.decimate(v1, f);
+                     });
+                 };
+                 this.interpolate = function(v, f) {
+                     interpolate2(v, function(v1) {
+                         sub10.interpolate(v1, f);
+                     });
+                 };
+                 break;
+        default:  throw new BadDecimationSpecException("Decimation " + decimation + " not supported");
         }
 
 

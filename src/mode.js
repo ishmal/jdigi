@@ -16,6 +16,9 @@
  *    You should have received a copy of the GNU General Public License
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+ 
+var Resampler = require("./resample").Resampler;
+var Nco = require("./nco").Nco;
 
 function Mode(par, sampleRateHint) {
 
@@ -25,14 +28,25 @@ function Mode(par, sampleRateHint) {
 
     this.bandwidth = 31.5;
     
+    var decimation = Math.floor(par.sampleRate / sampleRateHint);
+    
+    var sampleRate = par.sampleRate / decimation;
+    
+    var decimator = new Resampler(decimation); 
+    
+    var nco = new Nco(this.frequency, sampleRate);
+    
     /**
-     * Overload this for each mode
+     * Overload this for each mode.  Note that the parameter is Complex
      */
-    this.update = function(v) {
+    this.receive = function(v) {
     };
     
-    this.receive = function(v) {
-        self.update(v);
+    this.receiveData = function(v) {
+        decimator.decimate(v, function(vp) {
+            var cs = nco.next();
+            self.receive(cs.scale(vp));
+        });
     };
     
 }
