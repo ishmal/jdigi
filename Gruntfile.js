@@ -2,6 +2,13 @@ module.exports = function(grunt) {
 
   grunt.initConfig({
     pkg: grunt.file.readJSON('package.json'),
+    copy: {
+      main: {
+        files: [
+          {expand: true, flatten: true, src: ['html/*'], dest: 'dist/', filter: 'isFile' }        
+        ]
+       }
+    },
     browserify: {
       js: {
           src: ['src/**/*.js'],
@@ -44,6 +51,8 @@ module.exports = function(grunt) {
     }
   });
 
+  grunt.loadNpmTasks('grunt-contrib-copy');
+  grunt.loadNpmTasks('grunt-contrib-uglify');
   grunt.loadNpmTasks('grunt-contrib-uglify');
   grunt.loadNpmTasks('grunt-contrib-jshint');
   grunt.loadNpmTasks('grunt-mocha-test');
@@ -52,6 +61,6 @@ module.exports = function(grunt) {
 
   grunt.registerTask('test', ['jshint', 'mochaTest']);
 
-  grunt.registerTask('default', ['jshint', 'mochaTest', 'browserify', 'uglify']);
+  grunt.registerTask('default', ['jshint', 'copy', 'browserify', 'uglify']);
 
 };

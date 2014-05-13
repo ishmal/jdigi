@@ -37,7 +37,7 @@ function Mode(par, sampleRateHint) {
     
     var decimator = new Resampler(decimation); 
     
-    var nco = new Nco(this.frequency, sampleRate);
+    var nco = new Nco(this.frequency, this.sampleRate);
     
     
     
