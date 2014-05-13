@@ -30,11 +30,16 @@ function Mode(par, sampleRateHint) {
     
     var decimation = Math.floor(par.sampleRate / sampleRateHint);
     
-    var sampleRate = par.sampleRate / decimation;
+    this.sampleRate = par.sampleRate / decimation;
+    
+    this.rate = 31.5;
+    this.samplesPerSymbol = this.sampleRate / this.rate;
     
     var decimator = new Resampler(decimation); 
     
     var nco = new Nco(this.frequency, sampleRate);
+    
+    
     
     /**
      * Overload this for each mode.  Note that the parameter is Complex

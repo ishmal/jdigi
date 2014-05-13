@@ -249,18 +249,119 @@ function PskMode(par) {
     var self = this;
     var counter = 0;
     Mode.call(this, par, 1000);
+    
 
+
+    var timer = new EarlyLate(this.samplesPerSymbol);
 
     this.receive = function(v) {
     
         //if ((counter++ & 1023) === 0) console.log("v: " + v.r + ", " + v.i);
     
     
-    
+        timer.update(v, function(z) {
+        
+        });
     
     };
 
 
+    //val decoder = Viterbi.decoder(5, 0x17, 0x19)
+    
+    this.qpskMode = false;
+    
+        
+    function angleDiff(a, b) {
+        var diff = a-b;
+        while (diff > Math.PI)
+            diff -= twopi;
+        while (diff < -Math.PI)
+            diff += twopi;
+        //println("%f %f %f".format(a, b, diff))
+        return diff;
+    }
+
+    var diffScale = 255.0 / Math.PI;
+    
+    /**
+     * Return the scaled distance of the angle v from "from".
+     * Returns a positive value 0..255  for
+     * 0 radians to +- pi       
+     */    
+    function distance(v, from) {
+        var diff = Math.PI - Math.abs(Math.abs(v-from) - Math.PI);
+        return Math.floor(diff * diffScale);
+    }
+
+    var halfpi = Math.PI * 0.5;
+
+    var code      = 0;
+    var lastv     = 0.0;
+    var count     = 0;
+    var lastBit   = false;
+    
+    
+    function processSymbol(v) {
+    
+        var vn, dv, d00, d01, d10, d11;
+
+        if (this.qpskMode) {
+            /**/
+            vn  = v.arg();
+            dv  = angleDiff(vn,  lastv);
+            d00 = distance(dv, Math.PI);
+            d01 = distance(dv,  halfpi);
+            d10 = distance(dv, -halfpi);
+            d11 = distance(dv,     0.0);
+            var bm = [d00, d01, d10, d11];
+            //println("%6.3f %6.3f %6.3f  :  %3d %3d %3d %3d".format(lastv, vn, dv, d00, d01, d10, d11))
+            var bits = decoder.decodeOne(bm);
+            var len = bits.length; 
+            for (var i=0 ; i < len ; i++)
+                processBit(bits[i]);
+            lastv = vn;
+            /**/               
+        } else { //bpsk
+            /**/
+            vn  = v.arg();
+            dv  = angleDiff(vn,  lastv);
+            d00 = distance(dv, Math.PI);
+            d11 = distance(dv,     0.0);
+            //println("%6.3f %6.3f %6.3f  :  %3d %3d".format(lastv, vn, dv, d00, d11))
+            var bit = d11 < d00;
+            lastv = vn;
+            /**/
+            processBit(bit);
+        }
+    }
+
+
+    function processBit(bit) {
+        //println("bit: " + bit)
+        if ((!bit) && (!lastBit)) {
+            code >>= 1;   //remove trailing 0
+            if (code !== 0) {
+                //println("code:" + Varicode.toString(code))
+                var ascii = Varicode.decodeTable.get(code);
+                if (ascii) {
+                    var chr = ascii;
+                    if (chr == 10 || chr == 13)
+                        par.puttext("\n");
+                    else
+                        par.puttext(chr.toString);
+                    code = 0;
+                    }                        
+                }
+            code = 0;
+            }
+        else
+            {
+            code <<= 1;
+            if (bit) code += 1;
+            }
+        lastBit = bit ;       
+        }
+    
 
 
 

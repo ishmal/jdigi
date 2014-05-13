@@ -96,7 +96,8 @@ function Digi() {
     
     }
     
-
+    this.puttext = function(str) {
+    };
 
     
     function start() {
