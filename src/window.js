@@ -20,68 +20,62 @@
 /**
  * A few Window types
  */
-var Window = (function() {
+var Window = {
 
-    this.RECTANGULAR = 0;
-    this.BARTLETT    = 1;
-    this.BLACKMAN    = 2;
-    this.COSINE      = 3;
-    this.GAUSS       = 4;
-    this.HAMMING     = 5;
-    this.HANN        = 6;
-    
-    this.create = function(type, size) {
-    
-        var twopi = 2.0 * Math.PI;
-
-        function makeBartlett(index) { 
-            return 2 / (size - 1) * ((size - 1) / 2 - Math.abs(index - (size - 1) / 2));
-        }
-
-        function makeBlackman(index) { 
-            var alpha = 0.16; //the "exact" Blackman
-            var a0 = (1 - alpha) / 2;
-            var a1 = 0.5;
-            var a2 = alpha * 0.5;
-            return a0 - a1 * Math.cos(twopi * index / (size - 1)) + a2 * Math.cos(4 * Math.PI * index / (size - 1));
-        }
-
-        function makeCosine(index) {
-            return Math.cos(Math.PI * index / (length - 1) - Math.PI / 2);
-        }
-
-        function makeGauss(index) {
-            return Math.pow(Math.E, -0.5 * Math.pow((index - (size - 1) / 2) / (alpha * (size - 1) / 2), 2));
-        }
-
-        function makeHamming(index) {
-            return 0.54 - 0.46 * Math.cos(twopi * index / (size - 1));
-        }
-
-        function makeHann(index) {
-            return 0.5 - 0.5 * Math.cos(twopi * index / (size - 1));
-        }
-
-
-        var make = function(x) { return 1; };
-    
-        switch(type) {
-            case Window.RECTANGULAR : break;
-            case Window.BARTLETT    : make = makeBartlett; break;
-            case Window.BLACKMAN    : make = makeBlackman; break;
-            case Window.HAMMING     : make = makeHamming;  break;
-            case Window.HANN        : make = makeHann;     break;
-            default : throw new IllegalArgumentException("Window type '" + type + "' not implemented");
-        }
-    
-        var value = [];
+    rectangle : function(size) { 
+        var xs = [];
         for (var i=0 ; i < size ; i++)
-            value.push(make(i));
-            
-        return value;
-    };
+            xs.push(1.0);
+        return xs;
+    },
 
-})();
+    bartlett : function(size) { 
+        var xs = [];
+        for (var i=0 ; i < size ; i++)
+            xs.push(2 / (size - 1) * ((size - 1) / 2 - Math.abs(i - (size - 1) / 2)));
+        return xs;
+    },
+
+    blackman : function(size) { 
+        var alpha = 0.16; //the "exact" Blackman
+        var a0 = (1 - alpha) / 2;
+        var a1 = 0.5;
+        var a2 = alpha * 0.5;
+        var xs = [];
+        for (var i=0 ; i < size ; i++)
+            xs.push(a0 - a1 * Math.cos(2.0 * Math.PI * i / (size - 1)) + a2 * Math.cos(4 * Math.PI * i / (size - 1)));
+        return xs;
+    },
+
+    cosine : function(size) {
+        var xs = [];
+        for (var i=0 ; i < size ; i++)
+            xs.push(Math.cos(Math.PI * i / (size - 1) - Math.PI / 2));
+        return xs;
+    },
+
+    gauss : function(size) {
+        var xs = [];
+        for (var i=0 ; i < size ; i++)
+            xs.push(Math.pow(Math.E, -0.5 * Math.pow((i - (size - 1) / 2) / (alpha * (size - 1) / 2), 2)));
+        return xs;
+    },
+
+    hamming : function(size) {
+        var xs = [];
+        for (var i=0 ; i < size ; i++)
+            xs.push(0.54 - 0.46 * Math.cos(2.0 * Math.PI * i / (size - 1)));
+        return xs;
+    },
+
+    hann : function(size) {
+        var xs = [];
+        for (var i=0 ; i < size ; i++)
+            xs.push(0.5 - 0.5 * Math.cos(2.0 * Math.PI * i / (size - 1)));
+        return xs;
+    }
+
+};
 
 module.exports.Window = Window;
 
