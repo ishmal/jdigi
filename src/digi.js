@@ -74,6 +74,11 @@ function Digi() {
     /**
      * Override this in the GUI
      */
+    this.showScope  = function(data) {};
+
+    /**
+     * Override this in the GUI
+     */
     this.puttext = function(str) {
     };
 

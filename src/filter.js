@@ -17,7 +17,8 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-var Window = require("./window").Window;
+var Complex = require("./math").Complex;
+var Window  = require("./window").Window;
 
 var FIR = (function() {
 
@@ -41,7 +42,7 @@ var FIR = (function() {
         var sum = 0.0;
         var arr = [];
         for (var i=0 ; i<size ; i++) {
-            var v = f(i-center) * W[i];
+            var v = func(i-center) * W[i];
             sum += v;
             arr.push(v);
         }
@@ -50,46 +51,13 @@ var FIR = (function() {
         return arr;
     }
 
-    function lowpass(size, cutoffFreq, sampleRate, window) {
-        var omega = 2.0 * Math.PI * cutoffFreq / sampleRate;
-        var coeffs = genCoeffs(size, window, function(i) {
-             return (i === 0) ? omega / Math.PI : Math.sin(omega * i) / (Math.PI * i);
-        });
-        return new FIRCalc(size, coeffs, window);
-    }
-    
-    function highpass(size, cutoffFreq, sampleRate, window) {
-        var omega = 2.0 * Math.PI * cutoffFreq / sampleRate;
-        var coeffs = genCoeffs(size, window, function(i) {
-             return (i === 0) ? 1.0 - omega / Math.PI : -Math.sin(omega * i) / (Math.PI * i);
-        });
-        return new FIRCalc(size, coeffs, window);
-    }
-    
-    function bandpass(size, loCutoffFreq, hiCutoffFreq, sampleRate, window) {
-        var omega1 = 2.0 * Math.PI * loCutoffFreq / sampleRate;
-        var omega2 = 2.0 * Math.PI * hiCutoffFreq / sampleRate;
-        var coeffs = genCoeffs(size, window, function(i) {
-             return (i === 0) ? (omega2 - omega1) / Math.PI : 
-                (Math.sin(omega2 * i) - Math.sin(omega1 * i)) / (Math.PI * i);
-        });
-        return new FIRCalc(size, coeffs, window);
-    }
-    
-    function bandreject(size, loCutoffFreq, hiCutoffFreq, sampleRate, window) {
-        var omega1 = 2.0 * Math.PI * loCutoffFreq / sampleRate;
-        var omega2 = 2.0 * Math.PI * hiCutoffFreq / sampleRate;
-        var coeffs = genCoeffs(size, window, function(i) {
-             return (i === 0) ? 1.0 - (omega2 - omega1) / Math.PI : 
-                (Math.sin(omega1 * i) - Math.sin(omega2 * i)) / (Math.PI * i);
-        });
-        return new FIRCalc(size, coeffs, window);
-    }
-    
     function FIRCalc(size, coeffs) {
         var sizeless = size-1;
-        var dlr = new Float32Array(size);
-        var dli = new Float32Array(size);
+        var dlr = [];
+        var dli = [];
+        for (var di=0 ; di<size ; di++) {
+            dlr.push(0); dli.push(0);
+        }
         var dptr = 0;
     
         this.update = function(v) {
@@ -120,8 +88,51 @@ var FIR = (function() {
         };
     
     }
+
+    var cls = {
+    
+        lowpass : function(size, cutoffFreq, sampleRate, window) {
+            var omega = 2.0 * Math.PI * cutoffFreq / sampleRate;
+            var coeffs = genCoeffs(size, window, function(i) {
+                 return (i === 0) ? omega / Math.PI : Math.sin(omega * i) / (Math.PI * i);
+            });
+            return new FIRCalc(size, coeffs);
+        },
+    
+        highpass : function(size, cutoffFreq, sampleRate, window) {
+            var omega = 2.0 * Math.PI * cutoffFreq / sampleRate;
+            var coeffs = genCoeffs(size, window, function(i) {
+                 return (i === 0) ? 1.0 - omega / Math.PI : -Math.sin(omega * i) / (Math.PI * i);
+            });
+            return new FIRCalc(size, coeffs);
+        },
+    
+        bandpass : function(size, loCutoffFreq, hiCutoffFreq, sampleRate, window) {
+            var omega1 = 2.0 * Math.PI * loCutoffFreq / sampleRate;
+            var omega2 = 2.0 * Math.PI * hiCutoffFreq / sampleRate;
+            var coeffs = genCoeffs(size, window, function(i) {
+                 return (i === 0) ? (omega2 - omega1) / Math.PI : 
+                    (Math.sin(omega2 * i) - Math.sin(omega1 * i)) / (Math.PI * i);
+            });
+            return new FIRCalc(size, coeffs);
+        }
+        ,
+        bandreject : function(size, loCutoffFreq, hiCutoffFreq, sampleRate, window) {
+            var omega1 = 2.0 * Math.PI * loCutoffFreq / sampleRate;
+            var omega2 = 2.0 * Math.PI * hiCutoffFreq / sampleRate;
+            var coeffs = genCoeffs(size, window, function(i) {
+                 return (i === 0) ? 1.0 - (omega2 - omega1) / Math.PI : 
+                    (Math.sin(omega1 * i) - Math.sin(omega2 * i)) / (Math.PI * i);
+            });
+            return new FIRCalc(size, coeffs);
+        }
+    
+    };
+    
+    return cls;
     
 
 })();
 
-module.exports.FIR=FIR;
+
+module.exports.FIR = FIR;

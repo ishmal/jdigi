@@ -18,8 +18,7 @@
  */
 
 var Mode    = require("./mode").Mode;
-var FIR     = require("./filter").Fir;
-var FIRType = require("./filter").FIRType;
+var FIR     = require("./filter").FIR;
 
 /**
  * This contains the definitions of the bit patterns for the Varicode set 
@@ -245,11 +244,6 @@ function EarlyLate(samplesPerSymbol)
 
 
 
-
-
-
-
-
 function PskMode(par) {
     var self = this;
     var counter = 0;
@@ -258,15 +252,30 @@ function PskMode(par) {
 
 
     var timer = new EarlyLate(this.samplesPerSymbol);
-    var bpf   = FIR.bandPass(13, -0.7*rate, 0.7*rate, sampleRate)
+    var bpf   = FIR.lowpass(13, -0.7*this.rate, this.sampleRate)
 
     this.receive = function(v) {
     
         //if ((counter++ & 1023) === 0) console.log("v: " + v.r + ", " + v.i);
+        var z = bpf.updatex(v);
+        
+        scopeOut(z);
     
-    
-        timer.update(v, processSymbol);
+        timer.update(z, processSymbol);
     };
+    
+    var scopesize = 100;
+    var scopedata = [];
+    for (var xx=0 ; xx<scopesize ; xx++)
+        scopedata.push([0,0]);
+    var sptr = 0;
+    function scopeOut(z) {
+        scopedata[sptr++] = [z.r, z.i];
+        if (sptr >= scopesize) {
+            sptr = 0;
+            par.showScope(scopedata);
+        }
+    }
 
 
     //val decoder = Viterbi.decoder(5, 0x17, 0x19)

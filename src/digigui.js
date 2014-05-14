@@ -235,6 +235,11 @@ function Waterfall(par, anchor, width, height, bins) {
     
     }
     
+    var _scopeData = [];
+    this.showScope = function(data) {
+        _scopeData = data;
+    };
+    
     
      
     this.update = function(data) {
@@ -304,6 +309,13 @@ function DigiGui(anchorName) {
      */
     this.receiveSpectrum = function(ps) {
         requestAnimationFrame(function() { waterfall.update(ps); } );
+    };
+    
+    /**
+     * Overridden from Digi
+     */
+    this.showScope = function(data) {
+        waterfall.showScope(data);
     };
     
     this.puttext = function(str) {

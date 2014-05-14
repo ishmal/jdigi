@@ -43,7 +43,7 @@ Complex.prototype.abs =
 Complex.prototype.arg =
     function() { return Math.atan2(this.i, this.r); };
 Complex.prototype.toString =
-    function() { return "(" + r.toString() + "," + i.toString() + ")"; };
+    function() { return "(" + this.r.toString() + "," + this.i.toString() + ")"; };
 Complex.ZERO =
     new Complex(0,0);
 Complex.ONE =
