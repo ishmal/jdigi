@@ -1,5 +1,6 @@
 var gulp       = require('gulp');
 var browserify = require('gulp-browserify');
+var clean      = require('gulp-clean');
 var concat     = require('gulp-concat');
 var jshint     = require('gulp-jshint');
 var mocha      = require('gulp-mocha');
@@ -15,11 +16,6 @@ gulp.task('build', function() {
         .pipe(browserify({insertGlobals : true}))
         .pipe(concat('jdigi.js'))
         .pipe(gulp.dest('dist'))
-});
-
-gulp.task('minify', function() {
-    return gulp.src('src/main.js')
-        .pipe(browserify({insertGlobals : true}))
         .pipe(uglify())
         .pipe(concat('jdigi.min.js'))
         .pipe(gulp.dest('dist'))
@@ -36,6 +32,9 @@ gulp.task('copy', function() {
         .pipe(gulp.dest('./dist'));
 });
 
-
-gulp.task('default', ['jshint', 'build', 'minify', 'copy']);
+gulp.task('clean', function () {  
+  return gulp.src('dist/*', {read: false})
+    .pipe(clean());
+});
+gulp.task('default', ['jshint', 'build', 'copy']);
 gulp.task('test', ['jshint', 'mocha'])
