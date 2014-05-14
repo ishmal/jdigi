@@ -16,6 +16,7 @@
     "gulp-jshint": "^1.5.5",
     "gulp-mocha": "^0.4.1",
     "gulp-uglify": "^0.3.0",
-    "gulp-util": "^2.2.14"
+    "gulp-util": "^2.2.14",
+    "gulp-rename": "^1.2.0"
   }
 }

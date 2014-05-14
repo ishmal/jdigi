@@ -71,6 +71,12 @@ function Digi() {
      */
     this.receiveSpectrum  = function(data) {};
 
+    /**
+     * Override this in the GUI
+     */
+    this.puttext = function(str) {
+    };
+
     var FFT_MASK = Constants.FFT_SIZE - 1;
     var fft = new FFT(Constants.FFT_SIZE);
     var ibuf = new Float32Array(Constants.FFT_SIZE);
@@ -96,8 +102,6 @@ function Digi() {
     
     }
     
-    this.puttext = function(str) {
-    };
 
     
     function start() {

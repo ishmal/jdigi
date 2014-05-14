@@ -160,39 +160,44 @@ var Varicode = (function() {
         "1110110101"   //127  7F  DEL  Delete     
     ]; 
         
-        
-    /**
-     * this is a table of index->bit seqs.  Ex: 116('t') is Seq(true, false, true)
-     */         
-    this.encodeTable = description.map(function(s) {
-        var chars = s.split("");
-        var bools = chars.map(function(c) { return (c==='1'); });
-        return bools;
-    }); 
+    
+    var cls = {  
+    
+        /**
+         * this is a table of index->bit seqs.  Ex: 116('t') is Seq(true, false, true)
+         */         
+        encodeTable : description.map(function(s) {
+            var chars = s.split("");
+            var bools = chars.map(function(c) { return (c==='1'); });
+            return bools;
+        }), 
     
         
-    this.decodeTable = (function() {
-        var dec = {};
-        for (var i = 0 ; i < description.length ; i++) {
-            var key = parseInt(description[i], 2);
-            dec[key] = i;
-        }
-        return dec;
-    })();
+        decodeTable : (function() {
+            var dec = {};
+            for (var i = 0 ; i < description.length ; i++) {
+                var key = parseInt(description[i], 2);
+                dec[key] = i;
+            }
+            return dec;
+        })(),
         
-    this.printTables = function() {
+        printTables : function() {
 
-        console.log("Encode Table =================");
-        for (var i=0 ; i<encodeTable.length ; i++) {
-            console.log(""+ i + " : " + encodeTable[i].join(","));
-        }
-        console.log("Decode Table =================");
-        for (var key in decodeTable) {
-            var asc = decodeTable[key];
-            console.log(key.toString(2) + " : "+ asc);
-        }
+            console.log("Encode Table =================");
+            for (var i=0 ; i<encodeTable.length ; i++) {
+                console.log(""+ i + " : " + encodeTable[i].join(","));
+            }
+            console.log("Decode Table =================");
+            for (var key in decodeTable) {
+                var asc = decodeTable[key];
+                console.log(key.toString(2) + " : "+ asc);
+            }
         
-    };
+        }
+    };//cls
+    
+    return cls;
         
 })(); // Varicode
 
@@ -253,16 +258,14 @@ function PskMode(par) {
 
 
     var timer = new EarlyLate(this.samplesPerSymbol);
+    var bpf   = FIR.bandPass(13, -0.7*rate, 0.7*rate, sampleRate)
 
     this.receive = function(v) {
     
         //if ((counter++ & 1023) === 0) console.log("v: " + v.r + ", " + v.i);
     
     
-        timer.update(v, function(z) {
-        
-        });
-    
+        timer.update(v, processSymbol);
     };
 
 
@@ -293,6 +296,7 @@ function PskMode(par) {
         return Math.floor(diff * diffScale);
     }
 
+    var twopi  = Math.PI * 2.0;
     var halfpi = Math.PI * 0.5;
 
     var code      = 0;
@@ -342,13 +346,13 @@ function PskMode(par) {
             code >>= 1;   //remove trailing 0
             if (code !== 0) {
                 //println("code:" + Varicode.toString(code))
-                var ascii = Varicode.decodeTable.get(code);
+                var ascii = Varicode.decodeTable[code];
                 if (ascii) {
                     var chr = ascii;
                     if (chr == 10 || chr == 13)
                         par.puttext("\n");
                     else
-                        par.puttext(chr.toString);
+                        par.puttext(String.fromCharCode(chr));
                     code = 0;
                     }                        
                 }

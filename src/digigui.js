@@ -29,6 +29,14 @@ function Waterfall(par, anchor, width, height, bins) {
     
     var MAX_FREQ = par.sampleRate * 0.5;
     
+    var frequency = 1000;
+    
+    function setFrequency(freq) {
+        frequency = freq;
+        par.setFrequency(freq);
+    }
+
+    
     function trace(msg) {
         if (typeof console !== "undefined")
             console.log("Waterfall: " + msg);
@@ -227,7 +235,6 @@ function Waterfall(par, anchor, width, height, bins) {
     
     }
     
-    var frequency = 1000;
     
      
     this.update = function(data) {
@@ -250,7 +257,23 @@ function Waterfall(par, anchor, width, height, bins) {
 
 
 
+function OutText(par, anchor) {
 
+    var textArea = $("<textarea>").val("Ready >");
+
+    anchor.append(textArea);
+    
+    function scrollTop() {
+        textArea.scrollTop(textArea[0].scrollHeight - textArea.height());
+    }
+    
+    this.puttext = function(str) {
+        var txt = textArea.val() + str;
+        textArea.val(txt);
+    };
+
+
+}
 
 
 
@@ -273,6 +296,8 @@ function DigiGui(anchorName) {
     anchor.append(startBtn);
     
     var waterfall = new Waterfall(this, anchor, 800, 300, Constants.BINS);
+    anchor.append($("<p>"));
+    var outText   = new OutText(this, anchor);
     
     /**
      * Overridden from Digi
@@ -280,6 +305,10 @@ function DigiGui(anchorName) {
     this.receiveSpectrum = function(ps) {
         requestAnimationFrame(function() { waterfall.update(ps); } );
     };
+    
+    this.puttext = function(str) {
+        outText.puttext(str);
+    }
 
 
 }

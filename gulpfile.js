@@ -4,6 +4,7 @@ var clean      = require('gulp-clean');
 var concat     = require('gulp-concat');
 var jshint     = require('gulp-jshint');
 var mocha      = require('gulp-mocha');
+var rename     = require('gulp-rename');
 var uglify     = require('gulp-uglify');
 
 gulp.task('jshint', function() {
@@ -14,10 +15,10 @@ gulp.task('jshint', function() {
 gulp.task('build', function() {
     return gulp.src('src/main.js')
         .pipe(browserify({insertGlobals : true}))
-        .pipe(concat('jdigi.js'))
+        .pipe(rename('jdigi.js'))
         .pipe(gulp.dest('dist'))
         .pipe(uglify())
-        .pipe(concat('jdigi.min.js'))
+        .pipe(rename('jdigi.min.js'))
         .pipe(gulp.dest('dist'))
 });
 

@@ -17,16 +17,9 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+var Window = require("./window").Window;
 
-var FIRType = {
-    LP : 0,  // Low pass
-    HP : 1,  // High pass
-    BP : 2,  // Band pass
-    BR : 3   // Band reject
-};
-
-
-function FIR(type, size, window) {
+var FIR = (function() {
 
     
     function average(size) {
@@ -42,8 +35,9 @@ function FIR(type, size, window) {
     }
     
     function genCoeffs(size, window, func) {
+        window = window || Window.hann;
+        var W = window(size);
         var center = size * 0.5;
-        var W = Window.get(window);
         var sum = 0.0;
         var arr = [];
         for (var i=0 ; i<size ; i++) {
@@ -56,80 +50,78 @@ function FIR(type, size, window) {
         return arr;
     }
 
-    function lowpass(size, window) {
-        return genCoeffs(size, window, function(i) {
-             return (i === 0) ? omega / math.Pi : math.sin(omega * i) / (math.Pi * i);
+    function lowpass(size, cutoffFreq, sampleRate, window) {
+        var omega = 2.0 * Math.PI * cutoffFreq / sampleRate;
+        var coeffs = genCoeffs(size, window, function(i) {
+             return (i === 0) ? omega / Math.PI : Math.sin(omega * i) / (Math.PI * i);
         });
+        return new FIRCalc(size, coeffs, window);
     }
     
-    function highpass(size, window) {
-        return genCoeffs(size, window, function(i) {
-             return (i === 0) ? omega / math.Pi : math.sin(omega * i) / (math.Pi * i);
+    function highpass(size, cutoffFreq, sampleRate, window) {
+        var omega = 2.0 * Math.PI * cutoffFreq / sampleRate;
+        var coeffs = genCoeffs(size, window, function(i) {
+             return (i === 0) ? 1.0 - omega / Math.PI : -Math.sin(omega * i) / (Math.PI * i);
         });
+        return new FIRCalc(size, coeffs, window);
     }
     
-    function bandpass(size, window) {
-        return genCoeffs(size, window, function(i) {
-             return (i === 0) ? omega / math.Pi : math.sin(omega * i) / (math.Pi * i);
+    function bandpass(size, loCutoffFreq, hiCutoffFreq, sampleRate, window) {
+        var omega1 = 2.0 * Math.PI * loCutoffFreq / sampleRate;
+        var omega2 = 2.0 * Math.PI * hiCutoffFreq / sampleRate;
+        var coeffs = genCoeffs(size, window, function(i) {
+             return (i === 0) ? (omega2 - omega1) / Math.PI : 
+                (Math.sin(omega2 * i) - Math.sin(omega1 * i)) / (Math.PI * i);
         });
+        return new FIRCalc(size, coeffs, window);
     }
     
-    function bandreject(size, window) {
-        return genCoeffs(size, window, function(i) {
-             return (i === 0) ? omega / math.Pi : math.sin(omega * i) / (math.Pi * i);
+    function bandreject(size, loCutoffFreq, hiCutoffFreq, sampleRate, window) {
+        var omega1 = 2.0 * Math.PI * loCutoffFreq / sampleRate;
+        var omega2 = 2.0 * Math.PI * hiCutoffFreq / sampleRate;
+        var coeffs = genCoeffs(size, window, function(i) {
+             return (i === 0) ? 1.0 - (omega2 - omega1) / Math.PI : 
+                (Math.sin(omega1 * i) - Math.sin(omega2 * i)) / (Math.PI * i);
         });
+        return new FIRCalc(size, coeffs, window);
     }
     
-    var sizeless = size-1;
-    var coeffs = [];
-    var dlr = new Float32Array(size);
-    var dli = new Float32Array(size);
-    var dptr = 0;
+    function FIRCalc(size, coeffs) {
+        var sizeless = size-1;
+        var dlr = new Float32Array(size);
+        var dli = new Float32Array(size);
+        var dptr = 0;
     
-    this.update = function(v) {
-        dlr[dptr++] = v;
-        dptr %= size;
-        var ptr = dptr;
-        var sum = 0;
-        for (var i=0 ; i < size ; i++) {
-            sum += coeffs[i] * dlr[ptr];
-            ptr = [ptr+sizeless]%size;
-        }
-        return sum;
-    };
+        this.update = function(v) {
+            dlr[dptr++] = v;
+            dptr %= size;
+            var ptr = dptr;
+            var sum = 0;
+            for (var i=0 ; i < size ; i++) {
+                sum += coeffs[i] * dlr[ptr];
+                ptr = [ptr+sizeless]%size;
+            }
+            return sum;
+        };
     
-    this.updatex = function(v) {
-        dlr[dptr]   = v.r;
-        dli[dptr++] = v.i;
-        dptr %= size;
-        var ptr = dptr;
-        var sumr = 0;
-        var sumi = 0;
-        for (var i=0 ; i < size ; i++) {
-            sumr += coeffs[i] * dlr[ptr];
-            sumi += coeffs[i] * dli[ptr];
-            ptr = [ptr+sizeless]%size;
-        }
-        return new Complex(sumr, sumi);
-    };
+        this.updatex = function(v) {
+            dlr[dptr]   = v.r;
+            dli[dptr++] = v.i;
+            dptr %= size;
+            var ptr = dptr;
+            var sumr = 0;
+            var sumi = 0;
+            for (var i=0 ; i < size ; i++) {
+                sumr += coeffs[i] * dlr[ptr];
+                sumi += coeffs[i] * dli[ptr];
+                ptr = [ptr+sizeless]%size;
+            }
+            return new Complex(sumr, sumi);
+        };
+    
+    }
     
 
-    if (typeof window === "undefined")
-        window = 0;
-        
-    function FIRTypeException(msg) {
-        this.message = msg;
-        this.name = "FIRTypeException";
-    }
-        
-    switch (type) {
-        case FIRType.LP: coeffs = lowpass(size, window);    break;
-        case FIRType.HP: coeffs = highpass(size, window);   break;
-        case FIRType.BP: coeffs = bandpass(size, window);   break;
-        case FIRType.BR: coeffs = bandreject(size, window); break;
-        default : throw new FIRTypeException("Fir type " + type + " not implemented.");
-    }
-}
+})();
 
 module.exports.FIR=FIR;
-module.exports.FIRType=FIRType;

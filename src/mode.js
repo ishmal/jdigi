@@ -25,14 +25,19 @@ function Mode(par, sampleRateHint) {
     var self = this;
 
     this.frequency = 1000;
+    
+    this.setFrequency = function(freq) {
+        this.frequency = freq;
+        nco.setFrequency(freq);
+    };
 
-    this.bandwidth = 31.5;
+    this.bandwidth = 31.25;
     
     var decimation = Math.floor(par.sampleRate / sampleRateHint);
     
     this.sampleRate = par.sampleRate / decimation;
     
-    this.rate = 31.5;
+    this.rate = 31.25;
     this.samplesPerSymbol = this.sampleRate / this.rate;
     
     var decimator = new Resampler(decimation); 
