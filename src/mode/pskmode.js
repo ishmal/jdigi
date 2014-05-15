@@ -251,7 +251,7 @@ function PskMode(par) {
 
 
     var timer = new EarlyLate(this.samplesPerSymbol);
-    var bpf   = FIR.lowpass(13, -0.7*this.rate, this.sampleRate)
+    var bpf   = FIR.bandpass(13, -0.7*this.rate, 0.7*this.rate, this.sampleRate)
 
     this.receive = function(v) {
     
