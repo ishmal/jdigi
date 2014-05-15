@@ -265,7 +265,7 @@ function Waterfall(par, anchor, width, height, bins) {
             var pt = _scopeData[i];
             var x = center + Math.log(1 + pt[0]) * 5000.0;
             var y = center + Math.log(1 + pt[1]) * 5000.0;
-            console.log("pt:" + x + ":" + y);
+            //console.log("pt:" + x + ":" + y);
             ctx.lineTo(x,y);
         }
         ctx.stroke();
