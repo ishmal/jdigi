@@ -247,7 +247,7 @@ function EarlyLate(samplesPerSymbol)
 function PskMode(par) {
     var self = this;
     var counter = 0;
-    Mode.call(this, par, 1000);
+    Mode.call(this, par, 1500);
     
 
 
