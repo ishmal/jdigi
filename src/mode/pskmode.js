@@ -203,9 +203,8 @@ var Varicode = (function() {
 
 
 
-function EarlyLate(samplesPerSymbol)
-{
-    var size    = samplesPerSymbol;
+function EarlyLate(samplesPerSymbol) {
+    var size    = Math.floor(samplesPerSymbol);
     var half    = size >> 1;
     var buf     = new Float32Array(size);
     var bitclk  = 0.0;
@@ -266,14 +265,13 @@ function PskMode(par) {
     
     var scopesize = 100;
     var scopedata = [];
-    for (var xx=0 ; xx<scopesize ; xx++)
-        scopedata.push([0,0]);
-    var sptr = 0;
+    var sctr = 0;
     function scopeOut(z) {
-        scopedata[sptr++] = [z.r, z.i];
-        if (sptr >= scopesize) {
-            sptr = 0;
+        scopedata.push([z.r, z.i]);
+        if (++sctr >= scopesize) {
             par.showScope(scopedata);
+            sctr = 0;
+            scopedata = [];
         }
     }
 

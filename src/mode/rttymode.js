@@ -26,7 +26,7 @@ var Mode = require("../mode").Mode;
 /**
  * These are the ITU codes for 5-bit Baudot code and 7-bit SITOR
  * in the same table
- */  
+ */
 var Baudot = (function() {
 
     var table = [
@@ -58,43 +58,49 @@ var Baudot = (function() {
         ['M',  '.',  0x1c /*11100*/,  0x4e /*1001110*/]
     ];
     
-    var baudLtrsToCode = table.map(e => (e._1, e._3)).toMap
-    var baudFigsToCode = table.map(e => (e._2, e._3)).toMap
-    var baudSymToCode  = baudLtrsToCode ++ baudFigsToCode
-    var baudCodeToSym  = table.map(e => (e._3, (e._1, e._2))).toMap.withDefaultValue((0,0))
+    var baudLtrsToCode = [];
+    var baudFigsToCode = [];
+    var baudCodeToSym  = [];
+    var ccirLtrsToCode = [];
+    var ccirFigsToCode = [];
+    var ccirCodeToSym  = [];
 
-    var BAUD_NUL   = 0x00;
-    var BAUD_SPACE = 0x04;
-    var BAUD_CR    = 0x08;
-    var BAUD_LF    = 0x02;
-    var BAUD_LTRS  = 0x1f;
-    var BAUD_FIGS  = 0x1b;
+    table.forEach(function(e) {
+        baudLtrsToCode[e[0]] = e[2];
+        baudFigsToCode[e[1]] = e[2];
+        baudCodeToSym[e[2]]  = [e[0],e[1]];
+        ccirLtrsToCode[e[0]] = e[3];
+        ccirFigsToCode[e[1]] = e[3];
+        ccirCodeToSym[e[3]]  = [e[0],e[1]];
+    });
+
+    this.baudControl = {
+        NUL   : 0x00,
+        SPACE : 0x04,
+        CR    : 0x08,
+        LF    : 0x02,
+        LTRS  : 0x1f,
+        FIGS  : 0x1b
+    };
     
-    var baudControl = [BAUD_NUL, BAUD_SPACE, BAUD_CR, BAUD_LF,
-        BAUD_LTRS, BAUD_FIGS];
-
-    var ccirLtrsToCode = table.map(e => (e._1, e._4)).toMap
-    var ccirFigsToCode = table.map(e => (e._2, e._4)).toMap
-    var ccirSymToCode = ccirLtrsToCode ++ ccirFigsToCode
-    var ccirCodeToSym = table.map(e => (e._4, (e._1, e._2))).toMap
-
     var ccirControl = {
-        CCIR_NUL    : 0x2b,
-        CCIR_SPACE  : 0x1d,
-        CCIR_CR     : 0x0f,
-        CCIR_LF     : 0x1b,
-        CCIR_LTRS   : 0x2d,
-        CCIR_FIGS   : 0x36,
-        CCIR_ALPHA  : 0x78,
-        CCIR_BETA   : 0x66,
-        CCIR_SYNC   : 0x00,
-        CCIR_REPEAT : 0x33
+        NUL    : 0x2b,
+        SPACE  : 0x1d,
+        CR     : 0x0f,
+        LF     : 0x1b,
+        LTRS   : 0x2d,
+        FIGS   : 0x36,
+        ALPHA  : 0x78,
+        BETA   : 0x66,
+        SYNC   : 0x00,
+        REPEAT : 0x33
     };
 
-    var ccirAllCodes = table.map(_._4).toSet ++ ccirControl
+    //TODO:  this is for Navtex
+    //var ccirAllCodes = table.map(_._4).toSet ++ ccirControl
     
-    def ccirIsvarid(code: Int) =
-        ccirAllCodes.contains(code)
+    //def ccirIsvarid(code: Int) =
+    //    ccirAllCodes.contains(code)
 
 })();
 
@@ -103,11 +109,11 @@ var Baudot = (function() {
  * Enumerations for parity types
  */ 
 var Parity = {
-    ParityNone : 0,
-    ParityOne  : 1,
-    ParityZero : 2,
-    ParityOdd  : 3,
-    ParityEven : 4
+    None : 0,
+    One  : 1,
+    Zero : 2,
+    Odd  : 3,
+    Even : 4
 };
 
 
@@ -122,11 +128,11 @@ var Parity = {
  * @see http://en.wikipedia.org/wiki/Asynchronous_serial_communication
  *   
  */    
-function Rtty(par) {
+function RttyMode(par) {
     Mode.call(this, par, 1000.0);
 
-    override var name = "rtty"
-    override var tooltip ="Radio teletype"
+    this.name = "rtty"
+    this.tooltip ="Radio teletype"
     
     var rates = [
         [  "45",  45.45 ],
@@ -141,71 +147,72 @@ function Rtty(par) {
         [ "850", 850.0 ]
     ];
     
+    /*
     override var properties = new PropertyGroup(name,
         new RadioProperty("rate", "Rate", rates.map(_._1), "Baud rate for sending mark or space") ( idx => rate = rates(idx)._2 ),
         new RadioProperty("shift", "Shift", shifts.map(_._1), "Spacing in hertz between mark and space", 1) ( idx => shift = shifts(idx)._2 ),
         new BooleanProperty("uos", "UoS", "Unshift on space")(b=> unshiftOnSpace = b),
         new BooleanProperty("inv", "Inv", "Invert mark and space for USB and LSB")(b=> inverted = b)
     )
-
-    var inverted = false
+    */
     
-    var shiftvar = 170.0
+    var inverted = false;
     
-    def shift = shiftVal
+    var shiftval = 170.0;
     
-    def shift_=(v: Double) =
-        {
-        shiftvar  = v
-        adjust
-        }
+    this.getShift = function()
+        { return shiftval; }
+    
+    this.setShift = function(v) {
+        shiftval = v;
+        adjust();
+    }
         
-    override def rateChanged(v: Double) =
-        adjust
+    this.rateChanged = function(v) {
+        adjust();
+    }
     
-    override def bandwidth =
-        shift
+    this.getBandwidth = function() { return shift; }
         
-    var unshiftOnSpace = false
+    this.unshiftOnSpace = false;
     
-    rate      = 45.0
-    shift     = 170.0
-    var spaceFreq = Complex(twopi * (-shift * 0.5) / sampleRate)
-    var markFreq  = Complex(twopi * ( shift * 0.5) / sampleRate)
+    rate          = 45.0;
+    shiftval      = 170.0;
+    var spaceFreq = new Complex(twopi * (-shift * 0.5) / this.sampleRate);
+    var markFreq  = new Complex(twopi * ( shift * 0.5) / this.sampleRate);
     
-    var sf = Fir.bandPass(13, -0.75 * shift, -0.25 * shift, sampleRate)
-    var mf = Fir.bandPass(13,  0.25 * shift,  0.75 * shift, sampleRate)
-    //var dataFilter = Iir2.lowPass(rate, sampleRate)
-    var dataFilter = Fir.boxcar(samplesPerSymbol.toInt)
-    var txlpf = Fir.lowPass(31,  shift * 0.5, sampleRate)
+    var sf = Fir.bandPass(13, -0.75 * shift, -0.25 * shift, this.sampleRate);
+    var mf = Fir.bandPass(13,  0.25 * shift,  0.75 * shift, this.sampleRate);
+    //var dataFilter = Iir2.lowPass(rate, this.sampleRate);
+    var dataFilter = Fir.boxcar(samplesPerSymbol);
+    var txlpf = Fir.lowPass(31,  shift * 0.5, this.sampleRate);
     
-    var avgFilter = Iir2.lowPass(rate / 100, sampleRate)
+    var avgFilter = Iir2.lowPass(rate / 100, this.sampleRate);
 
 
-    def adjust =
-        {
-        sf = Fir.bandPass(13, -0.75 * shift, -0.25 * shift, sampleRate)
-        mf = Fir.bandPass(13,  0.25 * shift,  0.75 * shift, sampleRate)
-        spaceFreq = Complex(twopi * (-shift * 0.5) / sampleRate)
-        markFreq  = Complex(twopi * ( shift * 0.5) / sampleRate)
-        //dataFilter = Iir2.lowPass(rate, sampleRate)
-        dataFilter = Fir.boxcar(samplesPerSymbol.toInt)
-        txlpf = Fir.lowPass(31,  shift * 0.5, sampleRate)
-        }
+    function adjust() {
+        sf = Fir.bandPass(13, -0.75 * shift, -0.25 * shift, this.sampleRate);
+        mf = Fir.bandPass(13,  0.25 * shift,  0.75 * shift, this.sampleRate);
+        spaceFreq = Complex(twopi * (-shift * 0.5) / this.sampleRate);
+        markFreq  = Complex(twopi * ( shift * 0.5) / this.sampleRate);
+        //dataFilter = Iir2.lowPass(rate, this.sampleRate);
+        dataFilter = Fir.boxcar(samplesPerSymbol.toInt);
+        txlpf = Fir.lowPass(31,  shift * 0.5, this.sampleRate);
+    }
         
     
 
-    status("sampleRate: " + sampleRate + " samplesPerSymbol: " + samplesPerSymbol)
+    status("sampleRate: " + sampleRate + " samplesPerSymbol: " + samplesPerSymbol);
 
 
-    var loHys = -0.5
-    var hiHys =  0.5
+    var loHys = -0.5;
+    var hiHys =  0.5;
 
-    var bit = false
+    var bit = false;
     
-    var debug = false
+    var debug = false;
 
-    var lastvar = Complex(0.0)
+    var lastval = new Complex(0,0);
     
         
     /**
@@ -214,214 +221,193 @@ function Rtty(par) {
      * value gives the instantaneous frequency change of
      * the signal.  This is called a polar discrminator.
      */             
-    override def update(isample:  Complex) : Double =
-        {
-        var space  = sf.update(isample)
-        var mark   = mf.update(isample)
-        var sample = space + mark
-        var prod   = sample * lastVal.conj
-        lastvar    = sample
-        var demod  = prod.arg
-        var comp   = math.signum(demod) * 10.0
-        var sig    = dataFilter.update(comp)
+    this.receive = function(isample) {
+        var space  = sf.update(isample);
+        var mark   = mf.update(isample);
+        var sample = space + mark;
+        var prod   = sample * lastVal.conj();
+        lastvar    = sample;
+        var demod  = prod.arg();
+        var comp   = Math.signum(demod) * 10.0;
+        var sig    = dataFilter.update(comp);
         //trace("sig:" + sig + "  comp:" + comp)
 
         par.updateScope(sig, 0)
 
         //trace("sig:" + sig)
-        if (sig > hiHys)
-            {
-            bit = true
-            }
-        else if (sig < loHys)
-            {
-            bit = false
-            }
+        if (sig > hiHys) {
+            bit = true;
+        } else if (sig < loHys) {
+            bit = false;
+        }
 
-        process(bit)
+        process(bit);
         
-        sig
+        return sig;
+    };
+
+    
+    var parityType = Parity.None;
+
+    function bitcount(n) {
+        var c = 0;
+        while (n) {
+            n &= n-1;
+            c++;
         }
+        return c;
+    }
 
-    
-    var parityType : Parity = ParityNone
-
-    def parityOf(c: Int) : Boolean =
-        {
-        parityType match
-            {
-            case ParityOdd  => (java.lang.Integer.bitCount( c ) & 1) != 0
-            case ParityEven => (java.lang.Integer.bitCount( c ) & 1) == 0
-            case ParityZero => false
-            case ParityOne  => true
-            case _          => false   //None or unknown
-            }
+    function parityOf(c) {
+        switch (parityType) {
+            case Parity.Odd  : return (bitcount(c) & 1) !== 0; 
+            case Parity.Even : return (bitcount(c) & 1) === 0;
+            case Parity.Zero : return false;
+            case Parity.One  : return true;
+            default          : return false;   //None or unknown
         }
+    }
     
 
-    trait RxState
-    case object RxIdle   extends RxState
-    case object RxStart  extends RxState
-    case object RxStop   extends RxState
-    case object RxStop2  extends RxState
-    case object RxData   extends RxState
-    case object RxParity extends RxState
+    var Rx = {
+        Idle   : 0,
+        Start  : 1,
+        Stop   : 2,
+        Stop2  : 3,
+        Data   : 4,
+        Parity : 5
+    };
     
-    var state : RxState = RxIdle
-    var counter   = 0
-    var code      = 0
-    var parityBit = false
-    var bitMask   = 0
+    var state     = Rx.Idle;
+    var counter   = 0;
+    var code      = 0;
+    var parityBit = false;
+    var bitMask   = 0;
    
-    def process(inbit: Boolean) =
-        {
-        var bit = inbit ^ inverted //LSB/USB flipping
-        var symbollen = samplesPerSymbol.toInt
+    function process(inbit) {
 
-        state match
-            {
-            case RxIdle =>
+        var bit = inbit ^ inverted; //LSB/USB flipping
+        var symbollen = samplesPerSymbol;
+
+        switch (state) {
+
+            case Rx.Idle :
                 //trace("RxIdle")
-                if (!bit)
-                    {
-                    state   = RxStart
-                    counter = symbollen / 2
-                    }
-            case RxStart => 
+                if (!bit) {
+                    state   = Rx.Start;
+                    counter = symbollen / 2;
+                }
+                break;
+            case Rx.Start : 
                 //trace("RxStart")
                 counter -= 1
                 //keep idling until half a period of mark has passed
-                if (bit)
-                    {
-                    state = RxIdle
-                    }
-                else if (counter <= 0)
-                    {
+                if (bit) {
+                    state = Rx.Idle;
+                } else if (counter <= 0) {
                     //half a period has passed
                     //still unset? then we have received a start bit
-                    state     = RxData
-                    counter   = symbollen
-                    code      = 0
-                    parityBit = false
-                    bitMask   = 1
-                    }
-            case RxData => 
+                    state     = Rx.Data;
+                    counter   = symbollen;
+                    code      = 0;
+                    parityBit = false;
+                    bitMask   = 1;
+                }
+                break;
+            case Rx.Data : 
                 //trace("RxData")
-                counter -= 1
-                if (counter <= 0)
-                    {
-                    if (bit) code += bitMask
-                    bitMask <<= 1
-                    counter = symbollen
-                    }
-                 if (bitMask >= 0x20)
-                     {
-                     if (parityType == ParityNone) // todo:  or zero or 1
-                         {
-                         state = RxStop
-                         }
-                     else
-                         {
-                         state = RxParity
-                         }
-                     }
-            case RxParity => 
+                counter -= 1;
+                if (counter <= 0) {
+                    if (bit) code += bitMask;
+                    bitMask <<= 1;
+                    counter = symbollen;
+                }
+                if (bitMask >= 0x20) {
+                    if (parityType == Parity.None) // todo:  or zero or 1
+                        state = Rx.Stop;
+                    else
+                        state = Rx.Parity;
+                }
+                break;
+            case Rx.Parity : 
                 //trace("RxParity")
                 counter -= 1
-                if (counter <= 0)
-                    {
-                    state     = RxStop
-                    parityBit = bit
-                    counter   = symbollen
-                    }
-            case RxStop =>
+                if (counter <= 0) {
+                    state     = Rx.Stop;
+                    parityBit = bit;
+                    counter   = symbollen;
+                }
+                break;
+            case Rx.Stop :
                 //trace("RxStop")
-                counter -= 1
-                if (counter <= 0)
-                    {
+                counter -= 1;
+                if (counter <= 0) {
                     if (bit)
-                        {
-                        outCode(code)
-                        }
-                    state = RxStop2
-                    counter = symbollen / 2
-                    }
-            case RxStop2 =>
+                        outCode(code);
+                    state = Rx.Stop2;
+                    counter = symbollen / 2;
+                }
+                break;
+            case Rx.Stop2 :
                 //trace("RxStop2")
-                counter -= 1
+                counter -= 1;
                 if (counter <= 0)
-                    {
-                    state = RxIdle
-                    }
+                    state = Rx.Idle;
+                break;
             }
-        }
+    } // switch
     
-    var shifted = false
+    var shifted = false;
     
        
-    def reverse(v: Int, size: Int) : Int =
-        {
-        var a = v
-        var b = 0
-        for (i <- 0 until size)
+    function reverse(v, size) {
+        var a = v;
+        var b = 0;
+        while (size--)
             {
-            b += a & 1
-            b <<= 1
-            a >>= 1 
+            b += a & 1;
+            b <<= 1;
+            a >>= 1; 
             }
-        b
-        }
+        return b;
+    }
     
     
     
-    var cntr = 0
-    var bitinverter = 0
+    var cntr = 0;
+    var bitinverter = 0;
+    
+    //cache a copy of these here
+    var NUL   = Baudot.baudControl.NUL;
+    var SPACE = Baudot.baudControl.SPACE;
+    var CR    = Baudot.baudControl.CR;
+    var LF    = Baudot.baudControl.LF;
+    var LTRS  = Baudot.baudControl.LTRS;
+    var FIGS  = Baudot.baudControl.FIGS;
 
-    override def start =
-        {
-        bitinverter = cntr
-        cntr += 1
-        if (cntr >= 32)
-            cntr = 0
-        status("bitinverter: " + bitinverter)
-        }
-    
-    override def stop =
-        bitinverter = 0
-    
+    function outCode(rawcode) {
 
-    def cleanup(c: Int) : Int =
-        {
-        (c ^ bitinverter) & 0x1f        
-        }
-
-
-    def outCode(rawcode: Int) =
-        {
         //println("raw:" + rawcode)
-        var code = rawcode & 0x1f
-        if (code != 0)
-            {
-            if (code == Baudot.BAUD_FIGS)
-                shifted = true
-            else if (code == Baudot.BAUD_LTRS)
-                shifted = false
-            else if (code == Baudot.BAUD_SPACE)
-                {
+        var code = rawcode & 0x1f;
+        if (code != 0) {
+            if (code === FIGS)
+                shifted = true;
+            else if (code === LTRS)
+                shifted = false;
+            else if (code === SPACE) {
                 par.puttext(" ")
                 if (unshiftOnSpace)
                     shifted = false
-                }
-            else if (code == Baudot.BAUD_CR || code == Baudot.BAUD_LF)
-                {
+            }
+            else if (code === CR || code === LF) {
                 par.puttext("\n")
                 if (unshiftOnSpace)
                     shifted = false
-                }
-            var v = Baudot.baudCodeToSym(code)
-            var c = if (shifted) v._2 else v._1
+            }
+            var v = Baudot.baudCodeToSym(code);
+            var c = (shifted) ? v[1] : v[0];
             if (c != 0)
-                par.puttext(c.toChar.toString)
+                par.puttext(String.fromCharCode(c));
             }
             
         }
@@ -429,94 +415,92 @@ function Rtty(par) {
     //################################################
     //# T R A N S M I T
     //################################################
-    var txShifted = false
-    def txencode(str: String) : Seq[Int] =
-        {
-        var buf = scala.collection.mutable.ListBuffer[Int]()
-        for (c <- str)
-            {
-            if (c == ' ')
-                buf += Baudot.BAUD_SPACE
-            else if (c == '\n')
-                buf += Baudot.BAUD_LF
-            else if (c == '\r')
-                buf += Baudot.BAUD_CR
-            else
-                {
-                var uc = c.toUpper
-                var code = Baudot.baudLtrsToCode.get(uc)
-                if (code.isDefined)
-                    {
-                    if (txShifted)
-                        {
-                        txShifted = false
-                        buf += Baudot.BAUD_LTRS
-                        }
-                    buf += code.get
+    /*
+    var txShifted = false;
+    function txencode(str) {
+        var buf = [];
+        var chars = str.split("");
+        var len = chars.length;
+        for (var cn=0 ; cn<len ; cn++) {
+            var c = chars[cn];
+            if (c === ' ')
+                buf.push(SPACE);
+            else if (c === '\n')
+                buf.push(LF);
+            else if (c === '\r')
+                buf.push(CR);
+            else {
+                var uc = c.toUpper;
+                var code = Baudot.baudLtrsToCode[uc];
+                if (code) {
+                    if (txShifted) {
+                        txShifted = false;
+                        buf.push(LTRS);
                     }
-                else
-                    {
-                    code = Baudot.baudFigsToCode.get(uc)
-                    if (code.isDefined)
-                        {
-                        if (!txShifted)
-                            {
-                            txShifted = true
-                            buf += Baudot.BAUD_FIGS
-                            }
-                        buf += code.get
+                buf.push(code)
+                } else {
+                    code = Baudot.baudFigsToCode[uc];
+                    if (code) {  //check for zero?
+                        if (!txShifted) {
+                            txShifted = true;
+                            buf.push(FIGS);
                         }
+                        buf.push(code);
                     }
                 }
             }
-        buf.toSeq
         }
+        return buf;
+    }
     
-    def txnext : Seq[Int] =
-        {
+    function txnext() {
         //var str = "the quick brown fox 1a2b3c4d"
-        var str = par.gettext
-        var codes = txencode(str)
-        codes
-        }
+        var str = par.gettext;
+        var codes = txencode(str);
+        return codes;
+    }
     
     
-    var desiredOutput = 4096
+    var desiredOutput = 4096;
 
-
+    */
     /**
-     * Overridded from Mode.  This method is called by
+     * Overridden from Mode.  This method is called by
      * the audio interface when it needs a fresh buffer
      * of sampled audio data at its sample rate.  If the
      * mode has no current data, then it should send padding
      * in the form of what is considered to be an "idle" signal
-     */                             
-    override def transmit : Option[Array[Complex]] =
-        {
-        var symbollen = samplesPerSymbol.toInt
-        var buf = scala.collection.mutable.ListBuffer[Complex]()
-        var codes = txnext
-        for (code <- codes)
-            {
-            for (i <- 0 until symbollen) buf += spaceFreq
-            var mask = 1 
-            for (i <- 0 until 5)
-                {
-                var bit = (code & mask) == 0
-                var f = if (bit) spaceFreq else markFreq
-                for (j <- 0 until symbollen) buf += f
-                mask <<= 1
+     */   
+     /*                          
+    this.transmit = function() {
+
+        var symbollen = samplesPerSymbol;
+        var buf = [];
+        var codes = txnext();
+        var len = codes.length;
+        for (var idx = 0 ; idx < len ; idx++) {
+            var code = codes[i];
+            for (var s=0 ; s<symbollen ; s++) buf.push(spaceFreq);
+            var mask = 1;
+            for (var ib=0 ; ib < 5 ; ib++) {
+                var bit = (code & mask) === 0;
+                var f = (bit) ? spaceFreq : markFreq;
+                for (j=0 ; j < symbollen ; j++) buf.push(f);
+                mask <<= 1;
                 }
-            for (i <- 0 until symbollen) buf += spaceFreq
+            for (var s2=0 ; s2<symbollen ; s2++) buf.push(spaceFreq);
             }
         
-        var pad = desiredOutput - buf.size
-        for (i <- 0 until pad)
-            buf += spaceFreq
-        var res = buf.toArray.map(txlpf.update)
-        None
-        }
+        var pad = desiredOutput - buf.length;
+        while (pad--)
+            buf.push(spaceFreq);
+        //var res = buf.toArray.map(txlpf.update)
+        //todo
+    };
+    */
+
+}// RttyMode
 
 
 
-}
+

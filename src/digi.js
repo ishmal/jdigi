@@ -20,7 +20,8 @@
 var FFT = require("./fft").FFT;
 var AudioInput = require("./audio").AudioInput;
 var Mode = require("./mode").Mode;
-var PskMode = require("./pskmode").PskMode;
+var PskMode = require("./mode/pskmode").PskMode;
+var RttyMode = require("./mode/rttymode").RttyMode;
 
 
 
@@ -31,7 +32,7 @@ var Constants = {
 
 
 /**
- * This is the top-level GUI-less app
+ * This is the top-level GUI-less app.  Extend this with a GUI.
  */
 function Digi() {
 
@@ -50,6 +51,9 @@ function Digi() {
     var audioInput = new AudioInput(this);
     this.sampleRate = audioInput.sampleRate;
 
+    /**
+     * Add our modes here and set the default
+     */
     var pskMode = new PskMode(this);
     var mode = pskMode;
     
@@ -82,11 +86,11 @@ function Digi() {
     this.puttext = function(str) {
     };
 
-    var FFT_MASK = Constants.FFT_SIZE - 1;
-    var fft = new FFT(Constants.FFT_SIZE);
-    var ibuf = new Float32Array(Constants.FFT_SIZE);
-    var iptr = 0;
-    var icnt = 0;
+    var FFT_MASK   = Constants.FFT_SIZE - 1;
+    var fft        = new FFT(Constants.FFT_SIZE);
+    var ibuf       = new Float32Array(Constants.FFT_SIZE);
+    var iptr       = 0;
+    var icnt       = 0;
     var FFT_WINDOW = 700;
     
     this.receive = function(data) {

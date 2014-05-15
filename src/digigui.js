@@ -240,6 +240,40 @@ function Waterfall(par, anchor, width, height, bins) {
         _scopeData = data;
     };
     
+
+    function drawScope() {
+    
+        var box = 100;
+        var center = 50;
+        ctx.strokeStyle = "white";
+        ctx.rect(0, 0, box, box);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(center, 0);
+        ctx.lineTo(center, box);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(0, center);
+        ctx.lineTo(box, center);
+        ctx.stroke();
+
+        ctx.strokeStyle = "yellow";
+        ctx.beginPath();
+        ctx.moveTo(center, center);
+        var len = _scopeData.length;
+        for (var i=0 ; i<len ; i++) {
+            var pt = _scopeData[i];
+            var x = center + Math.log(1 + pt[0]) * 5000.0;
+            var y = center + Math.log(1 + pt[1]) * 5000.0;
+            console.log("pt:" + x + ":" + y);
+            ctx.lineTo(x,y);
+        }
+        ctx.stroke();
+        
+        
+    
+    }
+    
     
      
     this.update = function(data) {
@@ -247,6 +281,7 @@ function Waterfall(par, anchor, width, height, bins) {
         //drawSpectrum();
         drawWaterfall2(data);
         drawTuner();
+        drawScope();
     };
     
     this.start = function() {
@@ -264,7 +299,7 @@ function Waterfall(par, anchor, width, height, bins) {
 
 function OutText(par, anchor) {
 
-    var textArea = $("<textarea>").val("Ready >");
+    var textArea = $("<textarea>").width(800).height(100);
 
     anchor.append(textArea);
     
@@ -275,6 +310,7 @@ function OutText(par, anchor) {
     this.puttext = function(str) {
         var txt = textArea.val() + str;
         textArea.val(txt);
+        scrollTop();
     };
 
 
@@ -299,6 +335,7 @@ function DigiGui(anchorName) {
         self.start();
     });
     anchor.append(startBtn);
+    anchor.append($("<p>"));
     
     var waterfall = new Waterfall(this, anchor, 800, 300, Constants.BINS);
     anchor.append($("<p>"));
