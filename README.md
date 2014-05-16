@@ -2,6 +2,10 @@
 
 A simple experiment in javascript digital signal processing.  HTML5's Web Audio API is a wonderful opportunity for people interested in DSP to experiment in audio modulation and demodulation.  It's also a great way to provide radio digital mode codecs to users without the need to port code or install binaries.   This project in an experiment in doing just that.
 
+### Status
+
+The project is only a few days old, so currently there is only a waterfall and buddy BPSK31 reception.  RTTY code has been added, but it has not been debugged or tested yet.
+
 ### Building
 
 This library is intended to run in browsers.  However, it is managed, tested and build by Node.js and Gulp.js.  So for the aspiring developer to perform a build of the code, Node must be installed, then Gulp.
