@@ -61,14 +61,31 @@ function Waterfall(par, anchor, width, height, bins) {
     var canvas = $("<canvas width='" + width + "' height='" + height + "' tabindex='1'>");
     anchor.append(canvas);
     
-    // MOUSE EVENTS
+    //### MOUSE EVENTS
     var dragging = false;
     canvas.click(function(event) { mouseFreq(event); })
         .mousedown(function(event) { dragging=true; })
         .mouseup(function(event) { dragging=false; })
         .mousemove(function(event) { if (dragging) mouseFreq(event); });
 
-    // KEY EVENTS
+    function mouseFreq(event) {
+        var pt = getMousePos(canvas.get(0), event);
+        //trace("point: " + pt.x + ":" + pt.y);
+        var freq = MAX_FREQ * pt.x / width;
+        //trace("freq:" + freq);
+        setFrequency(freq);
+    }
+
+
+    function getMousePos(canvas, evt) {
+        var rect = canvas.getBoundingClientRect();
+        return {
+          x: evt.clientX - rect.left,
+          y: evt.clientY - rect.top
+        };
+      }
+      
+    //###  KEY EVENTS
     //fine tuning, + or - one hertz
     canvas.bind("keydown", function(evt) {
         var key = evt.which;
@@ -95,26 +112,13 @@ function Waterfall(par, anchor, width, height, bins) {
     var rowsize  = imglen / height;
     var lastRow  = imglen - rowsize;
 
-    
-    function mouseFreq(event) {
-        var pt = getMousePos(canvas.get(0), event);
-        //trace("point: " + pt.x + ":" + pt.y);
-        var freq = MAX_FREQ * pt.x / width;
-        //trace("freq:" + freq);
-        setFrequency(freq);
-    }
-
-
-    function getMousePos(canvas, evt) {
-        var rect = canvas.getBoundingClientRect();
-        return {
-          x: evt.clientX - rect.left,
-          y: evt.clientY - rect.top
-        };
-      }
-      
+    /**
+     * R E N D E R I N G
+     */
+     
     /**
      * Make a palette. tweak this often
+     * TODO:  consider using an HSV heat map
      */                 
     function makePalette() {
         var xs = [];
@@ -295,13 +299,6 @@ function Waterfall(par, anchor, width, height, bins) {
         drawTuner();
         drawScope();
     };
-    
-    this.start = function() {
-    };
-    
-    this.stop = function() {
-    };
-    
     
     
 } //Waterfall
