@@ -108,8 +108,8 @@ var FIR = (function() {
         },
     
         bandpass : function(size, loCutoffFreq, hiCutoffFreq, sampleRate, window) {
-            var omega1 = 2.0 * Math.PI * loCutoffFreq / sampleRate;
-            var omega2 = 2.0 * Math.PI * hiCutoffFreq / sampleRate;
+            var omega1 = 2.0 * Math.PI * hiCutoffFreq / sampleRate;
+            var omega2 = 2.0 * Math.PI * loCutoffFreq / sampleRate;
             var coeffs = genCoeffs(size, window, function(i) {
                  return (i === 0) ? (omega2 - omega1) / Math.PI : 
                     (Math.sin(omega2 * i) - Math.sin(omega1 * i)) / (Math.PI * i);
@@ -118,8 +118,8 @@ var FIR = (function() {
         }
         ,
         bandreject : function(size, loCutoffFreq, hiCutoffFreq, sampleRate, window) {
-            var omega1 = 2.0 * Math.PI * loCutoffFreq / sampleRate;
-            var omega2 = 2.0 * Math.PI * hiCutoffFreq / sampleRate;
+            var omega1 = 2.0 * Math.PI * hiCutoffFreq / sampleRate;
+            var omega2 = 2.0 * Math.PI * loCutoffFreq / sampleRate;
             var coeffs = genCoeffs(size, window, function(i) {
                  return (i === 0) ? 1.0 - (omega2 - omega1) / Math.PI : 
                     (Math.sin(omega1 * i) - Math.sin(omega2 * i)) / (Math.PI * i);
