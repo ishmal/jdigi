@@ -43,7 +43,6 @@ function AudioInput(par) {
     var decimation = 7;
     this.sampleRate = actx.sampleRate / decimation;
 
-    var analyser = null;
     var isRunning = false;
     
     
