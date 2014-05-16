@@ -63,7 +63,7 @@ function Digi() {
     };
     
     this.setFrequency = function(freq, setTuner) {
-        mode.frequency = freq;
+        mode.setFrequency(freq);
     };
 
     this.getFrequency = function() {

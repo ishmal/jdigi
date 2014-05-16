@@ -87,9 +87,9 @@ function Waterfall(par, anchor, width, height, bins) {
     function mouseFreq(event) {
         var pt = getMousePos(canvas.get(0), event);
         //trace("point: " + pt.x + ":" + pt.y);
-        var freq = MAX_FREQ * pt.x /width;
+        var freq = MAX_FREQ * pt.x / width;
         //trace("freq:" + freq);
-        frequency = freq;
+        setFrequency(freq);
     }
 
 
