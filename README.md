@@ -6,6 +6,11 @@ A simple experiment in javascript digital signal processing.  HTML5's Web Audio 
 
 This library is intended to run in browsers.  However, it is managed, tested and build by Node.js and Gulp.js.  So for the aspiring developer to perform a build of the code, Node must be installed, then Gulp.
 
+Currently the commands are:
+* To build:  <pre>gulp</pre>
+* To test:  <pre>gulp test</pre>
+* To clean up:  <pre>gulp clean</pre>
+
 ### Getting
 
 For the average person who just wants to run the code, we will occasionally zip up a build and put a copy in the /builds folder.   Look there.
