@@ -115,8 +115,8 @@ var FIR = (function() {
                     (Math.sin(omega2 * i) - Math.sin(omega1 * i)) / (Math.PI * i);
             });
             return new FIRCalc(size, coeffs);
-        }
-        ,
+        },
+        
         bandreject : function(size, loCutoffFreq, hiCutoffFreq, sampleRate, window) {
             var omega1 = 2.0 * Math.PI * hiCutoffFreq / sampleRate;
             var omega2 = 2.0 * Math.PI * loCutoffFreq / sampleRate;
