@@ -85,12 +85,13 @@ function Waterfall(par, anchor, width, height, bins) {
         };
       }
       
-    canvas.bind('mousewheel DOMMouseScroll', function(e){
-        if(e.originalEvent.wheelDelta /120 > 0) {
-            setFrequency(frequency + 1);
+    canvas.bind('mousewheel DOMMouseScroll', function(evt){
+        var delta = (evt.detail < 0 || evt.wheelDelta > 0) ? 1 : -1;
+        if(delta < 0) {
+            setFrequency(frequency - 1);
         }
         else{
-            setFrequency(frequency - 1);
+            setFrequency(frequency + 1);
         }
     });
       
