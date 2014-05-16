@@ -28,14 +28,15 @@ navigator.getUserMedia = navigator.getUserMedia ||
 
 function AudioInput(par) {
 
+    //Chrome workaround.  Keep a ref to a scriptprocessor node to prevent gc.
     var scriptNodes = {};
     var keep = (function () {
-        var nextNodeID = 1;
-        return function (node) {
-            node.id = node.id || (nextNodeID++);
-            scriptNodes[node.id] = node;
-            return node;
-        };
+      var nextNodeID = 1;
+      return function (node) {
+          node.id = node.id || (nextNodeID++);
+          scriptNodes[node.id] = node;
+          return node;
+      };
     }());
 
     var actx = new AudioContext();
@@ -48,7 +49,10 @@ function AudioInput(par) {
     
     function startStream(stream) {
     
-        var source = actx.createMediaStreamSource(stream);
+        //workaround for a Firefox bug.  Keep a global ref to source to prevent gc.
+        //http://goo.gl/LjEjUF2
+        //var source = actx.createMediaStreamSource(stream);
+        window.source = actx.createMediaStreamSource(stream);
 
         /**/
         var bufferSize = 8192;
