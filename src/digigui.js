@@ -86,7 +86,7 @@ function Waterfall(par, anchor, width, height, bins) {
       }
       
     canvas.bind('mousewheel DOMMouseScroll', function(evt){
-        var delta = (evt.detail < 0 || evt.wheelDelta > 0) ? 1 : -1;
+        var delta = (evt.originalEvent.detail < 0 || evt.wheelDelta > 0) ? 1 : -1;
         if(delta < 0) {
             setFrequency(frequency - 1);
         }
