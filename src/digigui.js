@@ -85,7 +85,7 @@ function Waterfall(par, anchor, width, height, bins) {
         };
       }
       
-    canvas.bind('mousewheel', function(e){
+    canvas.bind('mousewheel DOMMouseScroll', function(e){
         if(e.originalEvent.wheelDelta /120 > 0) {
             setFrequency(frequency + 1);
         }
