@@ -241,29 +241,23 @@ function EarlyLate(samplesPerSymbol) {
 
 
 
-
-
+/**
+ * Phase Shift Keying mode.
+ */
 function PskMode(par) {
+    Mode.call(this, par, 1500); //inherit
     var self = this;
-    var counter = 0;
-    Mode.call(this, par, 1500);
     
-
-
     var timer = new EarlyLate(this.samplesPerSymbol);
     var bpf   = FIR.bandpass(13, -0.7*this.rate, 0.7*this.rate, this.sampleRate)
 
     this.receive = function(v) {
-    
-        //if ((counter++ & 1023) === 0) console.log("v: " + v.r + ", " + v.i);
         var z = bpf.updatex(v);
-        
         scopeOut(z);
-    
         timer.update(z, processSymbol);
     };
     
-    var scopesize = 100;
+    var scopesize = 200;
     var scopedata = [];
     var sctr = 0;
     function scopeOut(z) {
