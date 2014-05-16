@@ -4,7 +4,7 @@ A simple experiment in javascript digital signal processing.  HTML5's Web Audio 
 
 ### Status
 
-The project is only a few days old, so currently there is only a waterfall and buddy BPSK31 reception.  RTTY code has been added, but it has not been debugged or tested yet.
+The project is only a few days old, so currently there is only a waterfall and buggy BPSK31 reception.  RTTY code has been added, but it has not been debugged or tested yet.
 
 ### Building
 
