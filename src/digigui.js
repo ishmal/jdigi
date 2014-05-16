@@ -58,15 +58,27 @@ function Waterfall(par, anchor, width, height, bins) {
     
     var indices = createIndices(width, bins);
     
-    var canvas = $("<canvas width='" + width + "' height='" + height + "'>");
+    var canvas = $("<canvas width='" + width + "' height='" + height + "' tabindex='1'>");
     anchor.append(canvas);
     
+    // MOUSE EVENTS
     var dragging = false;
     canvas.click(function(event) { mouseFreq(event); })
         .mousedown(function(event) { dragging=true; })
         .mouseup(function(event) { dragging=false; })
         .mousemove(function(event) { if (dragging) mouseFreq(event); });
 
+    // KEY EVENTS
+    //fine tuning, + or - one hertz
+    canvas.bind("keydown", function(evt) {
+        var key = evt.which;
+        if (key===37 || key===40) {
+            setFrequency(frequency - 1);
+        } else if (key===38 || key===39) {
+            setFrequency(frequency + 1);
+        }
+        evt.preventDefault();
+    });
     
     var ctx      = canvas.get(0).getContext('2d'); 
     var imgData  = ctx.createImageData(width, height);
