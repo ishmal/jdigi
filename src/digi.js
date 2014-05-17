@@ -61,15 +61,15 @@ function Digi() {
     
     
     this.getBandwidth = function() {
-        return mode.bandwidth;
+        return this.mode.bandwidth;
     };
     
     this.setFrequency = function(freq, setTuner) {
-        mode.setFrequency(freq);
+        this.mode.setFrequency(freq);
     };
 
     this.getFrequency = function() {
-        return mode.frequency;
+        return this.mode.frequency;
     };
 
     /**
