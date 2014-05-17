@@ -379,43 +379,49 @@ function DigiGui(anchorName) {
             var mode = modes[tn];
             var props = mode.properties;
             var a = $("<a>").attr("href", "#tab"+tn).html(props.name);
-            var tab = $("<li>").append(a);
+            var tab = $("<li>").append(a).data("mode", mode);
             ul.append(tab);
             var pane = $("<div>").attr("id", "tab"+tn);
             tabroot.append(pane);
             var controls = props.controls;
             for (var cn=0 ; cn<controls.length ; cn++) {                                              
                  var control = controls[cn];
+                 var cbox = $("<span>").addClass("control");
+                 pane.append(cbox);
                  if (control.type === "choice") {
-                     var rdiv = $("<div>");
-                     var rlbl = $("<label>").html(control.name);
-                     rdiv.append(rlbl);
-                     var rbdiv = $("<div>");
-                     rdiv.append(rbdiv);
+                     var rlbl = $("<label>").html(control.name).addClass("control-label");
+                     cbox.append(rlbl);
+                     var rbdiv = $("<span>").html("&nbsp;").addClass("control-radiopane");
+                     cbox.append(rbdiv);
                      var values = control.values;
                      for (var vn=0 ; vn<values.length ; vn++) {
                          var value = values[vn];
-                         rlbl = $("<label>").html(value.name);
+                         rlbl = $("<label>").html(value.name).addClass("control-radiopane-label");
                          var rbtn = $("<input type='radio'>").html(control.name).attr("name", control.name);
                          rbtn.click(valClickHandler(control.func, value.value));
                          rlbl.append(rbtn);
                          rbdiv.append(rlbl);
                      }
-                     pane.append(rdiv);
                  } else if (control.type === "boolean") {
-                     var blbl = $("<label>").html(control.name);
+                     var blbl = $("<label>").html(control.name).addClass("control-label");
                      var bbtn = $("<input type='checkbox'>");
                      bbtn.click(cbClickHandler(control.func, bbtn));
                      blbl.append(bbtn);
-                     pane.append(blbl);
+                     cbox.append(blbl);
                  }
             }  
         }
-        tabroot.tabs();
+        tabroot.tabs({
+            activate: function(evt, ui) {
+                var mode = ui.newTab.data("mode");
+                self.setMode(mode);
+            }
+        });
         return tabroot;
     }
     
     var tabs = makeTabs();
+    
     anchor.append(tabs);
     
     

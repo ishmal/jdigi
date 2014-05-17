@@ -56,20 +56,26 @@ function Digi() {
      */
     var pskMode = new PskMode(this);
     var rttyMode = new RttyMode(this);
-    this.mode = pskMode;
+    var mode = pskMode;
     this.modes = [pskMode, rttyMode];
+    this.setMode = function(v) {
+        mode = v;
+    };
+    this.getMode = function() {
+        return mode;
+    };
     
     
     this.getBandwidth = function() {
-        return this.mode.bandwidth;
+        return mode.bandwidth;
     };
     
     this.setFrequency = function(freq, setTuner) {
-        this.mode.setFrequency(freq);
+        mode.setFrequency(freq);
     };
 
     this.getFrequency = function() {
-        return this.mode.frequency;
+        return mode.frequency;
     };
 
     /**
@@ -96,7 +102,7 @@ function Digi() {
     var FFT_WINDOW = 700;
     
     this.receive = function(data) {
-        self.mode.receiveData(data);
+        self.getMode().receiveData(data);
         ibuf[iptr++] = data;
         iptr &= FFT_MASK;
         if (++icnt >= FFT_WINDOW) {
