@@ -248,8 +248,30 @@ function PskMode(par) {
     Mode.call(this, par, 1500); //inherit
     var self = this;
     
+    this.properties = {
+        name : "psk",
+        tooltip: "phase shift keying",
+        controls : [
+            {
+            name: "rate",
+            type: "choice",
+            values : [
+                { name :  "31", value :  31.25 },
+                { name :  "63", value :  62.50 },
+                { name : "125", value : 125.00 }
+            ],
+            func : function(v) { self.setRate(v); }
+        },
+            {
+            name: "qpsk",
+            type: "boolean",
+            func : function(v) { self.qpskMode = v; }
+        }
+        ]
+    };
+    
     var timer = new EarlyLate(this.samplesPerSymbol);
-    var bpf   = FIR.bandpass(13, -0.7*this.rate, 0.7*this.rate, this.sampleRate)
+    var bpf   = FIR.bandpass(13, -0.7*this.rate, 0.7*this.rate, this.sampleRate);
 
     this.receive = function(v) {
         var z = bpf.updatex(v);

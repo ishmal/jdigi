@@ -358,6 +358,68 @@ function DigiGui(anchorName) {
     
     var waterfall = new Waterfall(this, anchor, 800, 300, Constants.BINS);
     anchor.append($("<p>"));
+    
+    function makeTabs(){
+        function valClickHandler(func, val) {
+            return function() {
+                func(val);
+            };
+        }
+        function cbClickHandler(func, cb) {
+            return function() {
+                func(cb.checked);
+            };
+        }
+    
+        var tabroot = $("<div>");
+        var ul = $("<ul>");
+        tabroot.append(ul);
+        var modes = self.modes;
+        for (var tn=0 ; tn < modes.length ; tn++) {
+            var mode = modes[tn];
+            var props = mode.properties;
+            var a = $("<a>").attr("href", "#tab"+tn).html(props.name);
+            var tab = $("<li>").append(a);
+            ul.append(tab);
+            var pane = $("<div>").attr("id", "tab"+tn);
+            tabroot.append(pane);
+            var controls = props.controls;
+            for (var cn=0 ; cn<controls.length ; cn++) {                                              
+                 var control = controls[cn];
+                 if (control.type === "choice") {
+                     var rdiv = $("<div>");
+                     var rlbl = $("<label>").html(control.name);
+                     rdiv.append(rlbl);
+                     var rbdiv = $("<div>");
+                     rdiv.append(rbdiv);
+                     var values = control.values;
+                     for (var vn=0 ; vn<values.length ; vn++) {
+                         var value = values[vn];
+                         rlbl = $("<label>").html(value.name);
+                         var rbtn = $("<input type='radio'>").html(control.name).attr("name", control.name);
+                         rbtn.click(valClickHandler(control.func, value.value));
+                         rlbl.append(rbtn);
+                         rbdiv.append(rlbl);
+                     }
+                     pane.append(rdiv);
+                 } else if (control.type === "boolean") {
+                     var blbl = $("<label>").html(control.name);
+                     var bbtn = $("<input type='checkbox'>");
+                     bbtn.click(cbClickHandler(control.func, bbtn));
+                     blbl.append(bbtn);
+                     pane.append(blbl);
+                 }
+            }  
+        }
+        tabroot.tabs();
+        return tabroot;
+    }
+    
+    var tabs = makeTabs();
+    anchor.append(tabs);
+    
+    
+    
     var outText   = new OutText(this, anchor);
     
     /**
@@ -376,7 +438,7 @@ function DigiGui(anchorName) {
     
     this.puttext = function(str) {
         outText.puttext(str);
-    }
+    };
 
 
 }

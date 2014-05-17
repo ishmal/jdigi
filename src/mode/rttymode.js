@@ -18,7 +18,9 @@
  */
                                                                
 
-var Mode = require("../mode").Mode;
+var Mode    = require("../mode").Mode;
+var FIR     = require("../filter").FIR;
+var Complex = require("../math").Complex;
 
 
 
@@ -58,23 +60,24 @@ var Baudot = (function() {
         ['M',  '.',  0x1c /*11100*/,  0x4e /*1001110*/]
     ];
     
-    var baudLtrsToCode = [];
-    var baudFigsToCode = [];
-    var baudCodeToSym  = [];
-    var ccirLtrsToCode = [];
-    var ccirFigsToCode = [];
-    var ccirCodeToSym  = [];
+    var cls = {};
+    cls.baudLtrsToCode = [];
+    cls.baudFigsToCode = [];
+    cls.baudCodeToSym  = [];
+    cls.ccirLtrsToCode = [];
+    cls.ccirFigsToCode = [];
+    cls.ccirCodeToSym  = [];
 
     table.forEach(function(e) {
-        baudLtrsToCode[e[0]] = e[2];
-        baudFigsToCode[e[1]] = e[2];
-        baudCodeToSym[e[2]]  = [e[0],e[1]];
-        ccirLtrsToCode[e[0]] = e[3];
-        ccirFigsToCode[e[1]] = e[3];
-        ccirCodeToSym[e[3]]  = [e[0],e[1]];
+        cls.baudLtrsToCode[e[0]] = e[2];
+        cls.baudFigsToCode[e[1]] = e[2];
+        cls.baudCodeToSym[e[2]]  = [e[0],e[1]];
+        cls.ccirLtrsToCode[e[0]] = e[3];
+        cls.ccirFigsToCode[e[1]] = e[3];
+        cls.ccirCodeToSym[e[3]]  = [e[0],e[1]];
     });
 
-    this.baudControl = {
+    cls.baudControl = {
         NUL   : 0x00,
         SPACE : 0x04,
         CR    : 0x08,
@@ -83,7 +86,7 @@ var Baudot = (function() {
         FIGS  : 0x1b
     };
     
-    var ccirControl = {
+    cls.ccirControl = {
         NUL    : 0x2b,
         SPACE  : 0x1d,
         CR     : 0x0f,
@@ -102,6 +105,7 @@ var Baudot = (function() {
     //def ccirIsvarid(code: Int) =
     //    ccirAllCodes.contains(code)
 
+    return cls;
 })();
 
 
@@ -130,79 +134,94 @@ var Parity = {
  */    
 function RttyMode(par) {
     Mode.call(this, par, 1000.0);
+    var self = this;
 
-    this.name = "rtty"
-    this.tooltip ="Radio teletype"
-    
-    var rates = [
-        [  "45",  45.45 ],
-        [  "50",  50.0 ],
-        [  "75",  75.0 ],
-        [ "100", 100.0 ]
-    ];
-    var shifts = List[
-        [  "85",  85.0 ],
-        [ "170", 170.0 ],
-        [ "450", 450.0 ],
-        [ "850", 850.0 ]
-    ];
-    
-    /*
-    override var properties = new PropertyGroup(name,
-        new RadioProperty("rate", "Rate", rates.map(_._1), "Baud rate for sending mark or space") ( idx => rate = rates(idx)._2 ),
-        new RadioProperty("shift", "Shift", shifts.map(_._1), "Spacing in hertz between mark and space", 1) ( idx => shift = shifts(idx)._2 ),
-        new BooleanProperty("uos", "UoS", "Unshift on space")(b=> unshiftOnSpace = b),
-        new BooleanProperty("inv", "Inv", "Invert mark and space for USB and LSB")(b=> inverted = b)
-    )
-    */
+    this.properties = {
+        name : "rtty",
+        tooltip: "radio teletype",
+        controls : [
+            {
+            name: "rate",
+            type: "choice",
+            values : [
+                { name :  "45", value :  45.00 },
+                { name :  "50", value :  50.00 },
+                { name :  "75", value :  75.00 },
+                { name : "100", value : 100.00 }
+                ],
+            func : function(v) { self.setRate(v); }
+            },
+            {
+            name: "shift",
+            type: "choice",
+            values : [
+                { name :  "85", value :  85.0 },
+                { name : "170", value : 170.0 },
+                { name : "450", value : 450.0 },
+                { name : "850", value : 850.0 }
+                ],
+            func : function(v) { self.setShift(v); }
+            },
+            {
+            name: "inv",
+            type: "boolean",
+            func : function(v) { inverted=v; }
+            },
+            {
+            name: "UoS",
+            type: "boolean",
+            func : function(v) { uos=v; }
+            }
+        ]
+    };
     
     var inverted = false;
     
     var shiftval = 170.0;
     
     this.getShift = function()
-        { return shiftval; }
+        { return shiftval; };
     
     this.setShift = function(v) {
         shiftval = v;
         adjust();
-    }
+    };
         
     this.rateChanged = function(v) {
         adjust();
-    }
+    };
     
-    this.getBandwidth = function() { return shift; }
+    this.getBandwidth = function() { return shiftval; };
         
     this.unshiftOnSpace = false;
     
     rate          = 45.0;
-    shiftval      = 170.0;
-    var spaceFreq = new Complex(twopi * (-shift * 0.5) / this.sampleRate);
-    var markFreq  = new Complex(twopi * ( shift * 0.5) / this.sampleRate);
+    var twopi     = Math.PI * 2.0;
+    var spaceFreq = new Complex(twopi * (-shiftval * 0.5) / this.sampleRate);
+    var markFreq  = new Complex(twopi * ( shiftval * 0.5) / this.sampleRate);
     
-    var sf = Fir.bandPass(13, -0.75 * shift, -0.25 * shift, this.sampleRate);
-    var mf = Fir.bandPass(13,  0.25 * shift,  0.75 * shift, this.sampleRate);
-    //var dataFilter = Iir2.lowPass(rate, this.sampleRate);
-    var dataFilter = Fir.boxcar(samplesPerSymbol);
-    var txlpf = Fir.lowPass(31,  shift * 0.5, this.sampleRate);
+    var sf = FIR.bandpass(13, -0.75 * shiftval, -0.25 * shiftval, this.sampleRate);
+    var mf = FIR.bandpass(13,  0.25 * shiftval,  0.75 * shiftval, this.sampleRate);
+    //var dataFilter = Iir2.lowpass(rate, this.sampleRate);
+    var dataFilter = FIR.boxcar(this.samplesPerSymbol);
+    var txlpf = FIR.lowpass(31,  shiftval * 0.5, this.sampleRate);
     
-    var avgFilter = Iir2.lowPass(rate / 100, this.sampleRate);
+    //var avgFilter = Iir2.lowpass(rate / 100, this.sampleRate);
 
 
     function adjust() {
-        sf = Fir.bandPass(13, -0.75 * shift, -0.25 * shift, this.sampleRate);
-        mf = Fir.bandPass(13,  0.25 * shift,  0.75 * shift, this.sampleRate);
-        spaceFreq = Complex(twopi * (-shift * 0.5) / this.sampleRate);
-        markFreq  = Complex(twopi * ( shift * 0.5) / this.sampleRate);
-        //dataFilter = Iir2.lowPass(rate, this.sampleRate);
-        dataFilter = Fir.boxcar(samplesPerSymbol.toInt);
-        txlpf = Fir.lowPass(31,  shift * 0.5, this.sampleRate);
+        sf = FIR.bandpass(13, -0.75 * shiftval, -0.25 * shiftval, this.sampleRate);
+        mf = FIR.bandpass(13,  0.25 * shiftval,  0.75 * shiftval, this.sampleRate);
+        spaceFreq = new Complex(twopi * (-shiftval * 0.5) / this.sampleRate);
+        markFreq  = new Complex(twopi * ( shiftval * 0.5) / this.sampleRate);
+        //dataFilter = Iir2.lowpass(rate, this.sampleRate);
+        dataFilter = FIR.boxcar(this.samplesPerSymbol);
+        txlpf = FIR.lowpass(31,  shiftval * 0.5, this.sampleRate);
     }
         
     
 
-    status("sampleRate: " + sampleRate + " samplesPerSymbol: " + samplesPerSymbol);
+    this.status("sampleRate: " + this.sampleRate + " samplesPerSymbol: " + this.samplesPerSymbol);
 
 
     var loHys = -0.5;
@@ -232,7 +251,7 @@ function RttyMode(par) {
         var sig    = dataFilter.update(comp);
         //trace("sig:" + sig + "  comp:" + comp)
 
-        par.updateScope(sig, 0)
+        par.updateScope(sig, 0);
 
         //trace("sig:" + sig)
         if (sig > hiHys) {
@@ -300,7 +319,7 @@ function RttyMode(par) {
                 break;
             case Rx.Start : 
                 //trace("RxStart")
-                counter -= 1
+                counter -= 1;
                 //keep idling until half a period of mark has passed
                 if (bit) {
                     state = Rx.Idle;
@@ -331,7 +350,7 @@ function RttyMode(par) {
                 break;
             case Rx.Parity : 
                 //trace("RxParity")
-                counter -= 1
+                counter -= 1;
                 if (counter <= 0) {
                     state     = Rx.Stop;
                     parityBit = bit;
@@ -389,24 +408,24 @@ function RttyMode(par) {
 
         //println("raw:" + rawcode)
         var code = rawcode & 0x1f;
-        if (code != 0) {
+        if (code !== 0) {
             if (code === FIGS)
                 shifted = true;
             else if (code === LTRS)
                 shifted = false;
             else if (code === SPACE) {
-                par.puttext(" ")
+                par.puttext(" ");
                 if (unshiftOnSpace)
-                    shifted = false
+                    shifted = false;
             }
             else if (code === CR || code === LF) {
-                par.puttext("\n")
+                par.puttext("\n");
                 if (unshiftOnSpace)
-                    shifted = false
+                    shifted = false;
             }
             var v = Baudot.baudCodeToSym(code);
             var c = (shifted) ? v[1] : v[0];
-            if (c != 0)
+            if (c !== 0)
                 par.puttext(String.fromCharCode(c));
             }
             
@@ -501,6 +520,6 @@ function RttyMode(par) {
 
 }// RttyMode
 
-
+module.exports.RttyMode = RttyMode;
 
 

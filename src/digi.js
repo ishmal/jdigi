@@ -55,7 +55,9 @@ function Digi() {
      * Add our modes here and set the default
      */
     var pskMode = new PskMode(this);
-    var mode = pskMode;
+    var rttyMode = new RttyMode(this);
+    this.mode = pskMode;
+    this.modes = [pskMode, rttyMode];
     
     
     this.getBandwidth = function() {
@@ -94,7 +96,7 @@ function Digi() {
     var FFT_WINDOW = 700;
     
     this.receive = function(data) {
-        mode.receiveData(data);
+        self.mode.receiveData(data);
         ibuf[iptr++] = data;
         iptr &= FFT_MASK;
         if (++icnt >= FFT_WINDOW) {

@@ -23,12 +23,6 @@ var Window  = require("./window").Window;
 var FIR = (function() {
 
     
-    function average(size) {
-        var xs = [];
-        for (var i=0 ; i < size ; i++)
-            delay.push(1.0/size);
-    }
-    
     function boxcar(size) {
         var xs = [];
         for (var i=0 ; i < size ; i++)
@@ -90,6 +84,17 @@ var FIR = (function() {
     }
 
     var cls = {
+    
+        average : function(size, window) {
+            var omega = 1.0 / size;
+            var coeffs = genCoeffs(size, window, function(i) {  return omega; });
+            return new FIRCalc(size, coeffs);
+        },
+    
+        boxcar : function(size, cutoffFreq, sampleRate, window) {
+            var coeffs = genCoeffs(size, window, function(i) { return 1.0; });
+            return new FIRCalc(size, coeffs);
+        },
     
         lowpass : function(size, cutoffFreq, sampleRate, window) {
             var omega = 2.0 * Math.PI * cutoffFreq / sampleRate;

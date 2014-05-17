@@ -24,11 +24,17 @@ function Mode(par, sampleRateHint) {
 
     var self = this;
 
+    this.properties = {};
+    
     this.frequency = 1000;
     
     this.setFrequency = function(freq) {
         this.frequency = freq;
         nco.setFrequency(freq);
+    };
+    
+    this.status = function(msg) {
+         console.log("mode: " + msg);
     };
 
     this.bandwidth = 31.25;
@@ -38,6 +44,9 @@ function Mode(par, sampleRateHint) {
     this.sampleRate = par.sampleRate / decimation;
     
     this.rate = 31.25;
+    this.setRate = function(v) {
+        this.rate = v;
+    };
     this.samplesPerSymbol = this.sampleRate / this.rate;
     
     var decimator = new Resampler(decimation); 

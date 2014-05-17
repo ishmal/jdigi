@@ -10,6 +10,7 @@ var uglify     = require('gulp-uglify');
 gulp.task('jshint', function() {
     return gulp.src('src/**/*.js')
         .pipe(jshint())
+        .pipe(jshint.reporter('default'))
  });
 
 gulp.task('build', function() {
