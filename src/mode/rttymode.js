@@ -184,44 +184,37 @@ function RttyMode(par) {
     
     this.setShift = function(v) {
         shiftval = v;
-        adjust();
+        this.postSetRate();
     };
         
-    this.rateChanged = function(v) {
-        adjust();
-    };
-    
     this.getBandwidth = function() { return shiftval; };
         
     this.unshiftOnSpace = false;
     
     rate          = 45.0;
     var twopi     = Math.PI * 2.0;
-    var spaceFreq = new Complex(twopi * (-shiftval * 0.5) / this.sampleRate);
-    var markFreq  = new Complex(twopi * ( shiftval * 0.5) / this.sampleRate);
+    var spaceFreq = new Complex(twopi * (-shiftval * 0.5) / this.getSampleRate());
+    var markFreq  = new Complex(twopi * ( shiftval * 0.5) / this.getSampleRate());
     
-    var sf = FIR.bandpass(13, -0.75 * shiftval, -0.25 * shiftval, this.sampleRate);
-    var mf = FIR.bandpass(13,  0.25 * shiftval,  0.75 * shiftval, this.sampleRate);
+    var sf = FIR.bandpass(13, -0.75 * shiftval, -0.25 * shiftval, this.getSampleRate());
+    var mf = FIR.bandpass(13,  0.25 * shiftval,  0.75 * shiftval, this.getSampleRate());
     //var dataFilter = Iir2.lowpass(rate, this.sampleRate);
-    var dataFilter = FIR.boxcar(this.samplesPerSymbol);
-    var txlpf = FIR.lowpass(31,  shiftval * 0.5, this.sampleRate);
+    var dataFilter = FIR.boxcar(this.getSamplesPerSymbol());
+    var txlpf = FIR.lowpass(31,  shiftval * 0.5, this.getSampleRate());
     
     //var avgFilter = Iir2.lowpass(rate / 100, this.sampleRate);
 
-
-    function adjust() {
-        sf = FIR.bandpass(13, -0.75 * shiftval, -0.25 * shiftval, this.sampleRate);
-        mf = FIR.bandpass(13,  0.25 * shiftval,  0.75 * shiftval, this.sampleRate);
-        spaceFreq = new Complex(twopi * (-shiftval * 0.5) / this.sampleRate);
-        markFreq  = new Complex(twopi * ( shiftval * 0.5) / this.sampleRate);
+    this.postSetRate = function() {
+        sf = FIR.bandpass(13, -0.75 * shiftval, -0.25 * shiftval, this.getSampleRate());
+        mf = FIR.bandpass(13,  0.25 * shiftval,  0.75 * shiftval, this.getSampleRate());
+        spaceFreq = new Complex(twopi * (-shiftval * 0.5) / this.getSampleRate());
+        markFreq  = new Complex(twopi * ( shiftval * 0.5) / this.getSampleRate());
         //dataFilter = Iir2.lowpass(rate, this.sampleRate);
-        dataFilter = FIR.boxcar(this.samplesPerSymbol);
+        dataFilter = FIR.boxcar(this.getSamplesPerSymbol());
         txlpf = FIR.lowpass(31,  shiftval * 0.5, this.sampleRate);
-    }
+    };
         
-    
-
-    this.status("sampleRate: " + this.sampleRate + " samplesPerSymbol: " + this.samplesPerSymbol);
+    this.status("sampleRate: " + this.getSampleRate() + " samplesPerSymbol: " + this.getSamplesPerSymbol());
 
 
     var loHys = -0.5;
@@ -241,17 +234,17 @@ function RttyMode(par) {
      * the signal.  This is called a polar discrminator.
      */             
     this.receive = function(isample) {
-        var space  = sf.update(isample);
-        var mark   = mf.update(isample);
-        var sample = space + mark;
-        var prod   = sample * lastVal.conj();
-        lastvar    = sample;
+        var space  = sf.updatex(isample);
+        var mark   = mf.updatex(isample);
+        var sample = space.add(mark);
+        var prod   = sample.mul(lastval.conj());
+        lastval    = sample;
         var demod  = prod.arg();
-        var comp   = Math.signum(demod) * 10.0;
+        var comp   = (demod<0) ? -10.0 : 10.0;
         var sig    = dataFilter.update(comp);
         //trace("sig:" + sig + "  comp:" + comp)
 
-        par.updateScope(sig, 0);
+        scopeOut(sig);
 
         //trace("sig:" + sig)
         if (sig > hiHys) {
@@ -264,6 +257,20 @@ function RttyMode(par) {
         
         return sig;
     };
+    
+    var scopedata = [];
+    var scnt = 0;
+    var sx = -1;
+    function scopeOut(v) {
+        scopedata.push([sx, v*0.3]);
+        sx += 0.01;
+        if (++scnt >= 200) {
+            scnt = 0;
+            sx = -1;
+            par.showScope(scopedata);
+            scopedata =[];
+        }
+    }
 
     
     var parityType = Parity.None;
@@ -306,7 +313,7 @@ function RttyMode(par) {
     function process(inbit) {
 
         var bit = inbit ^ inverted; //LSB/USB flipping
-        var symbollen = samplesPerSymbol;
+        var symbollen = self.getSamplesPerSymbol();
 
         switch (state) {
 
@@ -415,18 +422,20 @@ function RttyMode(par) {
                 shifted = false;
             else if (code === SPACE) {
                 par.puttext(" ");
-                if (unshiftOnSpace)
+                if (this.unshiftOnSpace)
                     shifted = false;
             }
             else if (code === CR || code === LF) {
                 par.puttext("\n");
-                if (unshiftOnSpace)
+                if (this.unshiftOnSpace)
                     shifted = false;
             }
-            var v = Baudot.baudCodeToSym(code);
-            var c = (shifted) ? v[1] : v[0];
-            if (c !== 0)
-                par.puttext(String.fromCharCode(c));
+            var v = Baudot.baudCodeToSym[code];
+            if (v) {
+                var c = (shifted) ? v[1] : v[0];
+                if (c !== 0)
+                    par.puttext(c);
+                }
             }
             
         }

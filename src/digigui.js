@@ -27,7 +27,7 @@ function Waterfall(par, anchor, width, height, bins) {
 
     var self = this;
     
-    var MAX_FREQ = par.sampleRate * 0.5;
+    var MAX_FREQ = par.getSampleRate() * 0.5;
     
     var frequency = 1000;
     
@@ -285,12 +285,12 @@ function Waterfall(par, anchor, width, height, bins) {
 
         ctx.strokeStyle = "yellow";
         ctx.beginPath();
-        ctx.moveTo(center, center);
+        ctx.moveTo(center,center);
         var len = _scopeData.length;
         for (var i=0 ; i<len ; i++) {
             var pt = _scopeData[i];
-            var x = center + Math.log(1 + pt[0]) * 5000.0;
-            var y = center + Math.log(1 + pt[1]) * 5000.0;
+            var x = center + Math.log(1 + pt[0]) * 50.0;
+            var y = center + Math.log(1 + pt[1]) * 50.0;
             //console.log("pt:" + x + ":" + y);
             ctx.lineTo(x,y);
         }

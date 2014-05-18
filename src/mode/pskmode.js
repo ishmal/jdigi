@@ -245,7 +245,7 @@ function EarlyLate(samplesPerSymbol) {
  * Phase Shift Keying mode.
  */
 function PskMode(par) {
-    Mode.call(this, par, 1500); //inherit
+    Mode.call(this, par, 2000); //inherit
     var self = this;
     
     this.properties = {
@@ -270,8 +270,14 @@ function PskMode(par) {
         ]
     };
     
-    var timer = new EarlyLate(this.samplesPerSymbol);
-    var bpf   = FIR.bandpass(13, -0.7*this.rate, 0.7*this.rate, this.sampleRate);
+    var timer = new EarlyLate(this.getSamplesPerSymbol());
+    var bpf   = FIR.bandpass(13, -0.7*this.getRate(), 0.7*this.getRate(), this.getSampleRate());
+    
+    this.postSetRate = function() {
+       bpf = FIR.bandpass(13, -0.7*this.getRate(), 0.7*this.getRate(), this.getSampleRate()); 
+    };
+    
+    this.getBandwidth = function() { return this.getRate(); };     
 
     this.receive = function(v) {
         var z = bpf.updatex(v);
@@ -283,7 +289,7 @@ function PskMode(par) {
     var scopedata = [];
     var sctr = 0;
     function scopeOut(z) {
-        scopedata.push([z.r, z.i]);
+        scopedata.push([z.r * 10, z.i * 10]);
         if (++sctr >= scopesize) {
             par.showScope(scopedata);
             sctr = 0;

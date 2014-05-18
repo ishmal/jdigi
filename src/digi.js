@@ -49,7 +49,9 @@ function Digi() {
     }
     
     var audioInput = new AudioInput(this);
-    this.sampleRate = audioInput.sampleRate;
+    this.getSampleRate = function() {
+        return audioInput.sampleRate;
+    };
 
     /**
      * Add our modes here and set the default
@@ -67,7 +69,7 @@ function Digi() {
     
     
     this.getBandwidth = function() {
-        return mode.bandwidth;
+        return mode.getBandwidth();
     };
     
     this.setFrequency = function(freq, setTuner) {
@@ -75,7 +77,7 @@ function Digi() {
     };
 
     this.getFrequency = function() {
-        return mode.frequency;
+        return mode.getFrequency();
     };
 
     /**
