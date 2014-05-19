@@ -93,6 +93,7 @@ function Waterfall(par, anchor, width, height, bins) {
         else{
             setFrequency(frequency + 1);
         }
+        evt.preventDefault();
     });
       
     //###  KEY EVENTS

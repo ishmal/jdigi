@@ -46,8 +46,9 @@ function Mode(par, sampleRateHint) {
     
     var decimation = Math.floor(par.getSampleRate() / sampleRateHint);
     
+    var sampleRate = par.getSampleRate() / decimation;
     this.getSampleRate = function() {
-        return par.getSampleRate() / decimation;
+        return sampleRate;
     };
     
     var rate = 31.25;

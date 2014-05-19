@@ -274,7 +274,8 @@ function PskMode(par) {
     var bpf   = FIR.bandpass(13, -0.7*this.getRate(), 0.7*this.getRate(), this.getSampleRate());
     
     this.postSetRate = function() {
-       bpf = FIR.bandpass(13, -0.7*this.getRate(), 0.7*this.getRate(), this.getSampleRate()); 
+        timer = new EarlyLate(this.getSamplesPerSymbol());
+        bpf   = FIR.bandpass(13, -0.7*this.getRate(), 0.7*this.getRate(), this.getSampleRate());
     };
     
     this.getBandwidth = function() { return this.getRate(); };     
@@ -289,7 +290,7 @@ function PskMode(par) {
     var scopedata = [];
     var sctr = 0;
     function scopeOut(z) {
-        scopedata.push([z.r * 10, z.i * 10]);
+        scopedata.push([z.r * 30, z.i * 30]);
         if (++sctr >= scopesize) {
             par.showScope(scopedata);
             sctr = 0;
