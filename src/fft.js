@@ -90,8 +90,10 @@ function FFT(N) {
             var bri = bitReversedIndices[idx];
             var v = input[bri];
             //console.log("v:" + bri + " : " + v);
-            outr.push(v);
-            outi.push(0);
+            //outr.push(v);
+            //outi.push(0);
+            outr[outr.length] = v;
+            outi[outi.length] = 0;
         }
         
         for (var stage=0 ; stage<nrStgs ; stage++) {
@@ -254,7 +256,8 @@ function FFTSR(N) {
             var i = iarr[j];
             //console.log("v:" + r + " / " + i);
             //ps.push(Math.sqrt(r*r + i*i));
-            ps.push(r*r + i*i);
+            //ps.push(r*r + i*i);
+            ps[ps.length] = r*r + i*i;
         }
     
         return ps;
