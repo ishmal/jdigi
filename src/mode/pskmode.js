@@ -255,18 +255,20 @@ function PskMode(par) {
             {
             name: "rate",
             type: "choice",
+			get value() { return self.getRate(); },
+			set value(v) { self.setRate(parseFloat(v)); },
             values : [
                 { name :  "31", value :  31.25 },
                 { name :  "63", value :  62.50 },
                 { name : "125", value : 125.00 }
-            ],
-            func : function(v) { self.setRate(v); }
-        },
+                ]
+            },
             {
             name: "qpsk",
             type: "boolean",
-            func : function(v) { self.qpskMode = v; }
-        }
+			get value() { return self.getQpskMode(); },
+			set value(v) { self.setQpskMode(v); }
+            }
         ]
     };
     
@@ -301,7 +303,13 @@ function PskMode(par) {
 
     //val decoder = Viterbi.decoder(5, 0x17, 0x19)
     
-    this.qpskMode = false;
+    var qpskMode = false;
+	this.getQpskMode  = function() {
+	    return qpskMode;
+	};
+	this.setQpskMode = function(v) {
+	    qpskMode = v;
+	};
     
         
     function angleDiff(a, b) {

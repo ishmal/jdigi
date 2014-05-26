@@ -1,69 +1,68 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta charset="UTF-8">
 
+<script src="angular.min.js"></script>
+<link href="bootstrap/3.1.1/css/bootstrap.min.css" rel="stylesheet"/>
+<script src="ui-bootstrap-tpls-0.11.0.min.js"></script>
 
-
-
+<script src="jdigi.js"></script>
 
 <style>
-#main {
-    border: solid #dddddd 1px;
-    width : 800px;
-    height: 600px;
-}
 
-.control {
-    border: solid black 1px;
-    background: #cccccc;
-}
-
-.control-label {
-    font-size:12px;
-    color: #000055;
-}
-
-.ui-tabs .ui-tabs-nav li {
-    height: 25px;
-    font-size:12px;
+.jdigi-output {
+    width: 100%;
 }
 
 </style>
 
-<script src="//code.jquery.com/jquery-1.10.1.min.js"></script>
-<link rel="stylesheet" type="text/css" href="//code.jquery.com/ui/1.10.4/themes/eggplant/jquery-ui.css">
-<script src="//code.jquery.com/ui/1.10.4/jquery-ui.min.js"></script>
-<script src="jdigi.js"></script>
-
-<!--
-<script>
-
-
-
-$(document).ready(function() {
-
-    new DigiGui("#digi");
-
-});
-
-
-
-</script>
--->
-
 </head>
 
+
+
 <body>
-<h3>Jdigi  <a href="https://github.com/ishmal/jdigi">https://github.com/ishmal/jdigi</a></h3>
-<div id="main" width="825px" height="625px">
-<div id="digi"></div>
+
+<h3>Jdigi</h3>
+
+
+<div id='content' ng-app='JdigiApp' ng-controller='MainController'>
+    <jdigi-tuner></jdigi-tuner>
+    <p>
+	<button type="button" class="btn btn-primary" ng-model="running"
+			btn-checkbox btn-checkbox-true="true" btn-checkbox-false="false">
+			{{ running ? "Running" : "Ready" }}
+	</button>
+	</p>
+	<tabset>
+	    <tab ng-repeat="mode in modes" heading="{{mode.properties.name}}">
+			<span ng-repeat="control in mode.properties.controls" ng-switch="control.type">
+				<span ng-switch-when="boolean">
+					<button type="button" class="btn btn-primary" ng-model="control.value"
+						btn-checkbox btn-checkbox-true="true" btn-checkbox-false="false">
+						{{control.name}}
+					</button>
+				</span>
+				<span ng-switch-when="choice">
+				    {{control.name}}
+					<span class="btn-group">
+						 <button class="btn btn-primary" ng-repeat="value in control.values"
+						     ng-model="control.value" btn-radio="value.name">{{value.name}}</button>
+					</span>
+				</span>		
+			</span>
+		</tab>
+	</tabset>
+	<jdigi-output></jdigi-output>
 </div>
-<p>
-Mouse click and/or drag : coarse tuning
-</p>
-<p>
-Mouse wheel and arrow keys : fine tuning
-</p>
+
+
+
+
+
+
+
+
+
+
 </body>
 </html>

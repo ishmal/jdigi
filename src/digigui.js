@@ -22,6 +22,7 @@ var Constants = require('./digi').Constants;
 
 /**
  * Provides a Waterfall display on incoming spectrum data
+ * @param par the parent Digi of this waterfall
  */
 function Waterfall(par, anchor, width, height, bins) {
 
@@ -58,47 +59,50 @@ function Waterfall(par, anchor, width, height, bins) {
     
     var indices = createIndices(width, bins);
     
-    var canvas = $("<canvas width='" + width + "' height='" + height + "' tabindex='1'>");
-    anchor.append(canvas);
+	var canvas    = document.createElement("canvas");
+	canvas.width  = width.toString + "px";
+	canvas.height = height.toString + "px";
+	canvas.setAttribute("tabindex", "1");
+    anchor.appendChild(canvas);
     
     //### MOUSE EVENTS
-    var dragging = false;
-    canvas.click(function(event) { mouseFreq(event); })
-        .mousedown(function(event) { dragging=true; })
-        .mouseup(function(event) { dragging=false; })
-        .mousemove(function(event) { if (dragging) mouseFreq(event); });
+    var dragging    = false;
+    canvas.onclick  = function(event) { mouseFreq(event); };
+    canvas.mousedown= function(event) { dragging=true; };
+    canvas.mouseup  = function(event) { dragging=false; };
+    canvas.mousemove= function(event) { if (dragging) mouseFreq(event); };
 
     function mouseFreq(event) {
-        var pt = getMousePos(canvas.get(0), event);
+        var pt = getMousePos(canvas, event);
         //trace("point: " + pt.x + ":" + pt.y);
         var freq = MAX_FREQ * pt.x / width;
         //trace("freq:" + freq);
         setFrequency(freq);
     }
 
+	
 
     function getMousePos(canvas, evt) {
         var rect = canvas.getBoundingClientRect();
-        return {
-          x: evt.clientX - rect.left,
-          y: evt.clientY - rect.top
-        };
-      }
-      
-    canvas.bind('mousewheel DOMMouseScroll', function(evt){
+        return {x: evt.clientX - rect.left, y: evt.clientY - rect.top};
+    }
+	
+    function handleWheel(evt) {
         var delta = (evt.originalEvent.detail < 0 || evt.originalEvent.wheelDelta > 0) ? 1 : -1;
-        if(delta < 0) {
+        if (delta < 0) {
             setFrequency(frequency - 1);
-        }
-        else{
+        } else {
             setFrequency(frequency + 1);
         }
         evt.preventDefault();
-    });
+    }
+	
+	canvas.addEventListener("mousewheel", handleWheel, false);
+	canvas.addEventListener("DOMMouseScroll", handleWheel, false);
       
     //###  KEY EVENTS
     //fine tuning, + or - one hertz
-    canvas.bind("keydown", function(evt) {
+    canvas.addEventListener("keydown", function(evt) {
         var key = evt.which;
         if (key===37 || key===40) {
             setFrequency(frequency - 1);
@@ -108,7 +112,7 @@ function Waterfall(par, anchor, width, height, bins) {
         evt.preventDefault();
     });
     
-    var ctx      = canvas.get(0).getContext('2d'); 
+    var ctx      = canvas.getContext('2d'); 
     var imgData  = ctx.createImageData(width, height);
     var imglen   = imgData.data.length;
     var buf8     = new Uint8ClampedArray(imglen);
@@ -310,7 +314,6 @@ function Waterfall(par, anchor, width, height, bins) {
         drawTuner();
         drawScope();
     };
-    
     
 } //Waterfall
 

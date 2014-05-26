@@ -79,21 +79,29 @@ function Digi() {
     this.getFrequency = function() {
         return mode.getFrequency();
     };
+	
+	this.tuner = {
+	    setFrequency : function(freq) {},
+        showScope    : function(data) {},
+        update       : function(data) {}
+    };
 
     /**
      * Override this in the GUI
      */
-    this.receiveSpectrum  = function(data) {};
+    this.showScope  = function(data) {
+	    this.tuner.showScope(data);
+	};
 
-    /**
-     * Override this in the GUI
-     */
-    this.showScope  = function(data) {};
-
+	this.outtext = {
+	    puttext : function(str) {}
+	};
+	
     /**
      * Override this in the GUI
      */
     this.puttext = function(str) {
+	    this.outtext.puttext(str);
     };
 
     var FFT_MASK   = Constants.FFT_SIZE - 1;
@@ -111,7 +119,7 @@ function Digi() {
             icnt = 0;
             var ps = fft.powerSpectrum(ibuf);
             //console.log("ps: " + ps[100]);
-            self.receiveSpectrum(ps);
+            self.tuner.update(ps);
         }        
     };       
 

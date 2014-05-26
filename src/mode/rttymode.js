@@ -143,44 +143,49 @@ function RttyMode(par) {
             {
             name: "rate",
             type: "choice",
+			get value() { return self.getRate(); },
+			set value(v) { self.setRate(parseFloat(v)); },
             values : [
                 { name :  "45", value :  45.00 },
                 { name :  "50", value :  50.00 },
                 { name :  "75", value :  75.00 },
                 { name : "100", value : 100.00 }
-                ],
-            func : function(v) { self.setRate(v); }
+                ]
             },
             {
             name: "shift",
             type: "choice",
+			selected: 0,
+			get value() { return self.getShift(); },
+			set value(v) { self.setShift(parseFloat(v)); },
             values : [
                 { name :  "85", value :  85.0 },
                 { name : "170", value : 170.0 },
                 { name : "450", value : 450.0 },
                 { name : "850", value : 850.0 }
-                ],
-            func : function(v) { self.setShift(v); }
-            },
+                ]
+             },
             {
             name: "inv",
             type: "boolean",
-            func : function(v) { inverted=v; }
+ 			get value() { return self.getInverted(); },
+			set value(v) { self.setInverted(v); }
             },
             {
             name: "UoS",
             type: "boolean",
-            func : function(v) { uos=v; }
+			get value() { return self.getUnshiftOnSpace(); },
+			set value(v) { self.setUnshiftOnSpace(v); }
             }
         ]
     };
     
-    var inverted = false;
     
     var shiftval = 170.0;
     
-    this.getShift = function()
-        { return shiftval; };
+    this.getShift = function() {
+	    return shiftval;
+	};
     
     this.setShift = function(v) {
         shiftval = v;
@@ -189,8 +194,23 @@ function RttyMode(par) {
         
     this.getBandwidth = function() { return shiftval; };
         
-    this.unshiftOnSpace = false;
+    var unshiftOnSpace = false;
+	this.getUnshiftOnSpace = function() {
+	    return unshiftOnSpace;
+	};
+	this.setUnshiftOnSpace = function(v) {
+	    unshiftOnSpace = v;
+	};
     
+    var inverted = false;
+	this.getInverted = function() {
+	    return inverted;
+	};
+	this.setInverted = function(v) {
+	    inverted = v;
+	};
+
+
     rate          = 45.0;
     var twopi     = Math.PI * 2.0;
     var spaceFreq = new Complex(twopi * (-shiftval * 0.5) / this.getSampleRate());

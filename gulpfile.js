@@ -30,7 +30,7 @@ gulp.task('mocha', function() {
 });
 
 gulp.task('copy', function() {
-    return gulp.src('./html/*')
+    return gulp.src('./html/**')
         .pipe(gulp.dest('./dist'));
 });
 
