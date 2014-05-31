@@ -27,6 +27,7 @@ navigator.getUserMedia = navigator.getUserMedia ||
 
 
 function AudioInput(par) {
+    var self = this;
 
     //Chrome workaround.  Keep a ref to a scriptprocessor node to prevent gc.
     var scriptNodes = {};
@@ -39,19 +40,22 @@ function AudioInput(par) {
       };
     }());
 
-    var actx = new AudioContext();
-    var decimation = 7;
+    var actx        = new AudioContext();
+    var decimation  = 7;
     this.sampleRate = actx.sampleRate / decimation;
-
-    var isRunning = false;
+    this.source     = null;
+    var isRunning   = false;
+    var stream      = null;
     
     
-    function startStream(stream) {
+    function startStream(newstream) {
+    
+        stream = newstream;
     
         //workaround for a Firefox bug.  Keep a global ref to source to prevent gc.
         //http://goo.gl/LjEjUF2
         //var source = actx.createMediaStreamSource(stream);
-        window.source = actx.createMediaStreamSource(stream);
+        self.source = actx.createMediaStreamSource(stream);
 
         /**/
         var bufferSize = 8192;
@@ -65,7 +69,7 @@ function AudioInput(par) {
             }
         };
     
-        source.connect(inputNode);
+        self.source.connect(inputNode);
         inputNode.connect(actx.destination);
 
         isRunning = true;
@@ -79,7 +83,7 @@ function AudioInput(par) {
     };
 
     this.stop = function() {
-    
+        if (stream) stream.stop();
     };
     
        
@@ -90,6 +94,7 @@ function AudioInput(par) {
 
 //JUST A COPY/PASTE.   FIXME!!!
 function AudioOutput(par) {
+    var self = this;
 
     var scriptNodes = {};
     var keep = (function () {
@@ -104,13 +109,14 @@ function AudioOutput(par) {
     var actx = new AudioContext();
     var sampleRate = actx.sampleRate;
 
-    var analyser = null;
+    var source = null;
     var isRunning = false;
+    
     
     
     function startStream(stream) {
     
-        var source = actx.createMediaStreamSource(stream);
+        this.source = actx.createMediaStreamSource(stream);
 
         /**/
         var bufferSize = 8192;
@@ -125,7 +131,7 @@ function AudioOutput(par) {
             }
         };
     
-        source.connect(inputNode);
+        self.source.connect(inputNode);
         inputNode.connect(actx.destination);
 
         isRunning = true;
@@ -139,7 +145,7 @@ function AudioOutput(par) {
     };
 
     this.stop = function() {
-    
+        this.source.close();
     };
     
        
