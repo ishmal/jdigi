@@ -40,7 +40,7 @@ function FFT(N) {
                    index >>= 1;
                    np >>= 1;
                }
-               xs.push(bitreversed);
+               xs[xs.length] = bitreversed;
             }
             return xs;
         })(N);
@@ -49,30 +49,31 @@ function FFT(N) {
     /**
      * This piece does not need to be fast, just correct
      */
-    var stages = 
-        (function (n) {
-            var xs = [];
-            var span  = 1;
-            var wspan = N2;
-            for (var stage=0 ; stage < nrStages ; stage++, span <<= 1, wspan >>= 1) {
-                var stageData  = [];
-                for (submatrix=0; submatrix<N2/span; submatrix++) {
-                    var np = submatrix * span * 2;
-                    var ni = np;
-                    for (node=0; node<span ; node++) {
-                       var l = ni;
-                       var r = ni + span;
-                       var idx = node * wspan;
-                       var wr = Math.cos(Math.PI*2.0*node*wspan / n);
-                       var wi = Math.sin(Math.PI*2.0*node*wspan / n);
-                       stageData.push({l:l,r:r,wr:wr,wi:wi,idx:idx});
-                       ni++;
-                    }
-                }
-                xs.push(stageData);
-            }
-            return xs;
-        })(N);
+    function generateStages() {
+		var xs = [];
+		var span  = 1;
+		var wspan = N2;
+		var ninv = 1 / N;
+		for (var stage=0 ; stage < nrStages ; stage++, span <<= 1, wspan >>= 1) {
+			var stageData  = [];
+			for (submatrix=0; submatrix<N2/span; submatrix++) {
+				var np = submatrix * span * 2;
+				var ni = np;
+				for (node=0; node<span ; node++) {
+				   var l = ni;
+				   var r = ni + span;
+				   var idx = node * wspan;
+				   var wr = Math.cos(Math.PI*2.0*node*wspan * ninv);
+				   var wi = Math.sin(Math.PI*2.0*node*wspan * ninv);
+				   stageData.push({l:l,r:r,wr:wr,wi:wi,idx:idx});
+				   ni++;
+				}
+			}
+			xs[xs.length] = stageData;
+		}
+		return xs;
+	}
+	var stages = generateStages();
     this.stages = stages;
 
 
@@ -85,7 +86,7 @@ function FFT(N) {
 
         var outr = [];
         var outi = [];
-        for (var idx = 0 ; idx< N ; idx++) {
+        for (var idx = 0 ; idx<N ; idx++) {
             //todo:  apply Hann window here
             var bri = bitReversedIndices[idx];
             var v = input[bri];
@@ -121,26 +122,24 @@ function FFT(N) {
       
     function powerSpectrum(input) {
     
-        var out = execute(input);
+        var out  = execute(input);
         var rarr = out.r;
         var iarr = out.i;
-        
-        var len = rarr.length >> 1;
+        var len  = N2;
         
         var ps = [];
-        for (var j = 0 ; j < len ; j++) {
+        for (var j=0 ; j<len ; j++) {
             var r = rarr[j];
             var i = iarr[j];
-            //console.log("v:" + r + " / " + i);
-            //ps.push(Math.sqrt(r*r + i*i));
-            ps.push(r*r + i*i);
+            ps[j] = r*r + i*i;
         }
-    
         return ps;
     }
     this.powerSpectrum = powerSpectrum;
 
 } //FFT
+
+
 
 
 /**
