@@ -16,9 +16,10 @@
  *    You should have received a copy of the GNU General Public License
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 var FFT = require("./fft").FFT;
 var FFTSR = require("./fft").FFTSR;
+var FFTSR2 = require("./fft").FFTSR2;
 var AudioInput = require("./audio").AudioInput;
 var Mode = require("./mode").Mode;
 var PskMode = require("./mode/pskmode").PskMode;
@@ -38,17 +39,17 @@ var Constants = {
 function Digi() {
 
     var self = this;
-        
+
     function trace(msg) {
-        if (typeof console !== "undefined") 
+        if (typeof console !== "undefined")
             console.log("Digi: " + msg);
     }
 
     function error(msg) {
-        if (typeof console !== "undefined") 
+        if (typeof console !== "undefined")
             console.log("Digi error: " + msg);
     }
-    
+
     var audioInput = new AudioInput(this);
     this.getSampleRate = function() {
         return audioInput.sampleRate;
@@ -67,12 +68,12 @@ function Digi() {
     this.getMode = function() {
         return mode;
     };
-    
-    
+
+
     this.getBandwidth = function() {
         return mode.getBandwidth();
     };
-    
+
     this.setFrequency = function(freq, setTuner) {
         mode.setFrequency(freq);
     };
@@ -80,7 +81,7 @@ function Digi() {
     this.getFrequency = function() {
         return mode.getFrequency();
     };
-	
+
 	this.tuner = {
 	    setFrequency : function(freq) {},
         showScope    : function(data) {},
@@ -97,7 +98,7 @@ function Digi() {
 	this.outtext = {
 	    puttext : function(str) {}
 	};
-	
+
     /**
      * Override this in the GUI
      */
@@ -111,7 +112,7 @@ function Digi() {
     var iptr       = 0;
     var icnt       = 0;
     var FFT_WINDOW = 700;
-    
+
     this.receive = function(data) {
         self.getMode().receiveData(data);
         ibuf[iptr++] = data;
@@ -121,24 +122,24 @@ function Digi() {
             var ps = fft.powerSpectrum(ibuf);
             //console.log("ps: " + ps[100]);
             self.tuner.update(ps);
-        }        
-    };       
+        }
+    };
 
-    
+
     function transmit(data) {
-    
-    
-    }
-    
 
-    
+
+    }
+
+
+
     function start() {
-        audioInput.start();    
+        audioInput.start();
     }
     this.start = start;
 
     function stop() {
-        audioInput.stop();    
+        audioInput.stop();
     }
     this.stop = stop;
 
@@ -146,4 +147,3 @@ function Digi() {
 
 module.exports.Constants=Constants;
 module.exports.Digi=Digi;
-

@@ -323,10 +323,11 @@ function FFTSR2(N) {
     //let's pre-generate anything we can
     function generateStageData(pwr) {
         var xs = [];
-        for (var k=1, n2=4 ; k<pwr ; k++, n2<<=1) {
+        var n2 = N;// == n>>(k-1) == n, n/2, n/4, ..., 4
+        var n4 = n2>>2; // == n/4, n/8, ..., 1
+        for (var k=1 ; k<pwr ; k++, n2>>=1, n4>>=1) {
             var stage = [];
-            var n4 = n2 >> 2;
-            var e = -2.0 * Math.PI / n2;
+            var e = 2.0 * Math.PI / n2;
             for (var j=1; j<n4; j++) {
                 var a = j * e;
                 var w1 = new Complex(Math.cos(a), Math.sin(a));
@@ -360,18 +361,18 @@ function FFTSR2(N) {
             var stage = stages[stageidx++];
 
             id = (n2<<1);
-            for (ix=0 ; ix<n ; ix = (id<<1) - n2, id <<= 2)  { //ix=j=0
-                for (i0=ix; i0<n; i0+=id) {
+            for (ix=0 ; ix<N ; ix = (id<<1) - n2, id <<= 2)  { //ix=j=0
+                for (i0=ix; i0<N; i0+=id) {
                     i1 = i0 + n4;
                     i2 = i1 + n4;
                     i3 = i2 + n4;
 
                     //sumdiff3(x[i0], x[i2], t0);
-                    x[i0] += x[i2];
-                    t0 = x[i0] - x[i2];
+                    x[i0] = x[i0].add(x[i2]);
+                    t0 = x[i0].sub(x[i2]);
                     //sumdiff3(x[i1], x[i3], t1);
-                    x[i1] += x[i3];
-                    t1 = x[i1] - x[i3];
+                    x[i1] = x[i1].add(x[i3]);
+                    t1 = x[i1].sub(x[i3]);
 
                     // t1 *= Complex(0, 1);  // +isign
                     t1 = t1.isign();
@@ -392,12 +393,12 @@ function FFTSR2(N) {
           for (j=1; j<n4; j++) {
 
               var data = stage[dataindex++];
-              var wr = data.wr;
-              var wi = data.wi;
+              var w1 = data.w1;
+              var w3 = data.w3;
 
               id = (n2<<1);
-              for (ix=j ; ix<n ; ix = (id<<1) - n2 + j, id <<= 2) {
-                  for (i0=ix; i0<n; i0+=id) {
+              for (ix=j ; ix<N ; ix = (id<<1) - n2 + j, id <<= 2) {
+                  for (i0=ix; i0<N; i0+=id) {
                       i1 = i0 + n4;
                       i2 = i1 + n4;
                       i3 = i2 + n4;
@@ -407,11 +408,11 @@ function FFTSR2(N) {
                       // x[i3] = (x[i0]-x[i2] - (is*I) * (x[i1]-x[i3])) * SinCos(3*a)
 
                       //sumdiff3(x[i0], x[i2], t0);
-                      x[i0] += x[i2];
-                      t0 = x[i0] - x[i2];
+                      x[i0] = x[i0].add(x[i2]);
+                      t0 = x[i0].sub(x[i2]);
                       //sumdiff3(x[i1], x[i3], t1);
-                      x[i1] += x[i3];
-                      t1 = x[i1] - x[i3];
+                      x[i1] = x[i1].add(x[i3]);
+                      t1 = x[i1].sub(x[i3]);
 
                       // t1 *= Complex(0, is);
                       // t1 *= Complex(0, 1);  // +isign
