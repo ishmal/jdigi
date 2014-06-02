@@ -44,6 +44,7 @@ function Nco(frequency, sampleRate)
     var freq = 0|0;
     function setFrequency(frequency) {
         freq  = (4294967296.0 * frequency / sampleRate)|0;
+		return freq;
     }
     this.setFrequency = setFrequency;
     setFrequency(frequency);
