@@ -26,16 +26,18 @@ function Complex(real, imaginary) {
 Complex.prototype.add =
     function(other) { return new Complex(this.r + other.r, this.i + other.i); };
 Complex.prototype.sub =
-    function(other) { return new Complex(this.r + other.r, this.i + other.i); };
+    function(other) { return new Complex(this.r - other.r, this.i - other.i); };
 Complex.prototype.scale =
     function(scalar){ return new Complex(this.r * scalar,  this.i * scalar ); };
 Complex.prototype.mul =
-    function(other) { var or = other.r; var oi = other.i;
-        return new Complex(this.r * or - this.i * oi, this.r * oi + this.i * or); };
+    function(other) { var r = this.r; var i = this.i; var or = other.r; var oi = other.i;
+        return new Complex(r * or - i * oi, r * oi + i * or); };
 Complex.prototype.neg =
     function() { return new Complex(-this.r, -this.i); };
 Complex.prototype.conj =
     function() { return new Complex(this.r, -this.i); };
+Complex.prototype.isign =  // this * (0,1)
+    function() { return new Complex(-this.i, this.r); };
 Complex.prototype.mag =
     function() { var r = this.r; var i = this.i; return r*r+i*i; };
 Complex.prototype.abs =
