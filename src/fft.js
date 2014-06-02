@@ -32,7 +32,7 @@ function FFT(N) {
     //todo: validate power-of-2, throw IAE if not
 
     function createBitReversedIndices(n) {
-        var xs = [];
+        var xs = new Array(N);
         for (var i=0 ; i < n ; i++) {
            var np = n;
            var index = i;
@@ -43,7 +43,7 @@ function FFT(N) {
                index >>= 1;
                np >>= 1;
            }
-           xs[xs.length] = bitreversed;
+           xs[i] = bitreversed;
         }
         return xs;
     }
@@ -86,14 +86,14 @@ function FFT(N) {
         var nrStgs = nrStages;
         var stgs   = stages;
 
-        var xr = [];
-        var xi = [];
+        var xr = new Array(N);
+        var xi = new Array(N);
         for (var idx = 0 ; idx<N ; idx++) {
             //todo:  apply Hann window here
             var bri = bitReversedIndices[idx];
             var v = input[bri];
-            xr[xr.length] = v;
-            xi[xi.length] = 0;
+            xr[idx] = v;
+            xi[idx] = 0;
         }
 
         for (var stage=0 ; stage<nrStgs ; stage++) {
@@ -125,7 +125,7 @@ function FFT(N) {
         var iarr = x.i;
         var len  = N2;
 
-        var ps = [];
+        var ps = new Array(N);
         for (var j=0 ; j<len ; j++) {
             var r = rarr[j];
             var i = iarr[j];
@@ -147,7 +147,7 @@ function FFTSR(N) {
     var N2 = N >> 1;
 
     function generateBitReversedIndices(n) {
-        var xs = [];
+        var xs = new Array(N);
         for (var i=0 ; i < n ; i++) {
            var np = n;
            var index = i;
@@ -158,7 +158,7 @@ function FFTSR(N) {
                index >>= 1;
                np >>= 1;
            }
-           xs[xs.length] = bitreversed;
+           xs[i] = bitreversed;
         }
         return xs;
     }
@@ -190,10 +190,10 @@ function FFTSR(N) {
         var t, t0, t1;
         var n2, n4;
 
-        var x = [];
+        var x = new Array(N);
         for (var idx = 0 ; idx<N ; idx++) {
             var bri = bitReversedIndices[idx];
-            x[x.length] = new Complex(input[bri], 0);
+            x[idx] = new Complex(input[bri], 0);
         }
 
         for (ix=0, id=4 ;  ix<N ;  id<<=2) {
@@ -279,21 +279,23 @@ function FFTSR(N) {
         return x;
     }//apply
 
+
     function powerSpectrum(input) {
 
         var x  = apply(input);
         var len  = N2;
 
-        var ps = [];
+        var ps = new Array(N);
         for (var j=0 ; j<len ; j++) {
-            ps[ps.length] = x[j].mag();
+            ps[j] = x[j].mag();
         }
         return ps;
     }
     this.powerSpectrum = powerSpectrum;
 
-
 } //FFTSR
+
+
 
 
 function FFTSR2(N) {
@@ -303,7 +305,7 @@ function FFTSR2(N) {
     var N2 = N >> 1;
 
     function generateBitReversedIndices(n) {
-        var xs = [];
+        var xs = new Array(n);
         for (var i=0 ; i < n ; i++) {
            var np = n;
            var index = i;
@@ -314,7 +316,7 @@ function FFTSR2(N) {
                index >>= 1;
                np >>= 1;
            }
-           xs[xs.length] = bitreversed;
+           xs[i] = bitreversed;
         }
         return xs;
     }
@@ -340,7 +342,7 @@ function FFTSR2(N) {
     }
 
     var stages = generateStageData(power);
-    var x = [];
+    var x = new Array(N);
 
     function apply(input) {
         var ix, id, i0, i1, i2, i3;
@@ -361,7 +363,7 @@ function FFTSR2(N) {
             var stage = stages[stageidx++];
 
             id = (n2<<1);
-            for (ix=0 ; ix<N ; ix = (id<<1) - n2, id <<= 2)  { //ix=j=0
+            for (ix=0 ; ix<N ; ix=(id<<1)-n2, id <<= 2)  { //ix=j=0
                 for (i0=ix; i0<N; i0+=id) {
                     i1 = i0 + n4;
                     i2 = i1 + n4;
@@ -397,7 +399,7 @@ function FFTSR2(N) {
               var w3 = data.w3;
 
               id = (n2<<1);
-              for (ix=j ; ix<N ; ix = (id<<1) - n2 + j, id <<= 2) {
+              for (ix=j ; ix<N ; ix = (id<<1)-n2+j, id <<= 2) {
                   for (i0=ix; i0<N; i0+=id) {
                       i1 = i0 + n4;
                       i2 = i1 + n4;
@@ -425,8 +427,6 @@ function FFTSR2(N) {
                       x[i2] = t0.mul(w1);
                       x[i3] = t1.mul(w3);
                  }
-
-
               }
           }
       }
@@ -442,7 +442,7 @@ function FFTSR2(N) {
       }
 
 
-      var xo = [];
+      var xo = new Array(N);
       for (var odx=0 ; odx<N ; odx++) {
           xo[odx] = x[bitReversedIndices[odx]];
       }
@@ -450,14 +450,15 @@ function FFTSR2(N) {
 
     }//apply
 
+
     function powerSpectrum(input) {
 
         var x  = apply(input);
         var len  = N2;
 
-        var ps = [];
+        var ps = new Array(N);
         for (var j=0 ; j<len ; j++) {
-            ps[ps.length] = x[j].mag();
+            ps[j] = x[j].mag();
         }
         return ps;
     }
