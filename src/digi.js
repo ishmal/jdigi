@@ -82,7 +82,7 @@ function Digi() {
         return mode.getFrequency();
     };
 
-	this.tuner = {
+	  this.tuner = {
 	    setFrequency : function(freq) {},
         showScope    : function(data) {},
         update       : function(data) {}
@@ -93,11 +93,11 @@ function Digi() {
      */
     this.showScope  = function(data) {
 	    this.tuner.showScope(data);
-	};
+	  };
 
-	this.outtext = {
-	    puttext : function(str) {}
-	};
+	  this.outtext = {
+	      puttext : function(str) {}
+	  };
 
     /**
      * Override this in the GUI
