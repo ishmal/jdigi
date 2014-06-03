@@ -80,8 +80,8 @@ function Mode(par, sampleRateHint) {
     
     this.receiveData = function(v) {
         decimator.decimate(v, function(vp) {
-            var cs = nco.next();
-            self.receive(cs.scale(vp));
+            var cx = nco.mixNext(vp);
+            self.receive(cx);
         });
     };
     

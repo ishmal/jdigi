@@ -26,11 +26,11 @@ var ncoTable = (function() {
     var two16 = 65536;
     var delta = twopi / two16;
     
-    var xs = [];
+    var xs = new Array(two16);
     
     for (var idx = 0 ; idx < two16 ; idx++) {
         var angle = delta * idx;
-        xs.push(new Complex( Math.cos(angle), Math.sin(angle) )); 
+        xs[idx] = { cos: Math.cos(angle), sin: Math.sin(angle) }; 
     }
     return xs;  
 })();
@@ -55,6 +55,12 @@ function Nco(frequency, sampleRate)
     this.next = function() {
         phase = (phase + freq) & 0xffffffff;
         return table[(phase >> 16) & 0xffff];
+    };
+    
+    this.mixNext = function (v) {
+        phase = (phase + freq) & 0xffffffff;
+        var cs = table[(phase >> 16) & 0xffff];
+        return new Complex(v*cs.cos, v*cs.sin);
     };
         
 }
