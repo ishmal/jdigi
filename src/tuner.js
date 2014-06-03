@@ -159,26 +159,24 @@ function Tuner(par, canvas) {
     var palette = makePalette();
 
 
-    function drawSpectrum() {
-        var data = _buf;
-        //trace("len:" + data.length);
-        //ctx.clearRect(0,0,width,height);
-        //
-        ctx.fillStyle = 'midnightblue';
-        //ctx.fillRect(0,0,width,height);
+    function drawSpectrum(data) {
+
+        //ctx.fillStyle = 'red';
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.50)';
+        //ctx.lineWidth = 1;
         ctx.beginPath();
-        ctx.moveTo(0, height);
+        var base = height; //move this around
+        ctx.moveTo(0, base);
         var log = Math.log;
         for (var x=0; x<width ; x++) {
-            var v = log(1.0 + data[indices[x]]);
-            var y = height - 10 - 50*v;
+            var v = log(1.0 + data[indices[x]]) * 20.0;
+            var y = base - v;
             //trace("x:" + x + " y:" + y);
             ctx.lineTo(x, y);
         }
-        ctx.lineTo(width-1,height-1);
+        ctx.lineTo(width-1,base);
         ctx.closePath();
         //var bbox = ctx.getBBox();
-        ctx.fillStyle = 'rgba(255, 0, 0, 1.0)';
         ctx.fill();
     }
 
@@ -303,6 +301,7 @@ function Tuner(par, canvas) {
 
     function update(data) {
         drawWaterfall2(data);
+        drawSpectrum(data);
         drawTuner();
         drawScope();
     }
