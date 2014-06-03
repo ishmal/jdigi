@@ -24,20 +24,20 @@ var Digi  = require("./digi").Digi;
 var app = angular.module('JdigiApp',['ui.bootstrap']);
 
 
-app.controller("MainController", function($scope){
-    var digi = new Digi();
-	$scope.digi = digi;
-	$scope.running = false;
-	$scope.$watch('running', function() {
-       if ($scope.running) {
-	       digi.start();
-	   } else {
-	       digi.stop();
-	   }
-    });
-	$scope.modes = digi.modes;
 
-});
+app.controller("MainController", ['$scope', function($scope) {
+    var digi = new Digi();
+	  $scope.digi = digi;
+	  $scope.running = false;
+	  $scope.$watch('running', function() {
+        if ($scope.running) {
+	           digi.start();
+	       } else {
+	           digi.stop();
+	       }
+    });
+    $scope.modes = digi.modes;
+}]);
 
 
 app.directive("jdigiTuner", function(){
@@ -72,5 +72,3 @@ app.directive("jdigiOutput", function(){
 			}
 	};
 });
-
-
