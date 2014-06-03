@@ -18,6 +18,6 @@
     "gulp-mocha": "^0.4.1",
     "gulp-rename": "^1.2.0",
     "gulp-uglify": "^0.3.0",
-    "gulp-util": "^2.2.14"
+    "gulp-util": "^2.2.16"
   }
 }
