@@ -18,8 +18,8 @@
  */
 
 
- var Complex = require("./math").Complex;
-
+var Complex = require("./math").Complex;
+var Window = require("./window").Window;
 
 /**
  * Perform a relatively-efficient FFT
@@ -32,7 +32,7 @@ function FFT(N) {
     //todo: validate power-of-2, throw IAE if not
 
     function createBitReversedIndices(n) {
-        var xs = new Array(N);
+        var xs = new Array(n);
         for (var i=0 ; i < n ; i++) {
            var np = n;
            var index = i;
@@ -68,7 +68,7 @@ function FFT(N) {
                    var idx = node * wspan;
                    var wr = Math.cos(Math.PI*2.0*node*wspan * ninv);
                    var wi = Math.sin(Math.PI*2.0*node*wspan * ninv);
-                   stageData.push({l:l,r:r,wr:wr,wi:wi,idx:idx});
+                   stageData[stageData.length] = {l:l,r:r,wr:wr,wi:wi,idx:idx};
                    ni++;
                 }
             }
@@ -91,8 +91,7 @@ function FFT(N) {
         for (var idx = 0 ; idx<N ; idx++) {
             //todo:  apply Hann window here
             var bri = bitReversedIndices[idx];
-            var v = input[bri];
-            xr[idx] = v;
+            xr[idx] = input[bri];
             xi[idx] = 0;
         }
 
@@ -121,14 +120,14 @@ function FFT(N) {
     function powerSpectrum(input) {
 
         var x  = apply(input);
-        var rarr = x.r;
-        var iarr = x.i;
+        var xr = x.r;
+        var xi = x.i;
         var len  = N2;
 
-        var ps = new Array(N);
+        var ps = new Array(len);
         for (var j=0 ; j<len ; j++) {
-            var r = rarr[j];
-            var i = iarr[j];
+            var r = xr[j];
+            var i = xi[j];
             ps[j] = r*r + i*i;
         }
         return ps;
@@ -140,6 +139,9 @@ function FFT(N) {
 
 
 
+/**
+ * Finally got split radix to work!
+ */
 function FFTSR(N) {
     "use strict";
 
@@ -147,7 +149,7 @@ function FFTSR(N) {
     var N2 = N >> 1;
 
     function generateBitReversedIndices(n) {
-        var xs = new Array(N);
+        var xs = new Array(n);
         for (var i=0 ; i < n ; i++) {
            var np = n;
            var index = i;
@@ -167,15 +169,17 @@ function FFTSR(N) {
     //let's pre-generate anything we can
     function generateStageData(pwr) {
         var xs = [];
-        for (var k=1, n2=4 ; k<pwr ; k++, n2<<=1) {
+        var n2 = N;// == n>>(k-1) == n, n/2, n/4, ..., 4
+        var n4 = n2>>2; // == n/4, n/8, ..., 1
+        for (var k=1 ; k<pwr ; k++, n2>>=1, n4>>=1) {
             var stage = [];
-            var n4 = n2 >> 2;
-            var e = -2.0 * Math.PI / n2;
+            var e = 2.0 * Math.PI / n2;
             for (var j=1; j<n4; j++) {
                 var a = j * e;
-                var w1 = new Complex(Math.cos(a), Math.sin(a));
-                var w3 = new Complex(Math.cos(a*3), Math.sin(a*3));
-                stage[stage.length] = { w1: w1, w3: w3 };
+                stage[stage.length] = {
+                    wr1: Math.cos(a),   wi1: Math.sin(a),
+                    wr3: Math.cos(3*a), wi3: Math.sin(3*a)
+                };
             }
             xs[xs.length] = stage;
         }
@@ -183,121 +187,169 @@ function FFTSR(N) {
     }
 
     var stages = generateStageData(power);
+    
+    var W = Window.hann(N);
+    
 
     function apply(input) {
         var ix, id, i0, i1, i2, i3;
         var j,k;
-        var t, t0, t1;
+        var tr, ti, tr0, ti0, tr1, ti1;
         var n2, n4;
 
-        var x = new Array(N);
-        for (var idx = 0 ; idx<N ; idx++) {
-            var bri = bitReversedIndices[idx];
-            x[idx] = new Complex(input[bri], 0);
-        }
-
-        for (ix=0, id=4 ;  ix<N ;  id<<=2) {
-            for (i0=ix; i0<N; i0+=id) {
-                i1 = i0+1;
-                t = x[i1].sub(x[i0]);
-                x[i0] = x[i0].add(x[i1]);
-                x[i1] = t;
-            }
-            ix = id + id - 2; //2*(id-1);
+        var xr = new Array(N);
+        var xi = new Array(N);
+        for (var idx=0 ; idx<N ; idx++) {
+            xr[idx] = input[idx]; // * W[idx];
+            xi[idx] = 0;
         }
 
         var stageidx = 0;
-        n2 = 4; // == 4, 8, 16, ..., n
-        n4 = 1; // == 1, 2, 4, 8
-        for (k=1 ; k<power ; k++, n2<<=1, n4<<=1) {
+
+        n2 = N;// == n>>(k-1) == n, n/2, n/4, ..., 4
+        n4 = n2>>2; // == n/4, n/8, ..., 1
+        for (k=1; k<power; k++, n2>>=1, n4>>=1) {
 
             var stage = stages[stageidx++];
 
-            // first part : j==0:
             id = (n2<<1);
-            //j=0 ; ix=j
-            for (ix=0 ; ix<N ; ix = (id<<1)-n2, id <<= 2) {
-                for (i0=ix; i0<N; i0+=id)    {
+            for (ix=0 ; ix<N ; ix=(id<<1)-n2, id <<= 2)  { //ix=j=0
+                for (i0=ix; i0<N; i0+=id) {
                     i1 = i0 + n4;
                     i2 = i1 + n4;
                     i3 = i2 + n4;
 
-                    t0 = x[i3];
-                    t1 = x[i2];
+                    //sumdiff3(x[i0], x[i2], t0);
+                    tr0 = xr[i0] - xr[i2];
+                    ti0 = xi[i0] - xi[i2];
+                    xr[i0] += xr[i2];
+                    xi[i0] += xi[i2];
+                    //sumdiff3(x[i1], x[i3], t1);
+                    tr1 = xr[i1] - xr[i3];
+                    ti1 = xi[i1] - xi[i3];
+                    xr[i1] += xr[i3];
+                    xi[i1] += xi[i3];
+
+                    // t1 *= Complex(0, 1);  // +isign
+                    tr = tr1;
+                    tr1 = -ti1;
+                    ti1 = tr;
 
                     //sumdiff(t0, t1);
-                    t  = t1.sub(t0);
-                    t0 = t0.add(t1);
-                    t1 = t;
+                    tr  = tr1 - tr0;
+                    ti  = ti1 - ti0;
+                    tr0 += tr1;
+                    ti0 += ti1;
+                    tr1 = tr;
+                    ti1 = ti;
 
-                    // t1 *= Complex(0, 1);  // -isign
-                    t1 = t1.isign();
-
-                    //sumdiff3(x[i0], t0, x[i2]);
-                    x[i0] = x[i0].add(t0);
-                    x[i2] = x[i0].sub(t0);
-                    //sumdiff3(x[i1], t1, x[i3]);
-                    x[i1] = x[i1].add(t1);
-                    x[i3] = x[i1].sub(t1);
+                    xr[i2] = tr0;  // .mul(w1);
+                    xi[i2] = ti0;  // .mul(w1);
+                    xr[i3] = tr1;  // .mul(w3);
+                    xi[i3] = ti1;  // .mul(w3);
                }
             }
 
-            var dataidx = 0;
-            for (j=1; j<n4; j++) {
 
-                var data = stage[dataidx++];
-                var w1 = data.w1;
-                var w3 = data.w3;
+        var dataindex = 0;
 
-                id = (n2<<1);
-                for (ix=j ; ix<N ; ix = (id<<1)-n2+j, id <<= 2) {
-                    for (i0=ix; i0<N; i0+=id)    {
-                        i1 = i0 + n4;
-                        i2 = i1 + n4;
-                        i3 = i2 + n4;
+        for (j=1; j<n4; j++) {
 
-                        t0 = x[i3].mul(w3);
-                        t1 = x[i2].mul(w1);
+            var data = stage[dataindex++];
+            var wr1 = data.wr1;
+            var wi1 = data.wi1;
+            var wr3 = data.wr3;
+            var wi3 = data.wi3;
 
-                        //sumdiff(t0, t1);
-                        t  = t1.sub(t0);
-                        t0 = t0.add(t1);
-                        t1 = t;
+            id = (n2<<1);
+            for (ix=j ; ix<N ; ix = (id<<1)-n2+j, id <<= 2) {
+                for (i0=ix; i0<N; i0+=id) {
+                    i1 = i0 + n4;
+                    i2 = i1 + n4;
+                    i3 = i2 + n4;
 
-                        // t1 *= Complex(0, 1);  // -isign
-                        t1 = t1.isign();
-                        //sumdiff3(x[i0], t0, x[i2]);
-                        x[i0] = x[i0].add(t0);
-                        x[i2] = x[i0].sub(t0);
-                        //sumdiff3(x[i1], t1, x[i3]);
-                        x[i1] = x[i1].add(t1);
-                        x[i3] = x[i1].sub(t1);
+                    //sumdiff3(x[i0], x[i2], t0);
+                    tr0 = xr[i0] - xr[i2];
+                    ti0 = xi[i0] - xi[i2];
+                    xr[i0] += xr[i2];
+                    xi[i0] += xi[i2];
+                    //sumdiff3(x[i1], x[i3], t1);
+                    tr1 = xr[i1] - xr[i3];
+                    ti1 = xi[i1] - xi[i3];
+                    xr[i1] += xr[i3];
+                    xi[i1] += xi[i3];
+
+                    // t1 *= Complex(0, 1);  // +isign
+                    tr = tr1;
+                    tr1 = -ti1;
+                    ti1 = tr;
+
+                    //sumdiff(t0, t1);
+                    tr  = tr1 - tr0;
+                    ti  = ti1 - ti0;
+                    tr0 += tr1;
+                    ti0 += ti1;
+                    tr1 = tr;
+                    ti1 = ti;
+
+                    xr[i2] = tr0*wr1 - ti0*wi1;  // .mul(w1);
+                    xi[i2] = ti0*wr1 + tr0*wi1;  // .mul(w1);
+                    xr[i3] = tr1*wr3 - ti1*wi3;  // .mul(w3);
+                    xi[i3] = ti1*wr3 + tr1*wi3;  // .mul(w3);
                     }
                 }
             }
         }
-        return x;
+
+    for (ix=0, id=4 ;  ix<N ;  id<<=2) {
+        for (i0=ix; i0<N; i0+=id) {
+            i1 = i0+1;
+            tr = xr[i1] - xr[i0];
+            ti = xi[i1] - xi[i0];
+            xr[i0] += xr[i1];
+            xi[i0] += xi[i1];
+            xr[i1] = tr;
+            xi[i1] = ti;
+        }
+        ix = id + id - 2; //2*(id-1);
+    }
+
+    /*
+    for (var odx=0 ; odx<N ; odx++) {
+        var bri = bitReversedIndices[odx];
+        xr[odx] = xr[bri];
+        xi[odx] = xi[bri];
+    }
+    */
+    return {r: xr, i: xi};
+
     }//apply
 
 
     function powerSpectrum(input) {
 
         var x  = apply(input);
+        var xr = x.r;
+        var xi = x.i;
         var len  = N2;
 
-        var ps = new Array(N);
+        var ps = new Array(len);
         for (var j=0 ; j<len ; j++) {
-            ps[j] = x[j].mag();
+            var bri = bitReversedIndices[j];
+            var r = xr[bri];
+            var i = xi[bri];
+            ps[j] = r*r + i*i;
         }
         return ps;
     }
     this.powerSpectrum = powerSpectrum;
 
+
 } //FFTSR
 
-
-
-
+/**
+ * Finally got split radix to work!
+ */
 function FFTSR2(N) {
     "use strict";
 
@@ -332,9 +384,10 @@ function FFTSR2(N) {
             var e = 2.0 * Math.PI / n2;
             for (var j=1; j<n4; j++) {
                 var a = j * e;
-                var w1 = new Complex(Math.cos(a), Math.sin(a));
-                var w3 = new Complex(Math.cos(a*3), Math.sin(a*3));
-                stage[stage.length] = { w1: w1, w3: w3 };
+                stage[stage.length] = {
+                    wr1: Math.cos(a),   wi1: Math.sin(a),
+                    wr3: Math.cos(3*a), wi3: Math.sin(3*a)
+                };
             }
             xs[xs.length] = stage;
         }
@@ -342,16 +395,23 @@ function FFTSR2(N) {
     }
 
     var stages = generateStageData(power);
-    var x = new Array(N);
+    
+    var W = Window.hann(N);
+    
 
+    var xr = new Array(N);
+    var xi = new Array(N);
+    
+    
     function apply(input) {
         var ix, id, i0, i1, i2, i3;
         var j,k;
-        var t, t0, t1;
+        var tr, ti, tr0, ti0, tr1, ti1;
         var n2, n4;
 
         for (var idx=0 ; idx<N ; idx++) {
-          x[idx] = new Complex(input[idx], 0);
+            xr[idx] = input[idx]; // * W[idx];
+            xi[idx] = 0;
         }
 
         var stageidx = 0;
@@ -370,95 +430,114 @@ function FFTSR2(N) {
                     i3 = i2 + n4;
 
                     //sumdiff3(x[i0], x[i2], t0);
-                    x[i0] = x[i0].add(x[i2]);
-                    t0 = x[i0].sub(x[i2]);
+                    tr0 = xr[i0] - xr[i2];
+                    ti0 = xi[i0] - xi[i2];
+                    xr[i0] += xr[i2];
+                    xi[i0] += xi[i2];
                     //sumdiff3(x[i1], x[i3], t1);
-                    x[i1] = x[i1].add(x[i3]);
-                    t1 = x[i1].sub(x[i3]);
+                    tr1 = xr[i1] - xr[i3];
+                    ti1 = xi[i1] - xi[i3];
+                    xr[i1] += xr[i3];
+                    xi[i1] += xi[i3];
 
                     // t1 *= Complex(0, 1);  // +isign
-                    t1 = t1.isign();
+                    tr = tr1;
+                    tr1 = -ti1;
+                    ti1 = tr;
 
                     //sumdiff(t0, t1);
-                    t  = t1.sub(t0);
-                    t0 = t0.add(t1);
-                    t1 = t;
+                    tr  = tr1 - tr0;
+                    ti  = ti1 - ti0;
+                    tr0 += tr1;
+                    ti0 += ti1;
+                    tr1 = tr;
+                    ti1 = ti;
 
-                    x[i2] = t0;  // .mul(w1);
-                    x[i3] = t1;  // .mul(w3);
+                    xr[i2] = tr0;  // .mul(w1);
+                    xi[i2] = ti0;  // .mul(w1);
+                    xr[i3] = tr1;  // .mul(w3);
+                    xi[i3] = ti1;  // .mul(w3);
                }
             }
 
 
-          var dataindex = 0;
+        var dataindex = 0;
 
-          for (j=1; j<n4; j++) {
+        for (j=1; j<n4; j++) {
 
-              var data = stage[dataindex++];
-              var w1 = data.w1;
-              var w3 = data.w3;
+            var data = stage[dataindex++];
+            var wr1 = data.wr1;
+            var wi1 = data.wi1;
+            var wr3 = data.wr3;
+            var wi3 = data.wi3;
 
-              id = (n2<<1);
-              for (ix=j ; ix<N ; ix = (id<<1)-n2+j, id <<= 2) {
-                  for (i0=ix; i0<N; i0+=id) {
-                      i1 = i0 + n4;
-                      i2 = i1 + n4;
-                      i3 = i2 + n4;
-                      // x[i0] = x[i0] + x[i2]
-                      // x[i1] = x[i1] + x[i3]
-                      // x[i2] = (x[i0]-x[i2] + (is*I) * (x[i1]-x[i3])) * SinCos(a)
-                      // x[i3] = (x[i0]-x[i2] - (is*I) * (x[i1]-x[i3])) * SinCos(3*a)
+            id = (n2<<1);
+            for (ix=j ; ix<N ; ix = (id<<1)-n2+j, id <<= 2) {
+                for (i0=ix; i0<N; i0+=id) {
+                    i1 = i0 + n4;
+                    i2 = i1 + n4;
+                    i3 = i2 + n4;
 
-                      //sumdiff3(x[i0], x[i2], t0);
-                      x[i0] = x[i0].add(x[i2]);
-                      t0 = x[i0].sub(x[i2]);
-                      //sumdiff3(x[i1], x[i3], t1);
-                      x[i1] = x[i1].add(x[i3]);
-                      t1 = x[i1].sub(x[i3]);
+                    //sumdiff3(x[i0], x[i2], t0);
+                    tr0 = xr[i0] - xr[i2];
+                    ti0 = xi[i0] - xi[i2];
+                    xr[i0] += xr[i2];
+                    xi[i0] += xi[i2];
+                    //sumdiff3(x[i1], x[i3], t1);
+                    tr1 = xr[i1] - xr[i3];
+                    ti1 = xi[i1] - xi[i3];
+                    xr[i1] += xr[i3];
+                    xi[i1] += xi[i3];
 
-                      // t1 *= Complex(0, is);
-                      // t1 *= Complex(0, 1);  // +isign
-                      t1 = t1.isign();
+                    // t1 *= Complex(0, 1);  // +isign
+                    tr = tr1;
+                    tr1 = -ti1;
+                    ti1 = tr;
 
-                      //sumdiff(t0, t1);
-                      t  = t1.sub(t0);
-                      t0 = t0.add(t1);
-                      t1 = t;
-                      x[i2] = t0.mul(w1);
-                      x[i3] = t1.mul(w3);
-                 }
-              }
-          }
-      }
+                    //sumdiff(t0, t1);
+                    tr  = tr1 - tr0;
+                    ti  = ti1 - ti0;
+                    tr0 += tr1;
+                    ti0 += ti1;
+                    tr1 = tr;
+                    ti1 = ti;
 
-      for (ix=0, id=4 ;  ix<N ;  id<<=2) {
-          for (i0=ix; i0<N; i0+=id) {
-              i1 = i0+1;
-              t = x[i1].sub(x[i0]);
-              x[i0] = x[i0].add(x[i1]);
-              x[i1] = t;
-          }
-          ix = id + id - 2; //2*(id-1);
-      }
+                    xr[i2] = tr0*wr1 - ti0*wi1;  // .mul(w1);
+                    xi[i2] = ti0*wr1 + tr0*wi1;  // .mul(w1);
+                    xr[i3] = tr1*wr3 - ti1*wi3;  // .mul(w3);
+                    xi[i3] = ti1*wr3 + tr1*wi3;  // .mul(w3);
+                    }
+                }
+            }
+        }
 
-
-      var xo = new Array(N);
-      for (var odx=0 ; odx<N ; odx++) {
-          xo[odx] = x[bitReversedIndices[odx]];
-      }
-      return xo;
+        for (ix=0, id=4 ;  ix<N ;  id<<=2) {
+            for (i0=ix; i0<N; i0+=id) {
+                i1 = i0+1;
+                tr = xr[i1] - xr[i0];
+                ti = xi[i1] - xi[i0];
+                xr[i0] += xr[i1];
+                xi[i0] += xi[i1];
+                xr[i1] = tr;
+                xi[i1] = ti;
+            }
+            ix = id + id - 2; //2*(id-1);
+        }
 
     }//apply
 
 
     function powerSpectrum(input) {
 
-        var x  = apply(input);
+        apply(input);
         var len  = N2;
 
-        var ps = new Array(N);
+        var ps = new Array(len);
         for (var j=0 ; j<len ; j++) {
-            ps[j] = x[j].mag();
+            var bri = bitReversedIndices[j];
+            var r = xr[bri];
+            var i = xi[bri];
+            ps[j] = r*r + i*i;
         }
         return ps;
     }
@@ -473,3 +552,4 @@ function FFTSR2(N) {
 module.exports.FFT=FFT;
 module.exports.FFTSR=FFTSR;
 module.exports.FFTSR2=FFTSR2;
+

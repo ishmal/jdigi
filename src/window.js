@@ -23,16 +23,16 @@
 var Window = {
 
     rectangle : function(size) { 
-        var xs = [];
+        var xs = new Array(size);
         for (var i=0 ; i < size ; i++)
-            xs.push(1.0);
+            xs[i] = 1.0;
         return xs;
     },
 
     bartlett : function(size) { 
-        var xs = [];
+        var xs = new Array(size);
         for (var i=0 ; i < size ; i++)
-            xs.push(2 / (size - 1) * ((size - 1) / 2 - Math.abs(i - (size - 1) / 2)));
+            xs[i] = 2 / (size - 1) * ((size - 1) / 2 - Math.abs(i - (size - 1) / 2));
         return xs;
     },
 
@@ -41,37 +41,37 @@ var Window = {
         var a0 = (1 - alpha) / 2;
         var a1 = 0.5;
         var a2 = alpha * 0.5;
-        var xs = [];
+        var xs = new Array(size);
         for (var i=0 ; i < size ; i++)
-            xs.push(a0 - a1 * Math.cos(2.0 * Math.PI * i / (size - 1)) + a2 * Math.cos(4 * Math.PI * i / (size - 1)));
+            xs[i] = a0 - a1 * Math.cos(2.0 * Math.PI * i / (size - 1)) + a2 * Math.cos(4 * Math.PI * i / (size - 1));
         return xs;
     },
 
     cosine : function(size) {
-        var xs = [];
+        var xs = new Array(size);
         for (var i=0 ; i < size ; i++)
-            xs.push(Math.cos(Math.PI * i / (size - 1) - Math.PI / 2));
+            xs[i] = Math.cos(Math.PI * i / (size - 1) - Math.PI / 2);
         return xs;
     },
 
     gauss : function(size) {
-        var xs = [];
+        var xs = new Array(size);
         for (var i=0 ; i < size ; i++)
-            xs.push(Math.pow(Math.E, -0.5 * Math.pow((i - (size - 1) / 2) / (alpha * (size - 1) / 2), 2)));
+            xs[i] = Math.pow(Math.E, -0.5 * Math.pow((i - (size - 1) / 2) / (alpha * (size - 1) / 2), 2));
         return xs;
     },
 
     hamming : function(size) {
-        var xs = [];
+        var xs = new Array(size);
         for (var i=0 ; i < size ; i++)
-            xs.push(0.54 - 0.46 * Math.cos(2.0 * Math.PI * i / (size - 1)));
+            xs[i] = 0.54 - 0.46 * Math.cos(2.0 * Math.PI * i / (size - 1));
         return xs;
     },
 
     hann : function(size) {
-        var xs = [];
+        var xs = new Array(size);
         for (var i=0 ; i < size ; i++)
-            xs.push(0.5 - 0.5 * Math.cos(2.0 * Math.PI * i / (size - 1)));
+            xs[i] = 0.5 - 0.5 * Math.cos(2.0 * Math.PI * i / (size - 1));
         return xs;
     }
 

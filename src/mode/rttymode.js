@@ -219,7 +219,7 @@ function RttyMode(par) {
     var sf = FIR.bandpass(13, -0.75 * shiftval, -0.25 * shiftval, this.getSampleRate());
     var mf = FIR.bandpass(13,  0.25 * shiftval,  0.75 * shiftval, this.getSampleRate());
     //var dataFilter = Iir2.lowpass(rate, this.sampleRate);
-    var dataFilter = FIR.boxcar(this.getSamplesPerSymbol());
+    var dataFilter = FIR.boxcar(this.getSamplesPerSymbol()|0);
     var txlpf = FIR.lowpass(31,  shiftval * 0.5, this.getSampleRate());
     
     //var avgFilter = Iir2.lowpass(rate / 100, this.sampleRate);
