@@ -288,15 +288,15 @@ function PskMode(par) {
         timer.update(z, processSymbol);
     };
     
-    var scopesize = 200;
-    var scopedata = [];
+    var SSIZE = 200;
+    var scopedata = new Array(SSIZE);
     var sctr = 0;
     function scopeOut(z) {
-        scopedata.push([z.r * 30, z.i * 30]);
-        if (++sctr >= scopesize) {
+        scopedata[sctr++] = [z.r * 30, z.i * 30];
+        if (sctr >= SSIZE) {
             par.showScope(scopedata);
             sctr = 0;
-            scopedata = [];
+            scopedata = new Array(SSIZE);
         }
     }
 

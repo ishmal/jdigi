@@ -278,17 +278,18 @@ function RttyMode(par) {
         return sig;
     };
     
-    var scopedata = [];
+    var SSIZE = 200;
+    var scopedata = new Array(SSIZE);
     var scnt = 0;
     var sx = -1;
     function scopeOut(v) {
-        scopedata.push([sx, v*0.3]);
+        scopedata[scnt++] = [sx, v*0.3];
         sx += 0.01;
-        if (++scnt >= 200) {
+        if (scnt >= SSIZE) {
             scnt = 0;
             sx = -1;
             par.showScope(scopedata);
-            scopedata =[];
+            scopedata = new Array(SSIZE);
         }
     }
 
