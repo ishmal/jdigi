@@ -16,7 +16,7 @@
  *    You should have received a copy of the GNU General Public License
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 var Resampler = require("./resample").Resampler;
 var Nco = require("./nco").Nco;
 
@@ -25,9 +25,9 @@ function Mode(par, sampleRateHint) {
     var self = this;
 
     this.properties = {};
-    
+
     var frequency = 1000;
-    
+
     this.setFrequency = function(freq) {
         frequency = freq;
         nco.setFrequency(freq);
@@ -35,57 +35,56 @@ function Mode(par, sampleRateHint) {
     this.getFrequency = function() {
         return frequency;
     };
-    
+
     this.status = function(msg) {
          console.log("mode: " + msg);
     };
 
     this.getBandwidth = function() {
-    
+        return 0;
     };
-    
+
     var decimation = Math.floor(par.getSampleRate() / sampleRateHint);
-    
+
     var sampleRate = par.getSampleRate() / decimation;
     this.getSampleRate = function() {
         return sampleRate;
     };
-    
+
     var rate = 31.25;
     this.setRate = function(v) {
         rate = v;
         this.postSetRate();
-    };                            
+    };
     this.getRate = function() {
         return rate;
     };
     this.postSetRate = function() {
     };
-    
+
     this.getSamplesPerSymbol = function() {
         return this.getSampleRate() / rate;
     };
-    
-    var decimator = new Resampler(decimation); 
-    
+
+    var decimator = new Resampler(decimation);
+
     var nco = new Nco(this.getFrequency(), this.getSampleRate());
-    
-    
-    
+
+
+
     /**
      * Overload this for each mode.  Note that the parameter is Complex
      */
     this.receive = function(v) {
     };
-    
+
     this.receiveData = function(v) {
         decimator.decimate(v, function(vp) {
             var cx = nco.mixNext(vp);
             self.receive(cx);
         });
     };
-    
+
 }
 
 module.exports.Mode = Mode;
-

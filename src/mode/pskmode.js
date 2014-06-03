@@ -21,9 +21,9 @@ var Mode    = require("../mode").Mode;
 var FIR     = require("../filter").FIR;
 
 /**
- * This contains the definitions of the bit patterns for the Varicode set 
- * of characters.  
- * 
+ * This contains the definitions of the bit patterns for the Varicode set
+ * of characters.
+ *
  * A "from" and a "to" table are also provided.
  */
 var Varicode = (function() {
@@ -31,20 +31,20 @@ var Varicode = (function() {
     var description = [
         "1010101011",  //  0  00  NUL Null character
         "1011011011",  //  1  01  SOH Start of Header
-        "1011101101",  //  2  02  STX Start of Text 
-        "1101110111",  //  3  03  ETX End of Text   
+        "1011101101",  //  2  02  STX Start of Text
+        "1101110111",  //  3  03  ETX End of Text
         "1011101011",  //  4  04  EOT End of Transmission
-        "1101011111",  //  5  05  ENQ Enquiry       
+        "1101011111",  //  5  05  ENQ Enquiry
         "1011101111",  //  6  06  ACK Acknowledgment
-        "1011111101",  //  7  07  BEL Bell          
-        "1011111111",  //  8  08  BS  Backspace     
+        "1011111101",  //  7  07  BEL Bell
+        "1011111111",  //  8  08  BS  Backspace
         "11101111",    //  9  09  HT  Horizontal Tab
-        "11101",       // 10  0A  LF  Line feed     
-        "1101101111",  // 11  0B  VT  Vertical Tab  
-        "1011011101",  // 12  0C  FF  Form feed     
+        "11101",       // 10  0A  LF  Line feed
+        "1101101111",  // 11  0B  VT  Vertical Tab
+        "1011011101",  // 12  0C  FF  Form feed
         "11111",       // 13  0D  CR  Carriage return
-        "1101110101",  // 14  0E  SO  Shift Out     
-        "1110101011",  // 15  0F  SI  Shift In      
+        "1101110101",  // 14  0E  SO  Shift Out
+        "1110101011",  // 15  0F  SI  Shift In
         "1011110111",  // 16  10  DLE Data Link Escape
         "1011110101",  // 17  11  DC1 Device Control 1 (XON)
         "1110101101",  // 18  12  DC2 Device Control 2
@@ -53,125 +53,125 @@ var Varicode = (function() {
         "1101101011",  // 21  15  NAK Negative Acknowledgement
         "1101101101",  // 22  16  SYN Synchronous Idle
         "1101010111",  // 23  17  ETB End of Trans. Block
-        "1101111011",  // 24  18  CAN Cancel        
-        "1101111101",  // 25  19  EM  End of Medium 
-        "1110110111",  // 26  1A  SUB Substitute    
-        "1101010101",  // 27  1B  ESC Escape        
+        "1101111011",  // 24  18  CAN Cancel
+        "1101111101",  // 25  19  EM  End of Medium
+        "1110110111",  // 26  1A  SUB Substitute
+        "1101010101",  // 27  1B  ESC Escape
         "1101011101",  // 28  1C  FS  File Separator
         "1110111011",  // 29  1D  GS  Group Separator
         "1011111011",  // 30  1E  RS  Record Separator
         "1101111111",  // 31  1F  US  Unit Separator
-        "1",           // 32  20  SP                
-        "111111111",   // 33  21  !                 
-        "101011111",   // 34  22  "                 
-        "111110101",   // 35  23  #                 
-        "111011011",   // 36  24  $                 
-        "1011010101",  // 37  25  %                 
-        "1010111011",  // 38  26  &                 
-        "101111111",   // 39  27  '                 
-        "11111011",    // 40  28  (                 
-        "11110111",    // 41  29  )                 
-        "101101111",   // 42  2A  *                 
-        "111011111",   // 43  2B  +                 
-        "1110101",     // 44  2C  ",                 
-        "110101",      // 45  2D  -                 
-        "1010111",     // 46  2E  .                 
-        "110101111",   // 47  2F  /                 
-        "10110111",    // 48  30  0                 
-        "10111101",    // 49  31  1",  //              
-        "11101101",    // 50  32  2                 
-        "11111111",    // 51  33  3                 
-        "101110111",   // 52  34  4                 
-        "101011011",   // 53  35  5                 
-        "101101011",   // 54  36  6                 
-        "110101101",   // 55  37  7                 
-        "110101011",   // 56  38  8                 
-        "110110111",   // 57  39  9                 
-        "11110101",    // 58  3A  :                 
-        "110111101",   // 59  3B  ;                 
-        "111101101",   // 60  3C  <                 
-        "1010101",     // 61  3D  =                 
-        "111010111",   // 62  3E  >                 
-        "1010101111",  // 63  3F  ?                 
-        "1010111101",  // 64  40  @                 
-        "1111101",     // 65  41  A                 
-        "11101011",    // 66  42  B                 
-        "10101101",    // 67  43  C                 
-        "10110101",    // 68  44  D                 
-        "1110111",     // 69  45  E                 
-        "11011011",    // 70  46  F                 
-        "11111101",    // 71  47  G                 
-        "101010101",   // 72  48  H                 
-        "1111111",     // 73  49  I                 
-        "111111101",   // 74  4A  J                 
-        "101111101",   // 75  4B  K                 
-        "11010111",    // 76  4C  L                 
-        "10111011",    // 77  4D  M                 
-        "11011101",    // 78  4E  N                 
-        "10101011",    // 79  4F  O                 
-        "11010101",    // 80  50  P                 
-        "111011101",   // 81  51  Q                 
-        "10101111",    // 82  52  R                 
-        "1101111",     // 83  53  S                 
-        "1101101",     // 84  54  T                 
-        "101010111",   // 85  55  U                 
-        "110110101",   // 86  56  V                 
-        "101011101",   // 87  57  W                 
-        "101110101",   // 88  58  X                 
-        "101111011",   // 89  59  Y                 
-        "1010101101",  // 90  5A  Z                 
-        "111110111",   // 91  5B  [                 
-        "111101111",   // 92  5C  \                 
-        "111111011",   // 93  5D  ]                 
-        "1010111111",  // 94  5E  ^                 
-        "101101101",   // 95  5F  _                 
-        "1011011111",  // 96  60  `                 
-        "1011",        // 97  61  a                 
-        "1011111",     // 98  62  b                 
-        "101111",      // 99  63  c                 
-        "101101",      //100  64  d                 
-        "11",          //101  65  e                 
-        "111101",      //102  66  f                 
-        "1011011",     //103  67  g                 
-        "101011",      //104  68  h                 
-        "1101",        //105  69  i                 
-        "111101011",   //106  6A  j                 
-        "10111111",    //107  6B  k                 
-        "11011",       //108  6C  l                 
-        "111011",      //109  6D  m                 
-        "1111",        //110  6E  n                 
-        "111",         //111  6F  o                 
-        "111111",      //112  70  p                 
-        "110111111",   //113  71  q                 
-        "10101",       //114  72  r                 
-        "10111",       //115  73  s                 
-        "101",         //116  74  t                 
-        "110111",      //117  75  u                 
-        "1111011",     //118  76  v                 
-        "1101011",     //119  77  w                 
-        "11011111",    //120  78  x                 
-        "1011101",     //121  79  y                 
-        "111010101",   //122  7A  z                 
-        "1010110111",  //123  7B  {                 
-        "110111011",   //124  7C  |                 
-        "1010110101",  //125  7D  }                 
-        "1011010111",  //126  7E  ~                 
-        "1110110101"   //127  7F  DEL  Delete     
-    ]; 
-        
-    
-    var cls = {  
-    
+        "1",           // 32  20  SP
+        "111111111",   // 33  21  !
+        "101011111",   // 34  22  "
+        "111110101",   // 35  23  #
+        "111011011",   // 36  24  $
+        "1011010101",  // 37  25  %
+        "1010111011",  // 38  26  &
+        "101111111",   // 39  27  '
+        "11111011",    // 40  28  (
+        "11110111",    // 41  29  )
+        "101101111",   // 42  2A  *
+        "111011111",   // 43  2B  +
+        "1110101",     // 44  2C  ",
+        "110101",      // 45  2D  -
+        "1010111",     // 46  2E  .
+        "110101111",   // 47  2F  /
+        "10110111",    // 48  30  0
+        "10111101",    // 49  31  1",  //
+        "11101101",    // 50  32  2
+        "11111111",    // 51  33  3
+        "101110111",   // 52  34  4
+        "101011011",   // 53  35  5
+        "101101011",   // 54  36  6
+        "110101101",   // 55  37  7
+        "110101011",   // 56  38  8
+        "110110111",   // 57  39  9
+        "11110101",    // 58  3A  :
+        "110111101",   // 59  3B  ;
+        "111101101",   // 60  3C  <
+        "1010101",     // 61  3D  =
+        "111010111",   // 62  3E  >
+        "1010101111",  // 63  3F  ?
+        "1010111101",  // 64  40  @
+        "1111101",     // 65  41  A
+        "11101011",    // 66  42  B
+        "10101101",    // 67  43  C
+        "10110101",    // 68  44  D
+        "1110111",     // 69  45  E
+        "11011011",    // 70  46  F
+        "11111101",    // 71  47  G
+        "101010101",   // 72  48  H
+        "1111111",     // 73  49  I
+        "111111101",   // 74  4A  J
+        "101111101",   // 75  4B  K
+        "11010111",    // 76  4C  L
+        "10111011",    // 77  4D  M
+        "11011101",    // 78  4E  N
+        "10101011",    // 79  4F  O
+        "11010101",    // 80  50  P
+        "111011101",   // 81  51  Q
+        "10101111",    // 82  52  R
+        "1101111",     // 83  53  S
+        "1101101",     // 84  54  T
+        "101010111",   // 85  55  U
+        "110110101",   // 86  56  V
+        "101011101",   // 87  57  W
+        "101110101",   // 88  58  X
+        "101111011",   // 89  59  Y
+        "1010101101",  // 90  5A  Z
+        "111110111",   // 91  5B  [
+        "111101111",   // 92  5C  \
+        "111111011",   // 93  5D  ]
+        "1010111111",  // 94  5E  ^
+        "101101101",   // 95  5F  _
+        "1011011111",  // 96  60  `
+        "1011",        // 97  61  a
+        "1011111",     // 98  62  b
+        "101111",      // 99  63  c
+        "101101",      //100  64  d
+        "11",          //101  65  e
+        "111101",      //102  66  f
+        "1011011",     //103  67  g
+        "101011",      //104  68  h
+        "1101",        //105  69  i
+        "111101011",   //106  6A  j
+        "10111111",    //107  6B  k
+        "11011",       //108  6C  l
+        "111011",      //109  6D  m
+        "1111",        //110  6E  n
+        "111",         //111  6F  o
+        "111111",      //112  70  p
+        "110111111",   //113  71  q
+        "10101",       //114  72  r
+        "10111",       //115  73  s
+        "101",         //116  74  t
+        "110111",      //117  75  u
+        "1111011",     //118  76  v
+        "1101011",     //119  77  w
+        "11011111",    //120  78  x
+        "1011101",     //121  79  y
+        "111010101",   //122  7A  z
+        "1010110111",  //123  7B  {
+        "110111011",   //124  7C  |
+        "1010110101",  //125  7D  }
+        "1011010111",  //126  7E  ~
+        "1110110101"   //127  7F  DEL  Delete
+    ];
+
+
+    var cls = {
+
         /**
          * this is a table of index->bit seqs.  Ex: 116('t') is Seq(true, false, true)
-         */         
+         */
         encodeTable : description.map(function(s) {
             var chars = s.split("");
             var bools = chars.map(function(c) { return (c==='1'); });
             return bools;
-        }), 
-    
-        
+        }),
+
+
         decodeTable : (function() {
             var dec = {};
             for (var i = 0 ; i < description.length ; i++) {
@@ -180,7 +180,7 @@ var Varicode = (function() {
             }
             return dec;
         })(),
-        
+
         printTables : function() {
 
             console.log("Encode Table =================");
@@ -192,12 +192,12 @@ var Varicode = (function() {
                 var asc = decodeTable[key];
                 console.log(key.toString(2) + " : "+ asc);
             }
-        
+
         }
     };//cls
-    
+
     return cls;
-        
+
 })(); // Varicode
 
 
@@ -215,22 +215,22 @@ function EarlyLate(samplesPerSymbol) {
         var ampsum = 0.0;
         var mag    = z.mag();
         buf[idx]   = 0.8 * buf[idx] + 0.2 * mag;
-        
+
         for (var i = 0 ; i < half ; i++) {
             sum    += (buf[i] - buf[i+half]);
             ampsum += (buf[i] + buf[i+half]);
         }
 
         var err = (ampsum === 0.0) ? 0.0 : sum / ampsum * 0.2;
-    
+
         bitclk += (1.0 - err);
-        if (bitclk < 0) 
+        if (bitclk < 0)
             bitclk += size;
         else if (bitclk >= size)  {
             bitclk -= size;
             f(z);
         }
-        
+
     };
 }
 
@@ -246,7 +246,7 @@ function EarlyLate(samplesPerSymbol) {
 function PskMode(par) {
     Mode.call(this, par, 2000); //inherit
     var self = this;
-    
+
     this.properties = {
         name : "psk",
         tooltip: "phase shift keying",
@@ -270,23 +270,23 @@ function PskMode(par) {
             }
         ]
     };
-    
+
     var timer = new EarlyLate(this.getSamplesPerSymbol());
     var bpf   = FIR.bandpass(13, -0.7*this.getRate(), 0.7*this.getRate(), this.getSampleRate());
-    
+
     this.postSetRate = function() {
         timer = new EarlyLate(this.getSamplesPerSymbol());
         bpf   = FIR.bandpass(13, -0.7*this.getRate(), 0.7*this.getRate(), this.getSampleRate());
     };
-    
-    this.getBandwidth = function() { return this.getRate(); };     
+
+    this.getBandwidth = function() { return this.getRate(); };
 
     this.receive = function(v) {
         var z = bpf.updatex(v);
         scopeOut(z);
         timer.update(z, processSymbol);
     };
-    
+
     var SSIZE = 200;
     var scopedata = new Array(SSIZE);
     var sctr = 0;
@@ -301,7 +301,7 @@ function PskMode(par) {
 
 
     //val decoder = Viterbi.decoder(5, 0x17, 0x19)
-    
+
     var qpskMode = false;
 	this.getQpskMode  = function() {
 	    return qpskMode;
@@ -309,8 +309,8 @@ function PskMode(par) {
 	this.setQpskMode = function(v) {
 	    qpskMode = v;
 	};
-    
-        
+
+
     function angleDiff(a, b) {
         var diff = a-b;
         while (diff > Math.PI)
@@ -322,12 +322,12 @@ function PskMode(par) {
     }
 
     var diffScale = 255.0 / Math.PI;
-    
+
     /**
      * Return the scaled distance of the angle v from "from".
      * Returns a positive value 0..255  for
-     * 0 radians to +- pi       
-     */    
+     * 0 radians to +- pi
+     */
     function distance(v, from) {
         var diff = Math.PI - Math.abs(Math.abs(v-from) - Math.PI);
         return Math.floor(diff * diffScale);
@@ -340,10 +340,10 @@ function PskMode(par) {
     var lastv     = 0.0;
     var count     = 0;
     var lastBit   = false;
-    
-    
+
+
     function processSymbol(v) {
-    
+
         var vn, dv, d00, d01, d10, d11;
 
         if (this.qpskMode) {
@@ -357,11 +357,11 @@ function PskMode(par) {
             var bm = [d00, d01, d10, d11];
             //println("%6.3f %6.3f %6.3f  :  %3d %3d %3d %3d".format(lastv, vn, dv, d00, d01, d10, d11))
             var bits = decoder.decodeOne(bm);
-            var len = bits.length; 
+            var len = bits.length;
             for (var i=0 ; i < len ; i++)
                 processBit(bits[i]);
             lastv = vn;
-            /**/               
+            /**/
         } else { //bpsk
             /**/
             vn  = v.arg();
@@ -391,7 +391,7 @@ function PskMode(par) {
                     else
                         par.puttext(String.fromCharCode(chr));
                     code = 0;
-                    }                        
+                    }
                 }
             code = 0;
             }
@@ -400,9 +400,9 @@ function PskMode(par) {
             code <<= 1;
             if (bit) code += 1;
             }
-        lastBit = bit ;       
+        lastBit = bit ;
         }
-    
+
 
 
 
@@ -415,4 +415,3 @@ function PskMode(par) {
 }// PskMode
 
 module.exports.PskMode = PskMode;
-

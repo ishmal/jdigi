@@ -16,7 +16,7 @@
  *    You should have received a copy of the GNU General Public License
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-                                                               
+
 
 var Mode    = require("../mode").Mode;
 var FIR     = require("../filter").FIR;
@@ -59,7 +59,7 @@ var Baudot = (function() {
         ['N',  ',',  0x0c /*01100*/,  0x4d /*1001101*/],
         ['M',  '.',  0x1c /*11100*/,  0x4e /*1001110*/]
     ];
-    
+
     var cls = {};
     cls.baudLtrsToCode = [];
     cls.baudFigsToCode = [];
@@ -85,7 +85,7 @@ var Baudot = (function() {
         LTRS  : 0x1f,
         FIGS  : 0x1b
     };
-    
+
     cls.ccirControl = {
         NUL    : 0x2b,
         SPACE  : 0x1d,
@@ -101,7 +101,7 @@ var Baudot = (function() {
 
     //TODO:  this is for Navtex
     //var ccirAllCodes = table.map(_._4).toSet ++ ccirControl
-    
+
     //def ccirIsvarid(code: Int) =
     //    ccirAllCodes.contains(code)
 
@@ -111,7 +111,7 @@ var Baudot = (function() {
 
 /**
  * Enumerations for parity types
- */ 
+ */
 var Parity = {
     None : 0,
     One  : 1,
@@ -127,11 +127,11 @@ var Parity = {
  * async code with a start bit, 5 data bits and
  * a stop bit.  Whether a parity bit is sent or
  * interpreted should be adjustable.
- *  
+ *
  * @see http://en.wikipedia.org/wiki/Radioteletype
  * @see http://en.wikipedia.org/wiki/Asynchronous_serial_communication
- *   
- */    
+ *
+ */
 function RttyMode(par) {
     Mode.call(this, par, 1000.0);
     var self = this;
@@ -143,6 +143,7 @@ function RttyMode(par) {
             {
             name: "rate",
             type: "choice",
+      selected: 0,
 			get value() { return self.getRate(); },
 			set value(v) { self.setRate(parseFloat(v)); },
             values : [
@@ -179,21 +180,21 @@ function RttyMode(par) {
             }
         ]
     };
-    
-    
+
+
     var shiftval = 170.0;
-    
+
     this.getShift = function() {
 	    return shiftval;
 	};
-    
+
     this.setShift = function(v) {
         shiftval = v;
         this.postSetRate();
     };
-        
+
     this.getBandwidth = function() { return shiftval; };
-        
+
     var unshiftOnSpace = false;
 	this.getUnshiftOnSpace = function() {
 	    return unshiftOnSpace;
@@ -201,7 +202,7 @@ function RttyMode(par) {
 	this.setUnshiftOnSpace = function(v) {
 	    unshiftOnSpace = v;
 	};
-    
+
     var inverted = false;
 	this.getInverted = function() {
 	    return inverted;
@@ -215,13 +216,13 @@ function RttyMode(par) {
     var twopi     = Math.PI * 2.0;
     var spaceFreq = new Complex(twopi * (-shiftval * 0.5) / this.getSampleRate());
     var markFreq  = new Complex(twopi * ( shiftval * 0.5) / this.getSampleRate());
-    
+
     var sf = FIR.bandpass(13, -0.75 * shiftval, -0.25 * shiftval, this.getSampleRate());
     var mf = FIR.bandpass(13,  0.25 * shiftval,  0.75 * shiftval, this.getSampleRate());
     //var dataFilter = Iir2.lowpass(rate, this.sampleRate);
     var dataFilter = FIR.boxcar(this.getSamplesPerSymbol()|0);
     var txlpf = FIR.lowpass(31,  shiftval * 0.5, this.getSampleRate());
-    
+
     //var avgFilter = Iir2.lowpass(rate / 100, this.sampleRate);
 
     this.postSetRate = function() {
@@ -230,10 +231,10 @@ function RttyMode(par) {
         spaceFreq = new Complex(twopi * (-shiftval * 0.5) / this.getSampleRate());
         markFreq  = new Complex(twopi * ( shiftval * 0.5) / this.getSampleRate());
         //dataFilter = Iir2.lowpass(rate, this.sampleRate);
-        dataFilter = FIR.boxcar(this.getSamplesPerSymbol());
+        dataFilter = FIR.boxcar(this.getSamplesPerSymbol()|0);
         txlpf = FIR.lowpass(31,  shiftval * 0.5, this.sampleRate);
     };
-        
+
     this.status("sampleRate: " + this.getSampleRate() + " samplesPerSymbol: " + this.getSamplesPerSymbol());
 
 
@@ -241,18 +242,18 @@ function RttyMode(par) {
     var hiHys =  0.5;
 
     var bit = false;
-    
+
     var debug = false;
 
     var lastval = new Complex(0,0);
-    
-        
+
+
     /**
      * note: multiplying one complex sample of an
      * FM signal with the conjugate of the previous
      * value gives the instantaneous frequency change of
      * the signal.  This is called a polar discrminator.
-     */             
+     */
     this.receive = function(isample) {
         var space  = sf.updatex(isample);
         var mark   = mf.updatex(isample);
@@ -274,10 +275,10 @@ function RttyMode(par) {
         }
 
         process(bit);
-        
+
         return sig;
     };
-    
+
     var SSIZE = 200;
     var scopedata = new Array(SSIZE);
     var scnt = 0;
@@ -293,7 +294,7 @@ function RttyMode(par) {
         }
     }
 
-    
+
     var parityType = Parity.None;
 
     function bitcount(n) {
@@ -307,14 +308,14 @@ function RttyMode(par) {
 
     function parityOf(c) {
         switch (parityType) {
-            case Parity.Odd  : return (bitcount(c) & 1) !== 0; 
+            case Parity.Odd  : return (bitcount(c) & 1) !== 0;
             case Parity.Even : return (bitcount(c) & 1) === 0;
             case Parity.Zero : return false;
             case Parity.One  : return true;
             default          : return false;   //None or unknown
         }
     }
-    
+
 
     var Rx = {
         Idle   : 0,
@@ -324,13 +325,13 @@ function RttyMode(par) {
         Data   : 4,
         Parity : 5
     };
-    
+
     var state     = Rx.Idle;
     var counter   = 0;
     var code      = 0;
     var parityBit = false;
     var bitMask   = 0;
-   
+
     function process(inbit) {
 
         var bit = inbit ^ inverted; //LSB/USB flipping
@@ -345,7 +346,7 @@ function RttyMode(par) {
                     counter = symbollen / 2;
                 }
                 break;
-            case Rx.Start : 
+            case Rx.Start :
                 //trace("RxStart")
                 counter -= 1;
                 //keep idling until half a period of mark has passed
@@ -361,7 +362,7 @@ function RttyMode(par) {
                     bitMask   = 1;
                 }
                 break;
-            case Rx.Data : 
+            case Rx.Data :
                 //trace("RxData")
                 counter -= 1;
                 if (counter <= 0) {
@@ -376,7 +377,7 @@ function RttyMode(par) {
                         state = Rx.Parity;
                 }
                 break;
-            case Rx.Parity : 
+            case Rx.Parity :
                 //trace("RxParity")
                 counter -= 1;
                 if (counter <= 0) {
@@ -403,10 +404,10 @@ function RttyMode(par) {
                 break;
             }
     } // switch
-    
+
     var shifted = false;
-    
-       
+
+
     function reverse(v, size) {
         var a = v;
         var b = 0;
@@ -414,16 +415,16 @@ function RttyMode(par) {
             {
             b += a & 1;
             b <<= 1;
-            a >>= 1; 
+            a >>= 1;
             }
         return b;
     }
-    
-    
-    
+
+
+
     var cntr = 0;
     var bitinverter = 0;
-    
+
     //cache a copy of these here
     var NUL   = Baudot.baudControl.NUL;
     var SPACE = Baudot.baudControl.SPACE;
@@ -458,9 +459,9 @@ function RttyMode(par) {
                     par.puttext(c);
                 }
             }
-            
+
         }
-    
+
     //################################################
     //# T R A N S M I T
     //################################################
@@ -501,15 +502,15 @@ function RttyMode(par) {
         }
         return buf;
     }
-    
+
     function txnext() {
         //var str = "the quick brown fox 1a2b3c4d"
         var str = par.gettext;
         var codes = txencode(str);
         return codes;
     }
-    
-    
+
+
     var desiredOutput = 4096;
 
     */
@@ -519,8 +520,8 @@ function RttyMode(par) {
      * of sampled audio data at its sample rate.  If the
      * mode has no current data, then it should send padding
      * in the form of what is considered to be an "idle" signal
-     */   
-     /*                          
+     */
+     /*
     this.transmit = function() {
 
         var symbollen = samplesPerSymbol;
@@ -539,7 +540,7 @@ function RttyMode(par) {
                 }
             for (var s2=0 ; s2<symbollen ; s2++) buf.push(spaceFreq);
             }
-        
+
         var pad = desiredOutput - buf.length;
         while (pad--)
             buf.push(spaceFreq);
@@ -551,5 +552,3 @@ function RttyMode(par) {
 }// RttyMode
 
 module.exports.RttyMode = RttyMode;
-
-

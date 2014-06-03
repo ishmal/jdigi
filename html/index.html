@@ -39,7 +39,7 @@ h3 a {
 	</button>
 	</p>
 	<tabset>
-	    <tab ng-repeat="mode in modes" heading="{{mode.properties.name}}">
+	    <tab ng-repeat="mode in modes" heading="{{mode.properties.name}}" select="changeMode(mode)">
 			<span ng-repeat="control in mode.properties.controls" ng-switch="control.type">
 				<span ng-switch-when="boolean">
 					<button type="button" class="btn btn-primary" ng-model="control.value"

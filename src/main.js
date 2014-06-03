@@ -37,6 +37,9 @@ app.controller("MainController", ['$scope', function($scope) {
 	       }
     });
     $scope.modes = digi.modes;
+    $scope.changeMode = function(mode) {
+        digi.setMode(mode);
+    };
 }]);
 
 
