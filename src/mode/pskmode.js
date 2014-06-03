@@ -204,13 +204,13 @@ var Varicode = (function() {
 
 
 function EarlyLate(samplesPerSymbol) {
-    var size    = Math.floor(samplesPerSymbol);
+    var size    = samplesPerSymbol | 0;
     var half    = size >> 1;
     var buf     = new Float32Array(size);
     var bitclk  = 0.0;
 
     this.update = function(z, f) {
-        var idx    = Math.floor(bitclk);
+        var idx    = bitclk | 0;
         var sum    = 0.0;
         var ampsum = 0.0;
         var mag    = z.mag();
@@ -219,20 +219,19 @@ function EarlyLate(samplesPerSymbol) {
         for (var i = 0 ; i < half ; i++) {
             sum    += (buf[i] - buf[i+half]);
             ampsum += (buf[i] + buf[i+half]);
-            }
+        }
 
         var err = (ampsum === 0.0) ? 0.0 : sum / ampsum * 0.2;
     
         bitclk += (1.0 - err);
         if (bitclk < 0) 
             bitclk += size;
-        else if (bitclk >= size) 
-            {
+        else if (bitclk >= size)  {
             bitclk -= size;
             f(z);
-            }
+        }
         
-        };
+    };
 }
 
 

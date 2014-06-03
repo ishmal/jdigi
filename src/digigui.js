@@ -48,11 +48,10 @@ function Waterfall(par, anchor, width, height, bins) {
     }
 
     function createIndices(targetsize, sourcesize) {
-        var xs = [];
+        var xs = new Array(targetsize);
         var ratio = sourcesize / targetsize;
         for (var i=0 ; i < targetsize ; i++) {
-            var idx = Math.floor(i * ratio);
-            xs.push(idx);
+            xs[i] = Math.floor(i * ratio);
         }
         return xs;
     }
@@ -81,7 +80,6 @@ function Waterfall(par, anchor, width, height, bins) {
     }
 
 	
-
     function getMousePos(canvas, evt) {
         var rect = canvas.getBoundingClientRect();
         return {x: evt.clientX - rect.left, y: evt.clientY - rect.top};
@@ -136,13 +134,13 @@ function Waterfall(par, anchor, width, height, bins) {
      * TODO:  consider using an HSV heat map
      */                 
     function makePalette() {
-        var xs = [];
+        var xs = new Array(256);
         for (var i = 0 ; i < 256 ; i++) {
             var r = (i < 170) ? 0 : (i-170) * 3;
             var g = (i <  85) ? 0 : (i < 170) ? (i-85) * 3 : 255;
             var b = (i <  85) ? i * 3 : 255;
             var col = [ r, g, b, 255 ];
-            xs.push(col);
+            xs[i] = col;
         }
         return xs;
     }
@@ -159,8 +157,9 @@ function Waterfall(par, anchor, width, height, bins) {
         //ctx.fillRect(0,0,width,height);
         ctx.beginPath();
         ctx.moveTo(0, height);
+        var log = Math.log;
         for (var x=0; x<width ; x++) {
-            var v = Math.log(1.0 + data[indices[x]]);
+            var v = log(1.0 + data[indices[x]]);
             var y = height - 10 - 50*v;
             //trace("x:" + x + " y:" + y);
             ctx.lineTo(x, y);
@@ -200,10 +199,12 @@ function Waterfall(par, anchor, width, height, bins) {
         //trace("data:" + data[50]);
 
         var idx = lastRow;
+        var abs = Math.abs;
+        var log = Math.log;
         for (var x=0; x<width ; x++) {
-            var v = Math.abs(data[indices[x]]);
+            var v = abs(data[indices[x]]);
             //if (x==50) trace("v:" + v);
-            var p = Math.log(1.0 + v) * 30;
+            var p = log(1.0 + v) * 30;
             //if (x==50)trace("x:" + x + " p:" + p);
             var pix = palette[p & 255];
             //if (x==50)trace("p:" + p + "  pix:" + pix.toString(16));
@@ -291,11 +292,12 @@ function Waterfall(par, anchor, width, height, bins) {
         ctx.strokeStyle = "yellow";
         ctx.beginPath();
         ctx.moveTo(center,center);
+        var log = Math.log;
         var len = _scopeData.length;
         for (var i=0 ; i<len ; i++) {
             var pt = _scopeData[i];
-            var x = center + Math.log(1 + pt[0]) * 50.0;
-            var y = center + Math.log(1 + pt[1]) * 50.0;
+            var x = center + log(1 + pt[0]) * 50.0;
+            var y = center + log(1 + pt[1]) * 50.0;
             //console.log("pt:" + x + ":" + y);
             ctx.lineTo(x,y);
         }
@@ -335,7 +337,6 @@ function OutText(par, anchor) {
         textArea.val(txt);
         scrollTop();
     };
-
 
 }
 
