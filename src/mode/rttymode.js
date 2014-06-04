@@ -284,7 +284,7 @@ function RttyMode(par) {
     var scnt = 0;
     var sx = -1;
     function scopeOut(v) {
-        scopedata[scnt++] = [sx, v*0.3];
+        scopedata[scnt++] = [sx, Math.log(v + 1)*0.25];
         sx += 0.01;
         if (scnt >= SSIZE) {
             scnt = 0;

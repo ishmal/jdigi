@@ -170,14 +170,14 @@ function Tuner(par, canvas) {
         ctx.moveTo(0, base);
         var log = Math.log;
         for (x=0; x<width ; x++) {
-            v = log(1.0 + data[indices[x]]) * 20.0;
+            v = log(1.0 + data[indices[x]]) * 12.0;
             y = base - v;
             //trace("x:" + x + " y:" + y);
             ctx.lineTo(x, y);
         }
         ctx.lineTo(width-1,base);
         for (x=width-1; x>=0 ; x--) {
-            v = log(1.0 + data[indices[x]]) * 20.0;
+            v = log(1.0 + data[indices[x]]) * 12.0;
             y = base + v;
             //trace("x:" + x + " y:" + y);
             ctx.lineTo(x, y);
@@ -276,31 +276,40 @@ function Tuner(par, canvas) {
 
     var _scopeData = [];
 
+
     function drawScope() {
-        var box = 100;
-        var center = 50;
+        var boxW   = 100;
+        var boxH   = 100;
+        var boxX   = width - boxW;
+        var boxY   = 0;
+        var centerX = boxX + (boxW>>1) ;
+        var centerY = boxY + (boxH>>1) ;
+
         ctx.strokeStyle = "white";
-        ctx.rect(0, 0, box, box);
+        ctx.rect(boxX, boxY, boxW, boxH);
         ctx.stroke();
 
         ctx.beginPath();
-        ctx.moveTo(center, 0);
-        ctx.lineTo(center, box);
+        ctx.moveTo(centerX, boxY);
+        ctx.lineTo(centerX, boxY + boxH);
         ctx.stroke();
 
         ctx.beginPath();
-        ctx.moveTo(0, center);
-        ctx.lineTo(box, center);
+        ctx.moveTo(boxX, centerY);
+        ctx.lineTo(boxX + boxW, centerY);
         ctx.stroke();
 
         ctx.strokeStyle = "yellow";
         ctx.beginPath();
-        ctx.moveTo(center,center);
+        var pt = _scopeData[0];
+        var x = centerX + pt[0] * 50.0;
+        var y = centerY + pt[1] * 50.0;
+        ctx.moveTo(x,y);
         var len = _scopeData.length;
-        for (var i=0 ; i<len ; i++) {
-            var pt = _scopeData[i];
-            var x = center + Math.log(1 + pt[0]) * 50.0;
-            var y = center + Math.log(1 + pt[1]) * 50.0;
+        for (var i=1 ; i<len ; i++) {
+            pt = _scopeData[i];
+            x = centerX + pt[0] * 50.0;
+            y = centerY + pt[1] * 50.0;
             //console.log("pt:" + x + ":" + y);
             ctx.lineTo(x,y);
         }

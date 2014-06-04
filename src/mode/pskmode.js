@@ -290,8 +290,9 @@ function PskMode(par) {
     var SSIZE = 200;
     var scopedata = new Array(SSIZE);
     var sctr = 0;
+    var log = Math.log;
     function scopeOut(z) {
-        scopedata[sctr++] = [z.r * 30, z.i * 30];
+        scopedata[sctr++] = [log(z.r + 1) * 30, log(z.i + 1) * 30];
         if (sctr >= SSIZE) {
             par.showScope(scopedata);
             sctr = 0;
