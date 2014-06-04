@@ -4,6 +4,7 @@ var assert = require("assert");
 var fftmod = require("../src/fft");
 
 describe('Math Tests', function(){
+/*
   describe('FFT', function(){
     it('FFT should generate proper butterfly indices', function(){
       var fft = new fftmod.FFT(8);
@@ -20,4 +21,5 @@ describe('Math Tests', function(){
       //assert.equal(-1, [1,2,3].indexOf(0));
     });
   });
+*/
 });

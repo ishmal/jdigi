@@ -24,7 +24,7 @@ gulp.task('build', function() {
 });
 
 gulp.task('mocha', function() {
-    return gulp.src(['test/**/test*.js'], { read: false })
+    return gulp.src('test/**/test*.js')
         .pipe(jshint())
         .pipe(mocha({reporter: 'spec'}));
 });
@@ -34,7 +34,7 @@ gulp.task('copy', function() {
         .pipe(gulp.dest('./dist'));
 });
 
-gulp.task('clean', function () {  
+gulp.task('clean', function () {
   return gulp.src('dist/*', {read: false})
     .pipe(clean());
 });

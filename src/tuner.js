@@ -290,9 +290,12 @@ function Tuner(par, canvas) {
         var centerX = boxX + (boxW>>1) ;
         var centerY = boxY + (boxH>>1) ;
 
+        ctx.save();
+        ctx.beginPath();
         ctx.strokeStyle = "white";
         ctx.rect(boxX, boxY, boxW, boxH);
         ctx.stroke();
+        ctx.clip();
 
         ctx.beginPath();
         ctx.moveTo(centerX, boxY);
@@ -319,6 +322,9 @@ function Tuner(par, canvas) {
             ctx.lineTo(x,y);
         }
         ctx.stroke();
+
+        //all done
+        ctx.restore();
     }
 
     function update(data) {
