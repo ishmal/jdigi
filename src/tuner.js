@@ -276,7 +276,12 @@ function Tuner(par, canvas) {
 
     var _scopeData = [];
 
-
+    /**
+     * Plot mode-specific decoder graph data.
+     * This method expects the data to be an array of [x,y] coordinates,
+     * with x and y ranging from -1.0 to 1.0.  It is up to the mode generating
+     * this array to determine how to draw it, and what it means.
+     */
     function drawScope() {
         var boxW   = 100;
         var boxH   = 100;
