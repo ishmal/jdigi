@@ -28,7 +28,9 @@ var app = angular.module('JdigiApp',['ui.bootstrap']);
 app.controller("MainController", ['$scope', function($scope) {
     var digi = new Digi();
 	  $scope.digi = digi;
-	  $scope.running = false;
+      digi.start();
+	  /*
+      $scope.running = false;
 	  $scope.$watch('running', function() {
         if ($scope.running) {
 	           digi.start();
@@ -36,6 +38,7 @@ app.controller("MainController", ['$scope', function($scope) {
 	           digi.stop();
 	       }
     });
+    */
     $scope.modes = digi.modes;
     $scope.changeMode = function(mode) {
         digi.setMode(mode);

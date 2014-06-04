@@ -32,12 +32,14 @@ h3 a {
 
 <div id='content' ng-app='JdigiApp' ng-controller='MainController'>
     <jdigi-tuner></jdigi-tuner>
+    <!--
     <p>
 	<button type="button" class="btn btn-primary" ng-model="running"
 			btn-checkbox btn-checkbox-true="true" btn-checkbox-false="false">
 			{{ running ? "[X]" : "[>]" }}
 	</button>
 	</p>
+    -->
 	<tabset>
 	    <tab ng-repeat="mode in modes" heading="{{mode.properties.name}}" select="changeMode(mode)">
 			<span ng-repeat="control in mode.properties.controls" ng-switch="control.type">

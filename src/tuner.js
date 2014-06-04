@@ -233,7 +233,7 @@ function Tuner(par, canvas) {
 
         ctx.fillStyle = "rgba(255,255,255,0.25)";
         ctx.fillRect(bwlo, 0, bww, height);
-        ctx.strokeStyle = "cyan";
+        ctx.strokeStyle = "red";
         ctx.beginPath();
         ctx.moveTo(x, 0);
         ctx.lineTo(x, height);
