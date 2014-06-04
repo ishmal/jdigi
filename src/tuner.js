@@ -160,21 +160,29 @@ function Tuner(par, canvas) {
 
 
     function drawSpectrum(data) {
+        var x, y, v;
 
         //ctx.fillStyle = 'red';
         ctx.fillStyle = 'rgba(255, 255, 255, 0.50)';
         //ctx.lineWidth = 1;
         ctx.beginPath();
-        var base = height; //move this around
+        var base = height>>1; //move this around
         ctx.moveTo(0, base);
         var log = Math.log;
-        for (var x=0; x<width ; x++) {
-            var v = log(1.0 + data[indices[x]]) * 20.0;
-            var y = base - v;
+        for (x=0; x<width ; x++) {
+            v = log(1.0 + data[indices[x]]) * 20.0;
+            y = base - v;
             //trace("x:" + x + " y:" + y);
             ctx.lineTo(x, y);
         }
         ctx.lineTo(width-1,base);
+        for (x=width-1; x>=0 ; x--) {
+            v = log(1.0 + data[indices[x]]) * 20.0;
+            y = base + v;
+            //trace("x:" + x + " y:" + y);
+            ctx.lineTo(x, y);
+        }
+        ctx.lineTo(0,base);
         ctx.closePath();
         //var bbox = ctx.getBBox();
         ctx.fill();
