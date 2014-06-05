@@ -236,7 +236,6 @@ function Tuner(par, canvas) {
         var x    = frequency * pixPerHz;
         var bw   = par.getBandwidth();
         var bww  = bw * pixPerHz;
-        var bwhi = (frequency + bw * 0.5) * pixPerHz;
         var bwlo = (frequency - bw * 0.5) * pixPerHz;
 
         ctx.fillStyle = "rgba(255,255,255,0.25)";
