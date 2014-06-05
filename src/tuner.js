@@ -69,19 +69,19 @@ function Tuner(par, canvas) {
     var indices, width, height, ctx, imgData, imglen, buf8, rowsize, lastRow;
 
     function resize() {
- 	     width   = canvas.width;
-	      height  = canvas.height;
+        width   = canvas.width;
+        height  = canvas.height;
         indices = createIndices(width, BINS);
         ctx     = canvas.getContext('2d');
         imgData = ctx.createImageData(width, height);
         imglen  = imgData.data.length;
         buf8    = new Uint8ClampedArray(imglen);
-    		for (var i=0 ; i < imglen ; ) {
-		      	buf8[i++] = 0;
-			      buf8[i++] = 0;
-			      buf8[i++] = 0;
-			      buf8[i++] = 255;
-		    }
+        for (var i=0 ; i < imglen ; ) {
+            buf8[i++] = 0;
+            buf8[i++] = 0;
+            buf8[i++] = 0;
+            buf8[i++] = 255;
+        }
         imgData.data.set(buf8);
         ctx.putImageData(imgData, 0, 0);
         rowsize  = imglen / height;
@@ -90,7 +90,7 @@ function Tuner(par, canvas) {
 
     resize();
 
-	canvas.setAttribute("tabindex", "1");
+    canvas.setAttribute("tabindex", "1");
 
     //####################################################################
     //#   MOUSE and KEY EVENTS
@@ -107,9 +107,7 @@ function Tuner(par, canvas) {
 
     function mouseFreq(event) {
         var pt = getMousePos(canvas, event);
-        //trace("point: " + pt.x + ":" + pt.y);
         var freq = MAX_FREQ * pt.x / width;
-        //trace("freq:" + freq);
         setFrequency(freq);
     }
 
@@ -347,7 +345,7 @@ function Tuner(par, canvas) {
     };
 
     this.update = function(data) {
-		requestAnimationFrame(function() { update(data); } );
+        requestAnimationFrame(function() { update(data); } );
     };
 
 } //Tuner
