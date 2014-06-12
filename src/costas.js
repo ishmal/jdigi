@@ -44,7 +44,6 @@ function LowPassIIR(cutoff, sampleRate) {
         z1 = v * a + z1 * b;
         return z1;
     };
-
 }
 
 
