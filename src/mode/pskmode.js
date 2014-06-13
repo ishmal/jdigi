@@ -404,15 +404,8 @@ function PskMode(par) {
         lastBit = bit ;
         }
 
-
-
-
-
-
-
-
-
-
 }// PskMode
+
+
 
 module.exports.PskMode = PskMode;

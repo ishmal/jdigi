@@ -35,45 +35,65 @@ var cossinTable = (function() {
 })();
 
 
+/**
+ * For reference.  See code below
+ */
 function LowPassIIR(cutoff, sampleRate) {
     var b = Math.exp(-2.0 * Math.PI * cutoff/sampleRate);
     var a = 1.0 - b;
-    var z1 = 0.0;
+    var z = 0.0;
     
     this.update = function(v) {
-        z1 = v * a + z1 * b;
-        return z1;
+        z = v * a + z * b;
+        return z;
     };
 }
 
 
 /**
- * A sine generator with a 32-bit accumulator and a 16-bit
- * lookup table.  Much faster than Math.whatever
+ * A 32-bit costas loop for decoding phase-shifted signals at a given
+ * frequency and data rate
  */
-function Costas(frequency, sampleRate)
+function Costas(frequency, dataRate, sampleRate)
 {
     var freq = 0|0;
+    var err  = 0|0;
+    var phase = 0|0;
+    var table = cossinTable;
+    var iqa, iqb, iz, qz;
+    var da, db, dz;
+    
+
     function setFrequency(frequency) {
         freq  = (4294967296.0 * frequency / sampleRate)|0;
-		return freq;
     }
     this.setFrequency = setFrequency;
     setFrequency(frequency);
     
-    var phase = 0|0;
-    var table = cossinTable;
     
-    this.next = function() {
-        phase = (phase + freq) & 0xffffffff;
-        return table[(phase >> 16) & 0xffff];
-    };
+    function setDataRate(rate) {
+        iqb = Math.exp(-2.0 * Math.PI * rate/sampleRate);
+        iqa = 1.0 - iqb;
+        db = Math.exp(-2.0 * Math.PI * 4.0 * rate/sampleRate);
+        da = 1.0 - db;
+    }
+    this.setDataRate = setDataRate;
+    setDataRate(dataRate);
+
     
-    this.mixNext = function (v) {
-        phase = (phase + freq) & 0xffffffff;
+    this.update = function(v) {
+        phase = (phase + freq + err) & 0xffffffff;
         var cs = table[(phase >> 16) & 0xffff];
-        return new Complex(v*cs.cos, v*cs.sin);
+        var i = v * cs.cos;
+        var q = v * cs.sin;
+        iz = i * iqa + iz * iqb;
+        qz = q * iqa + qz * iqb;
+        var cross = iz * qz;
+        dz = cross * da + dz * db;
+        err = dz | 0; // this too coarse?
+        return iz;
     };
+    
         
 }
 
