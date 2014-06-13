@@ -403,6 +403,35 @@ function PskMode(par) {
             }
         lastBit = bit ;
         }
+        
+    //###################
+    //# transmit
+    //###################
+        
+    
+    function getNextTransmitBuffer() {
+        var ch = par.gettext();
+        if (tx<0) {
+        
+        } else {
+        
+        
+        }
+    
+    }
+     
+    var txBuf = [];
+    var txPtr = 0;
+        
+    this.transmit = function() {
+    
+        if (txPtr >= txBuf.length) {
+            txBuf = getNextTransmitBuffer();
+            txPtr = 0;
+        }
+        var txv = txBuf[txPtr++];
+        return txv;
+    };
 
 }// PskMode
 
