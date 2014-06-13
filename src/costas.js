@@ -79,6 +79,8 @@ function Costas(frequency, dataRate, sampleRate)
     }
     this.setDataRate = setDataRate;
     setDataRate(dataRate);
+    
+    this.value = {r: i, i:q};
 
     
     this.update = function(v) {

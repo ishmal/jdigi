@@ -18,6 +18,7 @@
  */
 
 var Mode    = require("../mode").Mode;
+var Costas  = require("../costas").Costas;
 var FIR     = require("../filter").FIR;
 
 /**
@@ -434,6 +435,219 @@ function PskMode(par) {
     };
 
 }// PskMode
+
+
+
+/**
+ * Phase Shift Keying mode.
+ */
+function PskMode2(par) {
+    Mode.call(this, par, 2000); //inherit
+    var self = this;
+
+    this.properties = {
+        name : "psk",
+        tooltip: "phase shift keying",
+        controls : [
+            {
+            name: "rate",
+            type: "choice",
+			get value() { return self.getRate(); },
+			set value(v) { self.setRate(parseFloat(v)); },
+            values : [
+                { name :  "31", value :  31.25 },
+                { name :  "63", value :  62.50 },
+                { name : "125", value : 125.00 }
+                ]
+            },
+            {
+            name: "qpsk",
+            type: "boolean",
+			get value() { return self.getQpskMode(); },
+			set value(v) { self.setQpskMode(v); }
+            }
+        ]
+    };
+
+    var timer = new EarlyLate(this.getSamplesPerSymbol());
+    var bpf   = FIR.bandpass(13, -0.7*this.getRate(), 0.7*this.getRate(), this.getSampleRate());
+    
+    var costas = new Costas(this.getFrequency(), this.getRate(), this.getSampleRate());
+
+    this.getBandwidth = function() { return this.getRate(); };
+    
+    var super_setFrequency = this.setFrequency;
+    this.setFrequency = function(freq) {
+        super_setFrequency(freq);
+        costas.setFrequency(freq);
+    };
+
+    var super_setRate = this.setRate;
+    this.setRate = function(rate) {
+        super_setRate(rate);
+        timer = new EarlyLate(this.getSamplesPerSymbol());
+        bpf   = FIR.bandpass(13, -0.7*this.getRate(), 0.7*this.getRate(), this.getSampleRate());
+        costas.setRate(rate);
+    };
+        
+    this.downmix = function(v) {
+        var vp = costas.update(v);
+        self.receive(vp);
+    };
+
+    this.receive = function(v) {
+        var z = bpf.updatex(v);
+        scopeOut(costas.cpx);
+        processSymbol(z);
+    };
+
+    var SSIZE = 200;
+    var scopedata = new Array(SSIZE);
+    var sctr = 0;
+    var log = Math.log;
+    function scopeOut(z) {
+        scopedata[sctr++] = [log(z.r + 1) * 30, log(z.i + 1) * 30];
+        if (sctr >= SSIZE) {
+            par.showScope(scopedata);
+            sctr = 0;
+            scopedata = new Array(SSIZE);
+        }
+    }
+
+
+    //val decoder = Viterbi.decoder(5, 0x17, 0x19)
+
+    var qpskMode = false;
+	this.getQpskMode  = function() {
+	    return qpskMode;
+	};
+	this.setQpskMode = function(v) {
+	    qpskMode = v;
+	};
+
+
+    function angleDiff(a, b) {
+        var diff = a-b;
+        while (diff > Math.PI)
+            diff -= twopi;
+        while (diff < -Math.PI)
+            diff += twopi;
+        //println("%f %f %f".format(a, b, diff))
+        return diff;
+    }
+
+    var diffScale = 255.0 / Math.PI;
+
+    /**
+     * Return the scaled distance of the angle v from "from".
+     * Returns a positive value 0..255  for
+     * 0 radians to +- pi
+     */
+    function distance(v, from) {
+        var diff = Math.PI - Math.abs(Math.abs(v-from) - Math.PI);
+        return Math.floor(diff * diffScale);
+    }
+
+    var twopi  = Math.PI * 2.0;
+    var halfpi = Math.PI * 0.5;
+
+    var code      = 0;
+    var lastv     = 0.0;
+    var count     = 0;
+    var lastBit   = false;
+
+
+    function processSymbol(v) {
+
+        var vn, dv, d00, d01, d10, d11;
+
+        if (this.qpskMode) {
+            /**/
+            vn  = v.arg();
+            dv  = angleDiff(vn,  lastv);
+            d00 = distance(dv, Math.PI);
+            d01 = distance(dv,  halfpi);
+            d10 = distance(dv, -halfpi);
+            d11 = distance(dv,     0.0);
+            var bm = [d00, d01, d10, d11];
+            //println("%6.3f %6.3f %6.3f  :  %3d %3d %3d %3d".format(lastv, vn, dv, d00, d01, d10, d11))
+            var bits = decoder.decodeOne(bm);
+            var len = bits.length;
+            for (var i=0 ; i < len ; i++)
+                processBit(bits[i]);
+            lastv = vn;
+            /**/
+        } else { //bpsk
+            /**/
+            vn  = v.arg();
+            dv  = angleDiff(vn,  lastv);
+            d00 = distance(dv, Math.PI);
+            d11 = distance(dv,     0.0);
+            //println("%6.3f %6.3f %6.3f  :  %3d %3d".format(lastv, vn, dv, d00, d11))
+            var bit = d11 < d00;
+            lastv = vn;
+            /**/
+            processBit(bit);
+        }
+    }
+
+
+    function processBit(bit) {
+        //println("bit: " + bit)
+        if ((!bit) && (!lastBit)) {
+            code >>= 1;   //remove trailing 0
+            if (code !== 0) {
+                //println("code:" + Varicode.toString(code))
+                var ascii = Varicode.decodeTable[code];
+                if (ascii) {
+                    var chr = ascii;
+                    if (chr == 10 || chr == 13)
+                        par.puttext("\n");
+                    else
+                        par.puttext(String.fromCharCode(chr));
+                    code = 0;
+                    }
+                }
+            code = 0;
+            }
+        else
+            {
+            code <<= 1;
+            if (bit) code += 1;
+            }
+        lastBit = bit ;
+        }
+        
+    //###################
+    //# transmit
+    //###################
+        
+    
+    function getNextTransmitBuffer() {
+        var ch = par.gettext();
+        if (tx<0) {
+        
+        } else {
+        
+        
+        }
+    
+    }
+     
+    var txBuf = [];
+    var txPtr = 0;
+        
+    this.transmit = function() {
+    
+        if (txPtr >= txBuf.length) {
+            txBuf = getNextTransmitBuffer();
+            txPtr = 0;
+        }
+        var txv = txBuf[txPtr++];
+        return txv;
+    };
+
+}// PskMode2
 
 
 

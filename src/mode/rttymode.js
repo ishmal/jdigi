@@ -143,9 +143,9 @@ function RttyMode(par) {
             {
             name: "rate",
             type: "choice",
-      selected: 0,
-			get value() { return self.getRate(); },
-			set value(v) { self.setRate(parseFloat(v)); },
+            selected: 0,
+            get value() { return self.getRate(); },
+            set value(v) { self.setRate(parseFloat(v)); },
             values : [
                 { name :  "45", value :  45.00 },
                 { name :  "50", value :  50.00 },
@@ -156,9 +156,9 @@ function RttyMode(par) {
             {
             name: "shift",
             type: "choice",
-			selected: 0,
-			get value() { return self.getShift(); },
-			set value(v) { self.setShift(parseFloat(v)); },
+            selected: 0,
+            get value() { return self.getShift(); },
+            set value(v) { self.setShift(parseFloat(v)); },
             values : [
                 { name :  "85", value :  85.0 },
                 { name : "170", value : 170.0 },
@@ -169,14 +169,14 @@ function RttyMode(par) {
             {
             name: "inv",
             type: "boolean",
- 			get value() { return self.getInverted(); },
-			set value(v) { self.setInverted(v); }
+             get value() { return self.getInverted(); },
+            set value(v) { self.setInverted(v); }
             },
             {
             name: "UoS",
             type: "boolean",
-			get value() { return self.getUnshiftOnSpace(); },
-			set value(v) { self.setUnshiftOnSpace(v); }
+            get value() { return self.getUnshiftOnSpace(); },
+            set value(v) { self.setUnshiftOnSpace(v); }
             }
         ]
     };
@@ -185,8 +185,8 @@ function RttyMode(par) {
     var shiftval = 170.0;
 
     this.getShift = function() {
-	    return shiftval;
-	};
+        return shiftval;
+    };
 
     this.setShift = function(v) {
         shiftval = v;
@@ -196,23 +196,23 @@ function RttyMode(par) {
     this.getBandwidth = function() { return shiftval; };
 
     var unshiftOnSpace = false;
-	this.getUnshiftOnSpace = function() {
-	    return unshiftOnSpace;
-	};
-	this.setUnshiftOnSpace = function(v) {
-	    unshiftOnSpace = v;
-	};
+    this.getUnshiftOnSpace = function() {
+        return unshiftOnSpace;
+    };
+    this.setUnshiftOnSpace = function(v) {
+        unshiftOnSpace = v;
+    };
 
     var inverted = false;
-	this.getInverted = function() {
-	    return inverted;
-	};
-	this.setInverted = function(v) {
-	    inverted = v;
-	};
+    this.getInverted = function() {
+        return inverted;
+    };
+    this.setInverted = function(v) {
+        inverted = v;
+    };
 
 
-    rate          = 45.0;
+    this.setRate(45.0);
     var twopi     = Math.PI * 2.0;
     var spaceFreq = new Complex(twopi * (-shiftval * 0.5) / this.getSampleRate());
     var markFreq  = new Complex(twopi * ( shiftval * 0.5) / this.getSampleRate());
@@ -225,7 +225,13 @@ function RttyMode(par) {
 
     //var avgFilter = Iir2.lowpass(rate / 100, this.sampleRate);
 
-    this.postSetRate = function() {
+    var super_setRate = this.setRate;
+    this.setRate = function(rate) {
+        super_setRate(rate);
+        adjust();
+    };
+    
+    function adjust() {
         sf = FIR.bandpass(13, -0.75 * shiftval, -0.25 * shiftval, this.getSampleRate());
         mf = FIR.bandpass(13,  0.25 * shiftval,  0.75 * shiftval, this.getSampleRate());
         spaceFreq = new Complex(twopi * (-shiftval * 0.5) / this.getSampleRate());
@@ -233,7 +239,7 @@ function RttyMode(par) {
         //dataFilter = Iir2.lowpass(rate, this.sampleRate);
         dataFilter = FIR.boxcar(this.getSamplesPerSymbol()|0);
         txlpf = FIR.lowpass(31,  shiftval * 0.5, this.sampleRate);
-    };
+    }
 
     this.status("sampleRate: " + this.getSampleRate() + " samplesPerSymbol: " + this.getSamplesPerSymbol());
 

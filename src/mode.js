@@ -20,6 +20,8 @@
 var Resampler = require("./resample").Resampler;
 var Nco = require("./nco").Nco;
 
+
+
 function Mode(par, sampleRateHint) {
 
     var self = this;
@@ -54,12 +56,9 @@ function Mode(par, sampleRateHint) {
     var rate = 31.25;
     this.setRate = function(v) {
         rate = v;
-        this.postSetRate();
     };
     this.getRate = function() {
         return rate;
-    };
-    this.postSetRate = function() {
     };
 
     this.getSamplesPerSymbol = function() {
@@ -67,22 +66,34 @@ function Mode(par, sampleRateHint) {
     };
 
     var decimator = new Resampler(decimation);
+    var interpolator = new Resampler(decimation);
 
     var nco = new Nco(this.getFrequency(), this.getSampleRate());
 
 
+    //#######################
+    //# RECEIVE
+    //#######################
 
-    /**
-     * Overload this for each mode.  Note that the parameter is Complex
-     */
-    this.receive = function(v) {
-    };
 
     this.receiveData = function(v) {
-        decimator.decimate(v, function(vp) {
-            var cx = nco.mixNext(vp);
-            self.receive(cx);
-        });
+        decimator.decimate(v, self.downmix);
+    };
+
+    /**
+     * This is good for most, but not all modes.  Override this for some
+     * Maybe rename?
+     */
+    this.downmix = function(v) {
+        var cx = nco.mixNext(vp);
+        self.receive(cx);
+    };
+
+    /**
+     * Overload this for each mode.  The parameter is either float or complex,
+     * depending on downmix()
+     */
+    this.receive = function(v) {
     };
 
 }
