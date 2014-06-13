@@ -29,7 +29,7 @@ var cossinTable = (function() {
     
     for (var idx = 0 ; idx < two16 ; idx++) {
         var angle = delta * idx;
-        xs[idx] = { cos: Math.cos(angle), sin: Math.sin(angle) }; 
+        xs[idx] = { cos: Math.cos(angle), sin: -Math.sin(angle) }; 
     }
     return xs;  
 })();
@@ -56,12 +56,12 @@ function LowPassIIR(cutoff, sampleRate) {
  */
 function Costas(frequency, dataRate, sampleRate)
 {
-    var freq = 0|0;
-    var err  = 0|0;
+    var freq = 0;
+    var err  = 0;
     var phase = 0|0;
     var table = cossinTable;
-    var iqa, iqb, iz, qz;
-    var da, db, dz;
+    var iqa, iqb, iz=0, qz=0;
+    var da, db, dz=0;
     
 
     function setFrequency(frequency) {
@@ -80,20 +80,21 @@ function Costas(frequency, dataRate, sampleRate)
     this.setDataRate = setDataRate;
     setDataRate(dataRate);
     
-    this.iq = {r: iz, i:qz};
-
     
     this.update = function(v) {
-        phase = (phase + freq + err) & 0xffffffff;
+        var adjFreq = (freq + err) | 0;
+        phase = (phase + adjFreq) & 0xffffffff;
         var cs = table[(phase >> 16) & 0xffff];
         var i = v * cs.cos;
         var q = v * cs.sin;
         iz = i * iqa + iz * iqb;
         qz = q * iqa + qz * iqb;
-        var cross = iz * qz;
+        var cross = Math.atan2(qz, iz);
         dz = cross * da + dz * db;
-        err = dz | 0; // this too coarse?
-        return iz;
+        err = dz; // this too coarse?
+        //console.log("err: " + err);
+        //console.log("iz: " + iz);
+        return new Complex(iz,qz);
     };
     
         

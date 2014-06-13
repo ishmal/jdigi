@@ -489,18 +489,32 @@ function PskMode2(par) {
         super_setRate(rate);
         timer = new EarlyLate(this.getSamplesPerSymbol());
         bpf   = FIR.bandpass(13, -0.7*this.getRate(), 0.7*this.getRate(), this.getSampleRate());
-        costas.setRate(rate);
+        costas.setDataRate(rate);
     };
         
     this.downmix = function(v) {
-        var vp = costas.update(v);
-        self.receive(vp);
+        var cpx = costas.update(v);
+        self.receive(cpx);
     };
 
-    this.receive = function(v) {
-        var z = bpf.updatex(v);
-        scopeOut(costas.iq);
-        processSymbol(z);
+    var lastSign = -1;
+    var samples = 0;
+    var sampSym = this.getSamplesPerSymbol()|0;
+    var halfSym = sampSym >>1;
+    
+    this.receive = function(z) {
+        //var z = bpf.updatex(v);
+        scopeOut(z);
+        var sign = Math.sign(z.r);
+        if (sign != lastSign) {
+            samples=0;
+        } else {
+            samples++;
+        }
+        if ((samples%sampSym) === halfSym) {
+            processSymbol(z);
+        }
+        lastSign = sign;
     };
 
     var SSIZE = 200;
