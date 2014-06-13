@@ -275,7 +275,9 @@ function PskMode(par) {
     var timer = new EarlyLate(this.getSamplesPerSymbol());
     var bpf   = FIR.bandpass(13, -0.7*this.getRate(), 0.7*this.getRate(), this.getSampleRate());
 
-    this.postSetRate = function() {
+    var super_setRate = this.setRate;
+    this.setRate = function(rate) {
+        super_setRate(rate);
         timer = new EarlyLate(this.getSamplesPerSymbol());
         bpf   = FIR.bandpass(13, -0.7*this.getRate(), 0.7*this.getRate(), this.getSampleRate());
     };
@@ -497,7 +499,7 @@ function PskMode2(par) {
 
     this.receive = function(v) {
         var z = bpf.updatex(v);
-        scopeOut(costas.cpx);
+        scopeOut(costas.iq);
         processSymbol(z);
     };
 
@@ -652,3 +654,4 @@ function PskMode2(par) {
 
 
 module.exports.PskMode = PskMode;
+module.exports.PskMode2 = PskMode2;

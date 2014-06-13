@@ -85,7 +85,7 @@ function Mode(par, sampleRateHint) {
      * Maybe rename?
      */
     this.downmix = function(v) {
-        var cx = nco.mixNext(vp);
+        var cx = nco.mixNext(v);
         self.receive(cx);
     };
 
