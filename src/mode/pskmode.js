@@ -443,7 +443,7 @@ function PskMode(par) {
  * Phase Shift Keying mode.
  */
 function PskMode2(par) {
-    Mode.call(this, par, 2000); //inherit
+    Mode.call(this, par, 1000); //inherit
     var self = this;
 
     this.properties = {
