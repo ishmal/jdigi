@@ -490,6 +490,7 @@ function PskMode2(par) {
         timer = new EarlyLate(this.getSamplesPerSymbol());
         bpf   = FIR.bandpass(13, -0.7*this.getRate(), 0.7*this.getRate(), this.getSampleRate());
         costas.setDataRate(rate);
+        sampSym = this.getSamplesPerSymbol()|0;
     };
         
     this.downmix = function(v) {
