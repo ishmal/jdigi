@@ -153,8 +153,10 @@ var Biquad = (function() {
 
     function Filter(b0, b1, b2, a1, a2) {
     
-        var x1=0, x2=0, y1=0, y2=0;
-        var w1r = 0, w1i = 0, w2r = 0, w2i = 0;
+        var x1=0,  x2=0,  y1=0,  y2=0;
+        var x1r=0, x2r=0, y1r=0, y2r=0;
+        var x1i=0, x2i=0, y1i=0, y2i=0;
+
 
     
         this.update = function(x) {
@@ -166,12 +168,12 @@ var Biquad = (function() {
         
         this.updatex = function(x) {
             var r = x.r; var i = x.i;
-            var wr = r - a1 * w1r - a2 * w2r;
-            var wi = i - a1 * w1i - a2 * w2i;
-            var yr = b0 * wr + b1 * w1r + b2 * w2r;
-            var yi = b0 * wi + b1 * w1i + b2 * w2i;
-            w2r = w1r; w1r = wr;
-            w2i = w1i; w1i = wi;
+            var yr = b0*r + b1*x1r + b2*x2r - a1*y1r - a2*y2r;
+            var yi = b0*i + b1*x1i + b2*x2i - a1*y1i - a2*y2i;
+            x2r = x1r; x1r = r;
+            x2i = x1i; x1i = i;
+            y2r = y1r; y1r = yr;
+            y2i = y1i; y1i = yi;
             return new Complex(yr, yi);
         };
     }
@@ -200,7 +202,7 @@ var Biquad = (function() {
             var a0 = 1.0 + alpha;
             var a1 = -2.0 * Math.cos(freq);
             var a2 = 1.0 - alpha;    
-            return new Filter(b0, b1, b2, a1, a2);
+            return new Filter(b0/a0, b1/a0, b2/a0, a1/a0, a2/a0);
         },
 
         bandPass : function(frequency, sampleRate, q) {
@@ -213,7 +215,7 @@ var Biquad = (function() {
             var a0 = 1.0 + alpha;
             var a1 = -2.0 * Math.cos(freq);
             var a2 = 1.0 - alpha;    
-            return new Filter(b0, b1, b2, a1, a2);
+            return new Filter(b0/a0, b1/a0, b2/a0, a1/a0, a2/a0);
         },
 
         bandReject : function(frequency, sampleRate, q) {
@@ -226,7 +228,7 @@ var Biquad = (function() {
             var a0 = 1.0 + alpha;
             var a1 = -2.0 * Math.cos(freq);
             var a2 = 1.0 - alpha;    
-            return new Filter(b0, b1, b2, a1, a2);
+            return new Filter(b0/a0, b1/a0, b2/a0, a1/a0, a2/a0);
         }
     };
     
