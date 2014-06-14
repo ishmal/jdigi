@@ -140,4 +140,103 @@ var FIR = (function() {
 })();
 
 
+//########################################################################
+//#  B I Q U A D
+//########################################################################
+
+/**
+ * A biquad filter
+ * @see http://en.wikipedia.org/wiki/Digital_biquad_filter
+ */
+
+var Biquad = (function() {
+
+    function Filter(b0, b1, b2, a1, a2) {
+    
+        var x1=0, x2=0, y1=0, y2=0;
+        var w1r = 0, w1i = 0, w2r = 0, w2i = 0;
+
+    
+        this.update = function(x) {
+            var y = b0*x + b1*x1 + b2*x2 - a1*y1 - a2*y2;
+            x2 = x1; x1 = x;
+            y2 = y1; y1 = y;
+            return y;
+        };
+        
+        this.updatex = function(x) {
+            var r = x.r; var i = x.i;
+            var wr = r - a1 * w1r - a2 * w2r;
+            var wi = i - a1 * w1i - a2 * w2i;
+            var yr = b0 * wr + b1 * w1r + b2 * w2r;
+            var yi = b0 * wi + b1 * w1i + b2 * w2i;
+            w2r = w1r; w1r = wr;
+            w2i = w1i; w1i = wi;
+            return new Complex(yr, yi);
+        };
+    }
+    
+    var cls = {
+        lowPass : function(frequency, sampleRate, q) {
+            q = typeof q !== 'undefined' ? q : 0.707;
+            var freq = 2.0 * Math.PI * frequency / sampleRate;
+            var alpha = Math.sin(freq) / (2.0 * q);
+            var b0 = (1.0 - Math.cos(freq)) / 2.0;
+            var b1 =  1.0 - Math.cos(freq);
+            var b2 = (1.0 - Math.cos(freq)) / 2.0;
+            var a0 = 1.0 + alpha;
+            var a1 = -2.0 * Math.cos(freq);
+            var a2 = 1.0 - alpha;    
+            return new Filter(b0/a0, b1/a0, b2/a0, a1/a0, a2/a0);
+        },
+            
+        highPass : function(frequency, sampleRate, q) {
+            q = typeof q !== 'undefined' ? q : 0.707;
+            var freq = 2.0 * Math.PI * frequency / sampleRate;
+            var alpha = Math.sin(freq) / (2.0 * q);
+            var b0 =  (1.0 + Math.cos(freq)) / 2.0;
+            var b1 = -(1.0 + Math.cos(freq));
+            var b2 =  (1.0 + Math.cos(freq)) / 2.0;
+            var a0 = 1.0 + alpha;
+            var a1 = -2.0 * Math.cos(freq);
+            var a2 = 1.0 - alpha;    
+            return new Filter(b0, b1, b2, a1, a2);
+        },
+
+        bandPass : function(frequency, sampleRate, q) {
+            q = typeof q !== 'undefined' ? q : 0.5;
+            var freq = 2.0 * Math.PI * frequency / sampleRate;
+            var alpha = Math.sin(freq) / (2.0 * q);
+            var b0 = Math.sin(freq) / 2.0;   // = q*alpha
+            var b1 = 0.0;
+            var b2 = -Math.sin(freq) / 2.0;  // = -q*alpha
+            var a0 = 1.0 + alpha;
+            var a1 = -2.0 * Math.cos(freq);
+            var a2 = 1.0 - alpha;    
+            return new Filter(b0, b1, b2, a1, a2);
+        },
+
+        bandReject : function(frequency, sampleRate, q) {
+            q = typeof q !== 'undefined' ? q : 0.5;
+            var freq = 2.0 * Math.PI * frequency / sampleRate;
+            var alpha = Math.sin(freq) / (2.0 * q);
+            var b0 = 1.0;
+            var b1 = -2.0 * Math.cos(freq);
+            var b2 = 1.0;
+            var a0 = 1.0 + alpha;
+            var a1 = -2.0 * Math.cos(freq);
+            var a2 = 1.0 - alpha;    
+            return new Filter(b0, b1, b2, a1, a2);
+        }
+    };
+    
+    return cls;
+    
+})();
+
+
+
+
+
 module.exports.FIR = FIR;
+module.exports.Biquad = Biquad;

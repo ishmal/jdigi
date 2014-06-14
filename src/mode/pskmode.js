@@ -522,7 +522,7 @@ function PskMode2(par) {
     var sctr = 0;
     var log = Math.log;
     function scopeOut(z) {
-        scopedata[sctr++] = [log(z.r + 1) * 30, log(z.i + 1) * 30];
+        scopedata[sctr++] = [log(z.r + 1) * 30.0, log(z.i + 1) * 30.0];
         if (sctr >= SSIZE) {
             par.showScope(scopedata);
             sctr = 0;

@@ -18,6 +18,8 @@
  */
 
 var Complex = require("./math").Complex;
+var Biquad = require("./filter").Biquad;
+
 
 var cossinTable = (function() {
 
@@ -54,7 +56,7 @@ function LowPassIIR(cutoff, sampleRate) {
  * A 32-bit costas loop for decoding phase-shifted signals at a given
  * frequency and data rate
  */
-function Costas(frequency, dataRate, sampleRate)
+function Costasx(frequency, dataRate, sampleRate)
 {
     var freq = 0;
     var err  = 0;
@@ -72,7 +74,7 @@ function Costas(frequency, dataRate, sampleRate)
     
     
     function setDataRate(rate) {
-        iqb = Math.exp(-2.0 * Math.PI * rate/sampleRate);
+        iqb = Math.exp(-2.0 * Math.PI * rate * 0.7 /sampleRate);
         iqa = 1.0 - iqb;
         db = Math.exp(-2.0 * Math.PI * 4.0 * rate/sampleRate);
         da = 1.0 - db;
@@ -91,9 +93,54 @@ function Costas(frequency, dataRate, sampleRate)
         qz = q * iqa + qz * iqb;
         var cross = Math.atan2(qz, iz);
         dz = cross * da + dz * db;
-        err = dz; // this too coarse?
+        err = dz * 10.0; // this too coarse?
         //console.log("err: " + err);
         //console.log("iz: " + iz);
+        return new Complex(iz,qz);
+    };
+    
+        
+}
+function Costas(frequency, dataRate, sampleRate)
+{
+    var freq = 0;
+    var err  = 0;
+    var phase = 0|0;
+    var table = cossinTable;
+    var ilp, qlp;
+    var da, db, dz=0;
+    
+
+    function setFrequency(frequency) {
+        freq  = (4294967296.0 * frequency / sampleRate)|0;
+    }
+    this.setFrequency = setFrequency;
+    setFrequency(frequency);
+    
+    
+    function setDataRate(rate) {
+        ilp = Biquad.lowPass(rate*0.707, sampleRate);
+        qlp = Biquad.lowPass(rate*0.707, sampleRate);
+        db = Math.exp(-2.0 * Math.PI * 4.0 * rate/sampleRate);
+        da = 1.0 - db;
+    }
+    this.setDataRate = setDataRate;
+    setDataRate(dataRate);
+    
+    
+    this.update = function(v) {
+        var adjFreq = (freq + err) | 0;
+        phase = (phase + adjFreq) & 0xffffffff;
+        var cs = table[(phase >> 16) & 0xffff];
+        var i = v * cs.cos;
+        var q = v * cs.sin;
+        var iz = ilp.update(i);
+        var qz = qlp.update(q);
+        var cross = Math.atan2(qz, iz);
+        dz = cross * da + dz * db;
+        err = dz * 10.0; // this too coarse?
+        //console.log("err: " + err);
+        //console.log("iq: " + iz + ", " + qz);
         return new Complex(iz,qz);
     };
     
