@@ -138,7 +138,7 @@ function Costas(frequency, dataRate, sampleRate)
         var qz = qlp.update(q);
         var cross = Math.atan2(qz, iz);
         dz = cross * da + dz * db;
-        err = dz * 1.0; // this too coarse?
+        err = dz * 200.0; // adjust this
         //console.log("err: " + err);
         //console.log("iq: " + iz + ", " + qz);
         return new Complex(iz,qz);
