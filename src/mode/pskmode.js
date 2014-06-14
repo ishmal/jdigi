@@ -491,6 +491,7 @@ function PskMode2(par) {
         bpf   = FIR.bandpass(13, -0.7*this.getRate(), 0.7*this.getRate(), this.getSampleRate());
         costas.setDataRate(rate);
         sampSym = this.getSamplesPerSymbol()|0;
+        halfSym = sampSym >> 1;
     };
         
     this.downmix = function(v) {
@@ -501,7 +502,7 @@ function PskMode2(par) {
     var lastSign = -1;
     var samples = 0;
     var sampSym = this.getSamplesPerSymbol()|0;
-    var halfSym = sampSym >>1;
+    var halfSym = sampSym >> 1;
     
     this.receive = function(z) {
         //var z = bpf.updatex(v);
