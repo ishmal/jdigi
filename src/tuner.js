@@ -280,6 +280,9 @@ function Tuner(par, canvas) {
      * this array to determine how to draw it, and what it means.
      */
     function drawScope() {
+        var len = _scopeData.length;
+        if (len<1)
+            return;
         var boxW   = 100;
         var boxH   = 100;
         var boxX   = width - boxW;
@@ -310,7 +313,6 @@ function Tuner(par, canvas) {
         var x = centerX + pt[0] * 50.0;
         var y = centerY + pt[1] * 50.0;
         ctx.moveTo(x,y);
-        var len = _scopeData.length;
         for (var i=1 ; i<len ; i++) {
             pt = _scopeData[i];
             x = centerX + pt[0] * 50.0;

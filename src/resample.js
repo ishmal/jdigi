@@ -17,6 +17,7 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+var Complex = require("./math").Complex;
 
 /**
  * A highly experimental resampler with hardcoded calculations
@@ -354,7 +355,7 @@ function Resampler(decimation) {
         buf[6] = r0*c0706 + r1*c0713 + r2*c0720;
     }
     
-    //#############################################
+     //#############################################
     //# M A I N
     //#############################################
     
@@ -414,7 +415,40 @@ function Resampler(decimation) {
     
 } // Resampler
 
+/**
+ * For complex values
+ */
+function ResamplerX(decimation) {
+
+    var rsamp = new Resampler(decimation);
+    var isamp = new Resampler(decimation);
+    var tmpr = 0;
+    var rbuf = new Array(decimation);
+    var ibuf = new Array(decimation);
+    
+    this.decimate = function(v, f) {
+        rsamp.decimate(v.r, function(r) {
+            tmpr = r;
+        });
+        isamp.decimate(v.i, function(i) {
+            var cpx = new Complex(tmpr, i);
+            f(cpx);
+        });
+    };
+
+    this.interpolate = function(v, buf) {
+        rsamp.interpolate(v.r, rbuf);
+        isamp.interpolate(v.i, ibuf);
+        for (var i=0 ; i < decimation ; i++) {
+            buf[i] = new Complex(rbuf[i], ibuf[i]);
+        }
+    };
+
+
+}
+
 module.exports.Resampler = Resampler;
+module.exports.ResamplerX = ResamplerX;
 
 
 

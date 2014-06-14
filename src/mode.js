@@ -18,7 +18,9 @@
  */
 
 var Resampler = require("./resample").Resampler;
+var ResamplerX = require("./resample").ResamplerX;
 var Nco = require("./nco").Nco;
+var Costas  = require("./costas").Costas;
 
 
 
@@ -33,6 +35,7 @@ function Mode(par, sampleRateHint) {
     this.setFrequency = function(freq) {
         frequency = freq;
         nco.setFrequency(freq);
+        costas.setFrequency(freq);
     };
     this.getFrequency = function() {
         return frequency;
@@ -56,6 +59,7 @@ function Mode(par, sampleRateHint) {
     var rate = 31.25;
     this.setRate = function(v) {
         rate = v;
+        costas.setDataRate(v);
     };
     this.getRate = function() {
         return rate;
@@ -64,11 +68,20 @@ function Mode(par, sampleRateHint) {
     this.getSamplesPerSymbol = function() {
         return this.getSampleRate() / rate;
     };
+    
+    var useCostas = false;
+    this.getUseCostas = function() {
+        return useCostas;
+    };
+    this.setUseCostas = function(v) {
+        useCostas = v;
+    };
 
-    var decimator = new Resampler(decimation);
+    var decimator = new ResamplerX(decimation);
     var interpolator = new Resampler(decimation);
 
-    var nco = new Nco(this.getFrequency(), this.getSampleRate());
+    var nco = new Nco(this.getFrequency(), par.getSampleRate());
+    var costas = new Costas(this.getFrequency(), this.getRate(), par.getSampleRate());
 
 
     //#######################
@@ -77,17 +90,10 @@ function Mode(par, sampleRateHint) {
 
 
     this.receiveData = function(v) {
-        decimator.decimate(v, self.downmix);
+        var cx = (useCostas) ? costas.update(v) : nco.mixNext(v);
+        decimator.decimate(cx, this.receive);
     };
 
-    /**
-     * This is good for most, but not all modes.  Override this for some
-     * Maybe rename?
-     */
-    this.downmix = function(v) {
-        var cx = nco.mixNext(v);
-        self.receive(cx);
-    };
 
     /**
      * Overload this for each mode.  The parameter is either float or complex,

@@ -18,7 +18,6 @@
  */
 
 var Mode    = require("../mode").Mode;
-var Costas  = require("../costas").Costas;
 var FIR     = require("../filter").FIR;
 
 /**
@@ -474,31 +473,20 @@ function PskMode2(par) {
     var timer = new EarlyLate(this.getSamplesPerSymbol());
     var bpf   = FIR.bandpass(13, -0.7*this.getRate(), 0.7*this.getRate(), this.getSampleRate());
     
-    var costas = new Costas(this.getFrequency(), this.getRate(), this.getSampleRate());
+    this.setUseCostas(true);
 
     this.getBandwidth = function() { return this.getRate(); };
     
-    var super_setFrequency = this.setFrequency;
-    this.setFrequency = function(freq) {
-        super_setFrequency(freq);
-        costas.setFrequency(freq);
-    };
 
     var super_setRate = this.setRate;
     this.setRate = function(rate) {
         super_setRate(rate);
         timer = new EarlyLate(this.getSamplesPerSymbol());
         bpf   = FIR.bandpass(13, -0.7*this.getRate(), 0.7*this.getRate(), this.getSampleRate());
-        costas.setDataRate(rate);
         sampSym = this.getSamplesPerSymbol()|0;
         halfSym = sampSym >> 1;
     };
         
-    this.downmix = function(v) {
-        var cpx = costas.update(v);
-        self.receive(cpx);
-    };
-
     var lastSign = -1;
     var samples = 0;
     var sampSym = this.getSamplesPerSymbol()|0;
@@ -523,7 +511,9 @@ function PskMode2(par) {
     var scopedata = new Array(SSIZE);
     var sctr = 0;
     var log = Math.log;
+    var ssctr = 0;
     function scopeOut(z) {
+        if (! (++ssctr & 1)) return; //skip items
         scopedata[sctr++] = [log(z.r + 1) * 30.0, log(z.i + 1) * 30.0];
         if (sctr >= SSIZE) {
             par.showScope(scopedata);
