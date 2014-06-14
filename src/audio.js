@@ -92,7 +92,9 @@ function AudioInput(par) {
 
 
 
-//JUST A COPY/PASTE.   FIXME!!!
+/**
+ * Getting this to work with interpolation isn't easy
+ */
 function AudioOutput(par) {
     var self = this;
 
@@ -109,43 +111,38 @@ function AudioOutput(par) {
     var actx = new AudioContext();
     var sampleRate = actx.sampleRate;
 
-    var source = null;
     var isRunning = false;
     
-    
-    
-    function startStream(stream) {
-    
-        this.source = actx.createMediaStreamSource(stream);
+    this.start = function() {
 
         /**/
-        var bufferSize = 8192;
+        var bufferSize = 4096;
         var decimation = 7;
-        var decimator = new Resampler(decimation);
-        var inputNode = keep(actx.createScriptProcessor(4096, 1, 1));
-        inputNode.onaudioprocess = function(e) {
-            var input  = e.inputBuffer.getChannelData(0);
-            var len = input.length;
+        var ibuf = new Array(decimation);
+        var iptr = decimation;
+        var resampler = new Resampler(decimation);
+        var outputNode = keep(actx.createScriptProcessor(bufferSize, 0, 1));
+        outputNode.onaudioprocess = function(e) {
+            var output  = e.outputBuffer.getChannelData(0);
+            var len = output.length;
             for (var i=0 ; i < len ; i++) {
-                decimator.decimate(input[i], par.receive);
+                if (iptr >= decimation) {
+                    var v = parent.transmit();
+                    resampler.interpolate(v, ibuf);
+                    iptr = 0;
+                }
+                output[i] = ibuf[iptr++];
             }
         };
     
-        self.source.connect(inputNode);
-        inputNode.connect(actx.destination);
-
+        outputNode.connect(actx.destination);
         isRunning = true;
-
-    }
-
-    this.start = function() { 
-        navigator.getUserMedia( { audio : true }, startStream, function(userMediaError) {
-                error(userMediaError.name + " : " + userMediaError.message);
-        });
     };
+
 
     this.stop = function() {
         this.source.close();
+        isRunning = false;
     };
     
        
