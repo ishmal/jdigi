@@ -24,8 +24,11 @@ function Watcher(par) {
     "use strict";
 
     //This regex's groups are prefix, digit, suffix
-    var csRegex = "([A-Z]{1,2}|[0-9][A-Z]|[A-Z][0-9])([0-9])([A-Z]{1,3})";
-    var csSpot = "[^a-zA-Z0-9]de\\s+(" + csRegex + ")[^a-zA-Z0-9]";
+    var prefix = "([A-Z]{1,2}|[0-9][A-Z]|[A-Z][0-9])";
+    var digits = "([0-9])";
+    var suffix = "(F[A-Z]{3}|[A-Z]{1,3})";  //note:  Fxxx is australian
+    var call = prefix + digits + suffix;
+    var spot = "[^a-zA-Z0-9]de\\s+(" + call + ")[^a-zA-Z0-9]";
     
     var buf = "";
     var calls = {};
@@ -51,7 +54,7 @@ function Watcher(par) {
     }
     
     function searchBuffer(str) {
-        var rgx = new RegExp(csSpot, "ig");
+        var rgx = new RegExp(spot, "ig");
         var calls = {};
         for (var res=rgx.exec(str) ; res !== null ; res=rgx.exec(str)) {
             var call = {
