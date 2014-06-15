@@ -55,10 +55,10 @@ function Watcher(par) {
         var calls = {};
         for (var res=rgx.exec(str) ; res !== null ; res=rgx.exec(str)) {
             var call = {
-                call   : res[1],
-                prefix : res[2],
+                call   : res[1].toLowerCase(),
+                prefix : res[2].toLowerCase(),
                 digit  : res[3],
-                suffix : res[4],
+                suffix : res[4].toLowerCase(),
                 ts     : new Date() //timestamp
             };
             check(call);
