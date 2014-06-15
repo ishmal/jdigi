@@ -72,7 +72,9 @@ function Watcher(par) {
     
     this.update = function(str) {
         buf += str;
-        searchBuffer(buf);
+        if (str.length % 10 === 0) {
+            searchBuffer(buf);
+        }
         var len = buf.length;
         if (len > 120) {
            buf = buf.substring(80, len);
