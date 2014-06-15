@@ -24,7 +24,7 @@ function Watcher(par) {
     "use strict";
 
     //This regex's groups are prefix, digit, suffix
-    var csRegex = "([A-Z]{1,2}|[0-9][A-Z])([0-9])([A-Z]{1,3})";
+    var csRegex = "([A-Z]{1,2}|[0-9][A-Z]|[A-Z][0-9])([0-9])([A-Z]{1,3})";
     var csSpot = "[^a-zA-Z0-9]de\\s+(" + csRegex + ")[^a-zA-Z0-9]";
     
     var buf = "";
@@ -70,8 +70,8 @@ function Watcher(par) {
         buf += str;
         searchBuffer(buf);
         var len = buf.length;
-        if (len > 200) {
-           buf = buf.substring(100, len);
+        if (len > 120) {
+           buf = buf.substring(80, len);
         }
     
     };
