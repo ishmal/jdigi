@@ -39,8 +39,8 @@ var ncoTable = (function() {
  * A sine generator with a 32-bit accumulator and a 16-bit
  * lookup table.  Much faster than Math.whatever
  */
-function Nco(frequency, sampleRate)
-{
+function Nco(frequency, sampleRate) {
+    "use strict";
     var freq = 0|0;
     function setFrequency(frequency) {
         freq  = (4294967296.0 * frequency / sampleRate)|0;

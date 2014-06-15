@@ -27,6 +27,7 @@ navigator.getUserMedia = navigator.getUserMedia ||
 
 
 function AudioInput(par) {
+    "use strict";
     var self = this;
 
     //Chrome workaround.  Keep a ref to a scriptprocessor node to prevent gc.
@@ -96,6 +97,7 @@ function AudioInput(par) {
  * Getting this to work with interpolation isn't easy
  */
 function AudioOutput(par) {
+    "use strict";
     var self = this;
 
     var scriptNodes = {};

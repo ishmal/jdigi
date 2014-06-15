@@ -56,8 +56,9 @@ function LowPassIIR(cutoff, sampleRate) {
  * A 32-bit costas loop for decoding phase-shifted signals at a given
  * frequency and data rate
  */
-function Costasx(frequency, dataRate, sampleRate)
-{
+function CostasIIR(frequency, dataRate, sampleRate) {
+    "use strict";
+
     var freq = 0;
     var err  = 0;
     var phase = 0|0;
@@ -101,8 +102,14 @@ function Costasx(frequency, dataRate, sampleRate)
     
         
 }
-function Costas(frequency, dataRate, sampleRate)
-{
+
+
+/**
+ * This version uses Biquad filters for the arms
+ */
+function Costas(frequency, dataRate, sampleRate) {
+    "use strict";
+
     var freq = 0;
     var err  = 0;
     var phase = 0|0;

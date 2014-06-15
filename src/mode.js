@@ -26,6 +26,8 @@ var Costas  = require("./costas").Costas;
 
 function Mode(par, sampleRateHint) {
 
+    "use strict";
+
     var self = this;
 
     this.properties = {};

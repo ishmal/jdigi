@@ -24,7 +24,7 @@ var Complex = require("./math").Complex;
  */
 function Resampler(decimation) {
     
-    "use strict";
+   "use strict";
     
     //#########################################################
     //###  DECIMATION : 2
@@ -419,6 +419,8 @@ function Resampler(decimation) {
  * For complex values
  */
 function ResamplerX(decimation) {
+
+    "use strict";
 
     var rsamp = new Resampler(decimation);
     var isamp = new Resampler(decimation);

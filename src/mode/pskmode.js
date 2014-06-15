@@ -244,6 +244,7 @@ function EarlyLate(samplesPerSymbol) {
  * Phase Shift Keying mode.
  */
 function PskMode(par) {
+    "use strict";
     Mode.call(this, par, 2000); //inherit
     var self = this;
 
@@ -349,7 +350,7 @@ function PskMode(par) {
 
         var vn, dv, d00, d01, d10, d11;
 
-        if (this.qpskMode) {
+        if (qpskMode) {
             /**/
             vn  = v.arg();
             dv  = angleDiff(vn,  lastv);
@@ -443,6 +444,7 @@ function PskMode(par) {
  * Phase Shift Keying mode.
  */
 function PskMode2(par) {
+    "use strict";
     Mode.call(this, par, 1000); //inherit
     var self = this;
 
@@ -569,7 +571,7 @@ function PskMode2(par) {
 
         var vn, dv, d00, d01, d10, d11;
 
-        if (this.qpskMode) {
+        if (qpskMode) {
             /**/
             vn  = v.arg();
             dv  = angleDiff(vn,  lastv);
