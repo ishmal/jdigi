@@ -31,7 +31,7 @@ function Watcher(par) {
     var calls = {};
     
     function announce(call) {
-        par.status(call.ts.toUTCString() + " : " + call.call);
+        par.status(call.ts.toUTCString() + " : " + call.freq + " : " + call.call);
     }
     
     function check(call) {
@@ -59,6 +59,7 @@ function Watcher(par) {
                 prefix : res[2].toLowerCase(),
                 digit  : res[3],
                 suffix : res[4].toLowerCase(),
+                freq   : par.getFrequency(),
                 ts     : new Date() //timestamp
             };
             check(call);
