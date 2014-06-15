@@ -67,6 +67,9 @@ app.directive("jdigiOutput", function(){
 		link: function(scope, elem, attrs){
 			var textArea = elem;
 			var outtext = {
+                clear: function() {
+                    textArea.val("");
+                },
 				puttext : function(str) {
 					var txt = textArea.val() + str;
 					textArea.val(txt);
@@ -75,6 +78,55 @@ app.directive("jdigiOutput", function(){
 				}
 			};
 			scope.digi.outtext = outtext;
-			}
+		}
+	};
+});
+
+
+app.directive("jdigiInput", function(){
+    return {
+		restrict: "E",
+		replace: true,
+		template : "<textarea class='jdigi-input'/>",
+		link: function(scope, elem, attrs){
+			var textArea = elem;
+			var intext = {
+                clear: function() {
+                    textArea.val("");
+                },
+				puttext : function(str) {
+					var txt = textArea.val() + str;
+					textArea.val(txt);
+					var ta = textArea[0];
+					ta.scrollTop = ta.scrollHeight - ta.clientHeight;
+				}
+			};
+			scope.digi.intext = intext;
+		}
+	};
+});
+
+/**
+ * This is the status bar, where messages will be displayed briefly
+ */
+app.directive("jdigiStatus",  function(){
+    return {
+		restrict: "E",
+		replace: true,
+		template : "<p class='jdigi-status'/>",
+		link: function(scope, elem, attrs){
+			var field = elem;
+
+            function clear() {
+                field.html("");
+            }
+            var timeout = 0;
+			scope.digi.status = function(str) {
+            console.log("setting status: " + str);
+				field.html(str);
+                clearTimeout(timeout);
+                timeout = setTimeout(clear, 10000);
+			};
+		}//link
 	};
 });

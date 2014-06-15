@@ -26,7 +26,7 @@ var Mode = require("./mode").Mode;
 var PskMode = require("./mode/pskmode").PskMode;
 var PskMode2 = require("./mode/pskmode").PskMode2;
 var RttyMode = require("./mode/rttymode").RttyMode;
-
+var Watcher = require("./watch").Watcher;
 
 
 var Constants = {
@@ -52,6 +52,10 @@ function Digi() {
             console.log("Digi error: " + msg);
     }
 
+    this.status = function(str) {
+        console.log("status: " + str);
+    };
+
     var audioInput = new AudioInput(this);
     this.getSampleRate = function() {
         return audioInput.sampleRate;
@@ -66,6 +70,7 @@ function Digi() {
     this.modes = [pskMode, rttyMode];
     this.setMode = function(v) {
         mode = v;
+        this.status("mode switched");
     };
     this.getMode = function() {
         return mode;
@@ -84,7 +89,7 @@ function Digi() {
         return mode.getFrequency();
     };
 
-	  this.tuner = {
+	this.tuner = {
 	    setFrequency : function(freq) {},
         showScope    : function(data) {},
         update       : function(data) {}
@@ -97,16 +102,46 @@ function Digi() {
 	    this.tuner.showScope(data);
 	  };
 
-	  this.outtext = {
+    /**
+     * Make this an interface, so we can add things later.
+     * Let the GUI override this.
+     */
+	this.outtext = {
+	      clear : function(str) {},
 	      puttext : function(str) {}
-	  };
+	};
+    
+    var watcher = new Watcher(this);
 
     /**
-     * Override this in the GUI
+     * Output text to the gui
      */
     this.puttext = function(str) {
 	    this.outtext.puttext(str);
+        watcher.update(str);
     };
+
+    /**
+     * Make this an interface, so we can add things later.
+     * Let the GUI override this.
+     */
+	this.intext = {
+	    clear : function(str) {},
+	    gettext : function(str) { return "";}
+	};
+
+    /**
+     * Output text to the gui
+     */
+    this.gettext = function() {
+	    return this.intext.gettext();
+    };
+
+    this.clear = function() {
+        this.outtext.clear();
+        this.intext.clear();
+    };
+    
 
     var FFT_MASK   = Constants.FFT_SIZE - 1;
     //var fft        = new FFT(Constants.FFT_SIZE);

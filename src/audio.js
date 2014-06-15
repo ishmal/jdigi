@@ -79,7 +79,7 @@ function AudioInput(par) {
 
     this.start = function() { 
         navigator.getUserMedia( { audio : true }, startStream, function(userMediaError) {
-                error(userMediaError.name + " : " + userMediaError.message);
+            error(userMediaError.name + " : " + userMediaError.message);
         });
     };
 

@@ -472,8 +472,7 @@ function PskMode2(par) {
         ]
     };
 
-    var timer = new EarlyLate(this.getSamplesPerSymbol());
-    var bpf   = FIR.bandpass(13, -0.7*this.getRate(), 0.7*this.getRate(), this.getSampleRate());
+    //var bpf = FIR.bandpass(13, -0.7*this.getRate(), 0.7*this.getRate(), this.getSampleRate());
     
     this.setUseCostas(true);
 
@@ -483,8 +482,7 @@ function PskMode2(par) {
     var super_setRate = this.setRate;
     this.setRate = function(rate) {
         super_setRate(rate);
-        timer = new EarlyLate(this.getSamplesPerSymbol());
-        bpf   = FIR.bandpass(13, -0.7*this.getRate(), 0.7*this.getRate(), this.getSampleRate());
+        //bpf = FIR.bandpass(13, -0.7*this.getRate(), 0.7*this.getRate(), this.getSampleRate());
         sampSym = this.getSamplesPerSymbol()|0;
         halfSym = sampSym >> 1;
     };
@@ -523,7 +521,6 @@ function PskMode2(par) {
             scopedata = new Array(SSIZE);
         }
     }
-
 
     //val decoder = Viterbi.decoder(5, 0x17, 0x19)
 

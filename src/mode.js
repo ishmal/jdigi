@@ -25,7 +25,6 @@ var Costas  = require("./costas").Costas;
 
 
 function Mode(par, sampleRateHint) {
-
     "use strict";
 
     var self = this;
@@ -44,7 +43,7 @@ function Mode(par, sampleRateHint) {
     };
 
     this.status = function(msg) {
-         console.log("mode: " + msg);
+         par.status("mode: " + msg);
     };
 
     this.getBandwidth = function() {
