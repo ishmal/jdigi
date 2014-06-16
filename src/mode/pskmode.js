@@ -495,7 +495,7 @@ function PskMode2(par) {
     this.receive = function(z) {
         //var z = bpf.updatex(v);
         scopeOut(z);
-        var sign = Math.sign(z.r);
+        var sign = (z.r > 0) ? 1 : -1;     //Math.sign() not on Chrome
         if (sign != lastSign) {
             samples=0;
         } else {
