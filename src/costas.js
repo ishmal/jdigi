@@ -133,7 +133,7 @@ function Costas(frequency, dataRate, sampleRate) {
         qlp = Biquad.lowPass(rate*0.5, sampleRate);
         db = Math.exp(-2.0 * Math.PI * 4.0 * rate/sampleRate);
         da = 1.0 - db;
-        agcb = Math.exp(-2.0 * Math.PI * 0.1/sampleRate);
+        agcb = Math.exp(-2.0 * Math.PI * 1.0/sampleRate);
         agca = 1.0 - agcb;
     }
     this.setDataRate = setDataRate;
@@ -143,6 +143,8 @@ function Costas(frequency, dataRate, sampleRate) {
     this.update = function(v) {
         console.log("gain:" + gain);
         v *= gain;
+        agcz = Math.abs(v) * agca + agcz * agcb;
+        gain = 1.0 / (agcz + 0.0001);
         var adjFreq = (freq + err) | 0;
         phase = (phase + adjFreq) & 0xffffffff;
         var cs = table[(phase >> 16) & 0xffff];
@@ -150,8 +152,6 @@ function Costas(frequency, dataRate, sampleRate) {
         var q = v * cs.sin;
         var iz = ilp.update(i);
         var qz = qlp.update(q);
-        agcz = Math.abs(iz) * agca + agcz * agcb;
-        gain = 10000.0 / (agcz+1.0);
         var cross = Math.atan2(qz, iz);
         dz = cross * da + dz * db;
         err = dz * 100000.0; // adjust this
