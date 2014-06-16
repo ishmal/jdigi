@@ -33,10 +33,15 @@ function Watcher(par) {
     var buf = "";
     var calls = {};
     
+    function showQrz(call) {
+        window.open("http://qrz.com/db/" + call, "qrzquery", "menubar=true,toolbar=true");
+    }
+    
     function announce(call) {
         var msg = call.ts.toUTCString() + " : " + call.call + " : " +
             call.freq + " : " + call.mode + "/" + call.rate;
         par.status(msg);
+        showQrz(call.call);
     }
     
     function check(call) {
