@@ -63,7 +63,7 @@ app.directive("jdigiOutput", function(){
     return {
 		restrict: "E",
 		replace: true,
-		template : "<textarea class='jdigi-output'/>",
+		template : "<textarea class='jdigi-output' readonly='true'/>",
 		link: function(scope, elem, attrs){
 			var textArea = elem;
 			var outtext = {
