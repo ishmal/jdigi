@@ -34,7 +34,9 @@ function Watcher(par) {
     var calls = {};
     
     function announce(call) {
-        par.status(call.ts.toUTCString() + " : " + call.freq + " : " + call.call);
+        var msg = call.ts.toUTCString() + " : " + call.call + " : " +
+            call.freq + " : " + call.mode + "/" + call.rate;
+        par.status(msg);
     }
     
     function check(call) {
@@ -57,12 +59,17 @@ function Watcher(par) {
         var rgx = new RegExp(spot, "ig");
         var calls = {};
         for (var res=rgx.exec(str) ; res !== null ; res=rgx.exec(str)) {
+            var mode = par.getMode();
+            var name = mode.properties.name;
+            var rate = mode.getRate();
             var call = {
                 call   : res[1].toLowerCase(),
                 prefix : res[2].toLowerCase(),
                 digit  : res[3],
                 suffix : res[4].toLowerCase(),
                 freq   : par.getFrequency(),
+                mode   : name,
+                rate   : rate,
                 ts     : new Date() //timestamp
             };
             check(call);
