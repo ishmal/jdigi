@@ -141,10 +141,9 @@ function Costas(frequency, dataRate, sampleRate) {
     
     
     this.update = function(v) {
-        console.log("gain:" + gain);
-        v *= gain;
         agcz = Math.abs(v) * agca + agcz * agcb;
         gain = 1.0 / (agcz + 0.0001);
+        v *= gain;
         var adjFreq = (freq + err) | 0;
         phase = (phase + adjFreq) & 0xffffffff;
         var cs = table[(phase >> 16) & 0xffff];
