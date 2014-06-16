@@ -94,8 +94,8 @@ function CostasIIR(frequency, dataRate, sampleRate) {
         qz = q * iqa + qz * iqb;
         var cross = Math.atan2(qz, iz);
         dz = cross * da + dz * db;
-        err = dz * 10.0; // this too coarse?
-        //console.log("err: " + err);
+        err = dz * 100000.0; // this too coarse?
+        console.log("freq: " + freq + "  err: " + err);
         //console.log("iz: " + iz);
         return new Complex(iz,qz);
     };
@@ -126,8 +126,8 @@ function Costas(frequency, dataRate, sampleRate) {
     
     
     function setDataRate(rate) {
-        ilp = Biquad.lowPass(rate*0.707, sampleRate);
-        qlp = Biquad.lowPass(rate*0.707, sampleRate);
+        ilp = Biquad.lowPass(rate*0.5, sampleRate);
+        qlp = Biquad.lowPass(rate*0.5, sampleRate);
         db = Math.exp(-2.0 * Math.PI * 4.0 * rate/sampleRate);
         da = 1.0 - db;
     }
@@ -145,8 +145,8 @@ function Costas(frequency, dataRate, sampleRate) {
         var qz = qlp.update(q);
         var cross = Math.atan2(qz, iz);
         dz = cross * da + dz * db;
-        err = dz * 20.0; // adjust this
-        //console.log("err: " + err);
+        err = dz * 200000.0; // adjust this
+        //console.log("freq: " + freq + "  err: " + err);
         //console.log("iq: " + iz + ", " + qz);
         return new Complex(iz,qz);
     };
