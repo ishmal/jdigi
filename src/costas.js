@@ -125,6 +125,7 @@ function Costas(frequency, dataRate, sampleRate) {
     this.setFrequency = setFrequency;
     setFrequency(frequency);
     var maxErr = 4294967296.0 * 20.0 / sampleRate;
+    console.log("maxerr: " + maxErr);
     var minErr = -maxErr;
     
     
@@ -149,13 +150,14 @@ function Costas(frequency, dataRate, sampleRate) {
         var q = v * cs.sin;
         var iz = ilp.update(i);
         var qz = qlp.update(q);
-        var angle = Math.atan2(qz, iz);
-        err += angle;// * 10000.0; // adjust this
+        //console.log("qz: " + qz);
+        var angle = -Math.atan2(qz, iz);
+        err += angle * 4000.0; // adjust this
         if (err < minErr)
             err = minErr;
         else if (err > maxErr)
             err = maxErr;
-        //console.log("freq: " + freq + "  err: " + err);
+        console.log("freq: " + freq + "  err: " + err);
         //console.log("iq: " + iz + ", " + qz);
         return new Complex(iz,qz);
     };
