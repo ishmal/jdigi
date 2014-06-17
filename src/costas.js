@@ -114,10 +114,9 @@ function Costas(frequency, dataRate, sampleRate) {
     var err  = 0;
     var phase = 0|0;
     var table = cossinTable;
-    var ilp, qlp;
-    var da, db, dz=0;
+    var ilp, qlp, dlp;
     var agcint1=0, agcint2=0;
-    var agcgain=0.002;
+    var agcgain=0.001;
     
 
     function setFrequency(frequency) {
@@ -125,13 +124,13 @@ function Costas(frequency, dataRate, sampleRate) {
     }
     this.setFrequency = setFrequency;
     setFrequency(frequency);
+    var maxErr = 4294967296.0 * 20.0 / sampleRate;
+    var minErr = -maxErr;
     
     
     function setDataRate(rate) {
         ilp = Biquad.lowPass(rate*0.5, sampleRate);
         qlp = Biquad.lowPass(rate*0.5, sampleRate);
-        db = Math.exp(-2.0 * Math.PI * 4.0 * rate/sampleRate);
-        da = 1.0 - db;
     }
     this.setDataRate = setDataRate;
     setDataRate(dataRate);
@@ -150,9 +149,12 @@ function Costas(frequency, dataRate, sampleRate) {
         var q = v * cs.sin;
         var iz = ilp.update(i);
         var qz = qlp.update(q);
-        var cross = Math.atan2(qz, iz);
-        dz = cross * da + dz * db;
-        err = dz * 50000.0; // adjust this
+        var angle = Math.atan2(qz, iz);
+        err += angle;// * 10000.0; // adjust this
+        if (err < minErr)
+            err = minErr;
+        else if (err > maxErr)
+            err = maxErr;
         //console.log("freq: " + freq + "  err: " + err);
         //console.log("iq: " + iz + ", " + qz);
         return new Complex(iz,qz);
