@@ -31,7 +31,7 @@ var cossinTable = (function() {
     
     for (var idx = 0 ; idx < two16 ; idx++) {
         var angle = delta * idx;
-        xs[idx] = { cos: Math.cos(angle), sin: -Math.sin(angle) }; 
+        xs[idx] = { cos: Math.cos(angle), sin: Math.sin(angle) }; 
     }
     return xs;  
 })();
@@ -106,13 +106,18 @@ function CostasIIR(frequency, dataRate, sampleRate) {
 
 /**
  * This version uses Biquad filters for the arms
+ * http://www.trondeau.com/blog/2011/8/13/control-loop-gain-values.html
  */
 function Costas(frequency, dataRate, sampleRate) {
     "use strict";
 
-    var freq = 0;
-    var err  = 0;
+    var err   = 0;
+    var alpha = 0;
+    var beta  = 0;
+    var damp  = 0.707;
+    var freq  = 0;
     var phase = 0|0;
+
     var table = cossinTable;
     var ilp, qlp, dlp;
     var agcint1=0, agcint2=0;
@@ -132,6 +137,7 @@ function Costas(frequency, dataRate, sampleRate) {
     function setDataRate(rate) {
         ilp = Biquad.lowPass(rate*0.5, sampleRate);
         qlp = Biquad.lowPass(rate*0.5, sampleRate);
+        dlp = Biquad.lowPass(rate*6.0, sampleRate);
     }
     this.setDataRate = setDataRate;
     setDataRate(dataRate);
@@ -152,12 +158,12 @@ function Costas(frequency, dataRate, sampleRate) {
         var qz = qlp.update(q);
         //console.log("qz: " + qz);
         var angle = -Math.atan2(qz, iz);
-        err += angle * 4000.0; // adjust this
+        err += dlp.update(angle) * 5000.0; // adjust this
         if (err < minErr)
             err = minErr;
         else if (err > maxErr)
             err = maxErr;
-        console.log("freq: " + freq + "  err: " + err);
+        console.log("" + iz + " " + qz + " " + angle + " " + err);
         //console.log("iq: " + iz + ", " + qz);
         return new Complex(iz,qz);
     };
