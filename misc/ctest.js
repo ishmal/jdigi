@@ -258,7 +258,7 @@ function Costas(frequency, dataRate, sampleRate, plotter) {
         else if (err > maxErr)
             err = maxErr;
         //console.log("" + iz + " " + qz + " " + angle + " " + err);
-        if (++counter % 20 === 0)
+        if (++counter % 30 === 0)
             plotter.update([iz, qz, angle, err, minErr, maxErr]);
         //console.log("iq: " + iz + ", " + qz);
         return new Complex(iz,qz);
@@ -293,10 +293,32 @@ function Plotter(canvas, lines) {
        }
     }
     
+    function scaledY(y) {
+        var sgn = (y>0) ? 1 : -1;
+        var v = Math.log(Math.abs(y)+1) * sgn * 10.0;
+        return v;
+    }
+    
     function redraw() {
         ctx.strokeStyle = "black";
         ctx.rect(0,0, width, height);
         ctx.fill();
+        
+        var pwr = 1;
+        ctx.strokeStyle = "orange";
+        while (pwr < 100000000) {
+            var y = scaledY(pwr);
+            ctx.beginPath();
+            ctx.moveTo(0, y0-y);
+            ctx.lineTo(width, y0-y);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(0, y0+y);
+            ctx.lineTo(width, y0+y);
+            ctx.stroke();
+            pwr *= 10;
+            console.log("ok");
+        }
         
         for (var i=0 ; i < size ; i++) {
             var line = lines[i];
@@ -307,9 +329,7 @@ function Plotter(canvas, lines) {
             var ll = data.length;
             for (var x=0 ; x<ll ; x++) {
                 var y = data[x];
-                var sgn = (y>0) ? 1 : -1;
-                var v = Math.log(Math.abs(y)+1) * sgn * 10.0;
-                ctx.lineTo(x, y0 - v);
+                ctx.lineTo(x, y0 - scaledY(y));
             }
             ctx.stroke();
         }
@@ -338,7 +358,8 @@ function testme() {
     var sampleRate = 1000;
     var nco = new Nco(frequency - 0.5, sampleRate);
     var costas = new Costas(frequency, dataRate, sampleRate, plotter);
-    for (var i=0 ; i < 15000 ; i++) {
+    
+    for (var i=0 ; i < 24000 ; i++) {
         var cs = nco.next();
         costas.update(cs.cos);
     }
