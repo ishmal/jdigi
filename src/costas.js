@@ -230,7 +230,7 @@ function Costas(frequency, dataRate, sampleRate) {
         
         freq = freq * beta * err;
         if (freq<minFreq)
-            freq = minFreq
+            freq = minFreq;
         else if (freq >maxFreq)
             freq = maxFreq;
         phase = phase + freq + alpha * err;
