@@ -195,50 +195,6 @@ var cossinTable = (function() {
 })();
 
 
-function Plotter(canvas, lines) {
-    var size = lines.length;
-    var ctx = canvas.getContext("2d");
-    
-    function reset() {
-        for (var i=0 ; i<size ; i++) {
-            lines[i].data = [];
-        }
-    }
-    var y0 = canvas.height / 2;
-    
-    reset();
-    
-    this.update = function(values) {
-       var len = values.length;
-       if (len>size) {
-           len = size;
-       }
-       for (var i=0 ; i<len ; i++) {
-           var data = lines[i].data;
-           data[data.length] = values[i];
-       }
-    }
-    
-    function redraw() {
-        for (var i=0 ; i < size ; i++) {
-            var line = lines[i];
-            ctx.strokeStyle = line.style;
-            ctx.moveTo(0, y0);
-            var data = line.data;
-            var ll = data.length;
-            for (var x=0 ; x<ll ; x++) {
-                var y = data[x];
-                ctx.lineTo(x, y0 - Math.log(y+1));
-            }
-            ctx.stroke();
-        }
-    }
-    this.redraw = redraw;
-
-
-
-}
-
 
 
 /**
@@ -254,6 +210,7 @@ function Costas(frequency, dataRate, sampleRate, plotter) {
     var damp  = 0.707;
     var freq  = 0;
     var phase = 0|0;
+    var counter = 0;
 
     var table = cossinTable;
     var ilp, qlp, dlp;
@@ -274,7 +231,7 @@ function Costas(frequency, dataRate, sampleRate, plotter) {
     function setDataRate(rate) {
         ilp = Biquad.lowPass(rate*0.5, sampleRate);
         qlp = Biquad.lowPass(rate*0.5, sampleRate);
-        dlp = Biquad.lowPass(rate*6.0, sampleRate);
+        dlp = Biquad.lowPass(rate*4.0, sampleRate);
     }
     this.setDataRate = setDataRate;
     setDataRate(dataRate);
@@ -300,8 +257,9 @@ function Costas(frequency, dataRate, sampleRate, plotter) {
             err = minErr;
         else if (err > maxErr)
             err = maxErr;
-        console.log("" + iz + " " + qz + " " + angle + " " + err);
-        plotter.update([iz]);
+        //console.log("" + iz + " " + qz + " " + angle + " " + err);
+        if (++counter % 20 === 0)
+            plotter.update([iz, qz, angle, err, minErr, maxErr]);
         //console.log("iq: " + iz + ", " + qz);
         return new Complex(iz,qz);
     };
@@ -309,17 +267,78 @@ function Costas(frequency, dataRate, sampleRate, plotter) {
         
 }
 
+function Plotter(canvas, lines) {
+    var size = lines.length;
+    var ctx = canvas.getContext("2d");
+    var width = canvas.width;
+    var height = canvas.height;
+    
+    function reset() {
+        for (var i=0 ; i<size ; i++) {
+            lines[i].data = [];
+        }
+    }
+    var y0 = canvas.height / 2;
+    
+    reset();
+    
+    this.update = function(values) {
+       var len = values.length;
+       if (len>size) {
+           len = size;
+       }
+       for (var i=0 ; i<len ; i++) {
+           var data = lines[i].data;
+           data[data.length] = values[i];
+       }
+    }
+    
+    function redraw() {
+        ctx.strokeStyle = "black";
+        ctx.rect(0,0, width, height);
+        ctx.fill();
+        
+        for (var i=0 ; i < size ; i++) {
+            var line = lines[i];
+            ctx.strokeStyle = line.style;
+            ctx.beginPath();
+            ctx.moveTo(0, y0);
+            var data = line.data;
+            var ll = data.length;
+            for (var x=0 ; x<ll ; x++) {
+                var y = data[x];
+                var sgn = (y>0) ? 1 : -1;
+                var v = Math.log(Math.abs(y)+1) * sgn * 10.0;
+                ctx.lineTo(x, y0 - v);
+            }
+            ctx.stroke();
+        }
+    }
+    this.redraw = redraw;
+
+
+
+}
+
 
 
 function testme() {
     var canvas = document.getElementById("mycanvas");
-    var plotter = new Plotter(canvas, [{style:"red"}]);
+    var lines = [
+        {style:"red"},
+        {style:"green"},
+        {style:"blue"},
+        {style:"cyan"},
+        {style:"white"},
+        {style:"white"}
+    ];
+    var plotter = new Plotter(canvas, lines);
     var frequency = 100;
     var dataRate = 2;
     var sampleRate = 1000;
-    var nco = new Nco(frequency + 1, sampleRate);
+    var nco = new Nco(frequency - 0.5, sampleRate);
     var costas = new Costas(frequency, dataRate, sampleRate, plotter);
-    for (var i=0 ; i < 100 ; i++) {
+    for (var i=0 ; i < 15000 ; i++) {
         var cs = nco.next();
         costas.update(cs.cos);
     }
