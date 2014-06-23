@@ -176,7 +176,7 @@ function Costas(frequency, dataRate, sampleRate) {
     "use strict";
 
     var err     = 0;
-    var bw      = 2.0 * Math.PI / 150;
+    var bw      = 2.0 * Math.PI / 200;
     var damp    = 0.707;
     var alpha   = (4 * damp * bw) / (1 + 2 * damp * bw + bw * bw);
     var beta    = (4 * bw * bw) / (1 + 2 * damp * bw + bw * bw);
@@ -228,13 +228,13 @@ function Costas(frequency, dataRate, sampleRate) {
         agcint2 = agcint1;
         agcint1 = agcint2 + agcgain * agcerr;
         
-        freq = freq * beta * err;
-        if (freq<minFreq)
+        freq = freq + beta * err;
+        if (freq < minFreq)
             freq = minFreq;
-        else if (freq >maxFreq)
+        else if (freq > maxFreq)
             freq = maxFreq;
         phase = phase + freq + alpha * err;
-        if (phase > twopi) phase -= twopi;
+        while (phase>twopi) phase -= twopi;
         var cs = table[(phase * tabRate) & 0xffff];
         var i = v * cs.cos;
         var q = v * cs.sin;

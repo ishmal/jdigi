@@ -204,12 +204,19 @@ var cossinTable = (function() {
 function Costas(frequency, dataRate, sampleRate, plotter) {
     "use strict";
 
-    var err   = 0;
-    var alpha = 0;
-    var beta  = 0;
-    var damp  = 0.707;
-    var freq  = 0;
-    var phase = 0|0;
+    var err     = 0;
+    var bw      = 2.0 * Math.PI / 150;
+    var damp    = 0.707;
+    var alpha   = (4 * damp * bw) / (1 + 2 * damp * bw + bw * bw);
+    var beta    = (4 * bw * bw) / (1 + 2 * damp * bw + bw * bw);
+    var freq0   = 0;
+    var freq    = 0;
+    var minFreq = 0;
+    var maxFreq = 0;
+    var phase   = 0;
+    var twopi   = 2.0 * Math.PI;
+    var omega   = twopi / sampleRate;
+    var tabRate = 65536 / twopi;
     var counter = 0;
 
     var table = cossinTable;
@@ -217,21 +224,28 @@ function Costas(frequency, dataRate, sampleRate, plotter) {
     var agcint1=0, agcint2=0;
     var agcgain=0.001;
     
+    function toRad(f) {
+        return twopi * f / sampleRate;
+    }
+    
 
     function setFrequency(frequency) {
-        freq  = (4294967296.0 * frequency / sampleRate)|0;
+        freq0   = frequency * omega;
+        freq    = freq0;
+        minFreq = freq0 - dataRate * omega;
+        maxFreq = freq0 + dataRate * omega;
     }
     this.setFrequency = setFrequency;
     setFrequency(frequency);
-    var maxErr = 4294967296.0 * 20.0 / sampleRate;
-    console.log("maxerr: " + maxErr);
-    var minErr = -maxErr;
+    
     
     
     function setDataRate(rate) {
         ilp = Biquad.lowPass(rate*0.5, sampleRate);
         qlp = Biquad.lowPass(rate*0.5, sampleRate);
         dlp = Biquad.lowPass(rate*4.0, sampleRate);
+        minFreq = freq0 - dataRate * omega;
+        maxFreq = freq0 + dataRate * omega;
     }
     this.setDataRate = setDataRate;
     setDataRate(dataRate);
@@ -243,29 +257,32 @@ function Costas(frequency, dataRate, sampleRate, plotter) {
         agcint2 = agcint1;
         agcint1 = agcint2 + agcgain * agcerr;
         
-        var adjFreq = (freq + err) | 0;
-        phase = (phase + adjFreq) & 0xffffffff;
-        var cs = table[(phase >> 16) & 0xffff];
+        freq = freq + beta * err;
+        if (freq<minFreq)
+            freq = minFreq
+        else if (freq >maxFreq)
+            freq = maxFreq;
+        phase = phase + freq + alpha * err;
+        if (phase > twopi) phase -= twopi;
+        var cs = table[(phase * tabRate) & 0xffff];
         var i = v * cs.cos;
         var q = v * cs.sin;
         var iz = ilp.update(i);
         var qz = qlp.update(q);
         //console.log("qz: " + qz);
         var angle = -Math.atan2(qz, iz);
-        err += dlp.update(angle) * 5000.0; // adjust this
-        if (err < minErr)
-            err = minErr;
-        else if (err > maxErr)
-            err = maxErr;
+        err = dlp.update(angle);
         //console.log("" + iz + " " + qz + " " + angle + " " + err);
-        if (++counter % 30 === 0)
-            plotter.update([iz, qz, angle, err, minErr, maxErr]);
+        if (++counter % 10 === 0)
+            plotter.update([iz, qz, angle, err, freq, minFreq, maxFreq]);
         //console.log("iq: " + iz + ", " + qz);
         return new Complex(iz,qz);
-    };
-    
-        
+    };      
 }
+
+
+
+
 
 function Plotter(canvas, lines) {
     var size = lines.length;
@@ -295,9 +312,13 @@ function Plotter(canvas, lines) {
     
     function scaledY(y) {
         var sgn = (y>0) ? 1 : -1;
-        var v = Math.log(Math.abs(y)+1) * sgn * 10.0;
+        var v = Math.log(Math.abs(y)+1) * sgn * 100.0;
         return v;
     }
+    
+    var powers = [
+        "1", "10", "100", "1000"
+    ];
     
     function redraw() {
         ctx.strokeStyle = "black";
@@ -305,8 +326,9 @@ function Plotter(canvas, lines) {
         ctx.fill();
         
         var pwr = 1;
+        var idx = 0;
         ctx.strokeStyle = "orange";
-        while (pwr < 100000000) {
+        while (pwr < 10000) {
             var y = scaledY(pwr);
             ctx.beginPath();
             ctx.moveTo(0, y0-y);
@@ -316,8 +338,9 @@ function Plotter(canvas, lines) {
             ctx.moveTo(0, y0+y);
             ctx.lineTo(width, y0+y);
             ctx.stroke();
+            ctx.strokeText(powers[idx  ], width-50, y0-y);
+            ctx.strokeText(powers[idx++], width-50, y0+y);
             pwr *= 10;
-            console.log("ok");
         }
         
         for (var i=0 ; i < size ; i++) {
@@ -336,19 +359,17 @@ function Plotter(canvas, lines) {
     }
     this.redraw = redraw;
 
-
-
 }
-
 
 
 function testme() {
     var canvas = document.getElementById("mycanvas");
     var lines = [
-        {style:"red"},
-        {style:"green"},
-        {style:"blue"},
+        {style:"#ffff88"},
+        {style:"#88ff88"},
+        {style:"#8888ff"},
         {style:"cyan"},
+        {style:"red"},
         {style:"white"},
         {style:"white"}
     ];
@@ -356,10 +377,10 @@ function testme() {
     var frequency = 100;
     var dataRate = 2;
     var sampleRate = 1000;
-    var nco = new Nco(frequency - 0.5, sampleRate);
+    var nco = new Nco(frequency - 2, sampleRate);
     var costas = new Costas(frequency, dataRate, sampleRate, plotter);
     
-    for (var i=0 ; i < 24000 ; i++) {
+    for (var i=0 ; i < 8000 ; i++) {
         var cs = nco.next();
         costas.update(cs.cos);
     }
