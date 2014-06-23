@@ -108,7 +108,7 @@ function CostasIIR(frequency, dataRate, sampleRate) {
  * This version uses Biquad filters for the arms
  * http://www.trondeau.com/blog/2011/8/13/control-loop-gain-values.html
  */
-function Costas(frequency, dataRate, sampleRate) {
+function Costas_old(frequency, dataRate, sampleRate) {
     "use strict";
 
     var err   = 0;
@@ -170,6 +170,87 @@ function Costas(frequency, dataRate, sampleRate) {
     
         
 }
+
+
+function Costas(frequency, dataRate, sampleRate) {
+    "use strict";
+
+    var err     = 0;
+    var bw      = 2.0 * Math.PI / 150;
+    var damp    = 0.707;
+    var alpha   = (4 * damp * bw) / (1 + 2 * damp * bw + bw * bw);
+    var beta    = (4 * bw * bw) / (1 + 2 * damp * bw + bw * bw);
+    var freq0   = 0;
+    var freq    = 0;
+    var minFreq = 0;
+    var maxFreq = 0;
+    var phase   = 0;
+    var twopi   = 2.0 * Math.PI;
+    var omega   = twopi / sampleRate;
+    var tabRate = 65536 / twopi;
+    var counter = 0;
+
+    var table = cossinTable;
+    var ilp, qlp, dlp;
+    var agcint1=0, agcint2=0;
+    var agcgain=0.001;
+    
+    function toRad(f) {
+        return twopi * f / sampleRate;
+    }
+    
+
+    function setFrequency(frequency) {
+        freq0   = frequency * omega;
+        freq    = freq0;
+        minFreq = freq0 - dataRate * omega;
+        maxFreq = freq0 + dataRate * omega;
+    }
+    this.setFrequency = setFrequency;
+    setFrequency(frequency);
+    
+    
+    
+    function setDataRate(rate) {
+        ilp = Biquad.lowPass(rate*0.5, sampleRate);
+        qlp = Biquad.lowPass(rate*0.5, sampleRate);
+        dlp = Biquad.lowPass(rate*4.0, sampleRate);
+        minFreq = freq0 - dataRate * omega;
+        maxFreq = freq0 + dataRate * omega;
+    }
+    this.setDataRate = setDataRate;
+    setDataRate(dataRate);
+    
+    
+    this.update = function(v) {
+        v = v * agcint1;
+        var agcerr = 1.0 - Math.abs(v);
+        agcint2 = agcint1;
+        agcint1 = agcint2 + agcgain * agcerr;
+        
+        freq = freq * beta * err;
+        if (freq<minFreq)
+            freq = minFreq
+        else if (freq >maxFreq)
+            freq = maxFreq;
+        phase = phase + freq + alpha * err;
+        if (phase > twopi) phase -= twopi;
+        var cs = table[(phase * tabRate) & 0xffff];
+        var i = v * cs.cos;
+        var q = v * cs.sin;
+        var iz = ilp.update(i);
+        var qz = qlp.update(q);
+        //console.log("qz: " + qz);
+        var angle = -Math.atan2(qz, iz);
+        err = dlp.update(angle);
+        //console.log("" + iz + " " + qz + " " + angle + " " + err);
+        //if (++counter % 10 === 0)
+        //    plotter.update([iz, qz, angle, err, freq, minFreq, maxFreq]);
+        //console.log("iq: " + iz + ", " + qz);
+        return new Complex(iz,qz);
+    };      
+}
+
 
 module.exports.Costas = Costas;
 
