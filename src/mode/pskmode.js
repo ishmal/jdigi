@@ -503,6 +503,7 @@ function PskMode2(par) {
         }
         if ((samples%sampSym) === halfSym) {
             processSymbol(z);
+            processBit(sign>0);
         }
         lastSign = sign;
     };
