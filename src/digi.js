@@ -64,7 +64,7 @@ function Digi() {
     /**
      * Add our modes here and set the default
      */
-    var pskMode = new PskMode(this);
+    var pskMode = new PskMode2(this);
     var rttyMode = new RttyMode(this);
     var mode = pskMode;
     this.modes = [pskMode, rttyMode];

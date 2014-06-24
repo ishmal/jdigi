@@ -474,7 +474,7 @@ function PskMode2(par) {
 
     //var bpf = FIR.bandpass(13, -0.7*this.getRate(), 0.7*this.getRate(), this.getSampleRate());
     
-    this.setUseCostas(true);
+    this.setUseCostas(false);
 
     this.getBandwidth = function() { return this.getRate(); };
     
@@ -503,7 +503,7 @@ function PskMode2(par) {
         }
         if ((samples%sampSym) === halfSym) {
             processSymbol(z);
-            processBit(sign>0);
+            //processBit(sign>0);
         }
         lastSign = sign;
     };
