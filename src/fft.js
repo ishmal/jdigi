@@ -139,218 +139,11 @@ function FFT(N) {
 
 
 
+
 /**
  * Finally got split radix to work!
  */
 function FFTSR(N) {
-    "use strict";
-
-    var power = (Math.log(N) / Math.LN2) | 0;
-    var N2 = N >> 1;
-
-    function generateBitReversedIndices(n) {
-        var xs = new Array(n);
-        for (var i=0 ; i < n ; i++) {
-           var np = n;
-           var index = i;
-           var bitreversed = 0;
-           while (np > 1) {
-               bitreversed <<= 1;
-               bitreversed += index & 1;
-               index >>= 1;
-               np >>= 1;
-           }
-           xs[i] = bitreversed;
-        }
-        return xs;
-    }
-    var bitReversedIndices = generateBitReversedIndices(N);
-
-    //let's pre-generate anything we can
-    function generateStageData(pwr) {
-        var xs = [];
-        var n2 = N;// == n>>(k-1) == n, n/2, n/4, ..., 4
-        var n4 = n2>>2; // == n/4, n/8, ..., 1
-        for (var k=1 ; k<pwr ; k++, n2>>=1, n4>>=1) {
-            var stage = [];
-            var e = 2.0 * Math.PI / n2;
-            for (var j=1; j<n4; j++) {
-                var a = j * e;
-                stage[stage.length] = {
-                    wr1: Math.cos(a),   wi1: Math.sin(a),
-                    wr3: Math.cos(3*a), wi3: Math.sin(3*a)
-                };
-            }
-            xs[xs.length] = stage;
-        }
-        return xs;
-    }
-
-    var stages = generateStageData(power);
-    
-    var W = Window.hann(N);
-    
-
-    function apply(input) {
-        var ix, id, i0, i1, i2, i3;
-        var j,k;
-        var tr, ti, tr0, ti0, tr1, ti1;
-        var n2, n4;
-
-        var xr = new Array(N);
-        var xi = new Array(N);
-        for (var idx=0 ; idx<N ; idx++) {
-            xr[idx] = input[idx]; // * W[idx];
-            xi[idx] = 0;
-        }
-
-        var stageidx = 0;
-
-        n2 = N;// == n>>(k-1) == n, n/2, n/4, ..., 4
-        n4 = n2>>2; // == n/4, n/8, ..., 1
-        for (k=1; k<power; k++, n2>>=1, n4>>=1) {
-
-            var stage = stages[stageidx++];
-
-            id = (n2<<1);
-            for (ix=0 ; ix<N ; ix=(id<<1)-n2, id <<= 2)  { //ix=j=0
-                for (i0=ix; i0<N; i0+=id) {
-                    i1 = i0 + n4;
-                    i2 = i1 + n4;
-                    i3 = i2 + n4;
-
-                    //sumdiff3(x[i0], x[i2], t0);
-                    tr0 = xr[i0] - xr[i2];
-                    ti0 = xi[i0] - xi[i2];
-                    xr[i0] += xr[i2];
-                    xi[i0] += xi[i2];
-                    //sumdiff3(x[i1], x[i3], t1);
-                    tr1 = xr[i1] - xr[i3];
-                    ti1 = xi[i1] - xi[i3];
-                    xr[i1] += xr[i3];
-                    xi[i1] += xi[i3];
-
-                    // t1 *= Complex(0, 1);  // +isign
-                    tr = tr1;
-                    tr1 = -ti1;
-                    ti1 = tr;
-
-                    //sumdiff(t0, t1);
-                    tr  = tr1 - tr0;
-                    ti  = ti1 - ti0;
-                    tr0 += tr1;
-                    ti0 += ti1;
-                    tr1 = tr;
-                    ti1 = ti;
-
-                    xr[i2] = tr0;  // .mul(w1);
-                    xi[i2] = ti0;  // .mul(w1);
-                    xr[i3] = tr1;  // .mul(w3);
-                    xi[i3] = ti1;  // .mul(w3);
-               }
-            }
-
-
-        var dataindex = 0;
-
-        for (j=1; j<n4; j++) {
-
-            var data = stage[dataindex++];
-            var wr1 = data.wr1;
-            var wi1 = data.wi1;
-            var wr3 = data.wr3;
-            var wi3 = data.wi3;
-
-            id = (n2<<1);
-            for (ix=j ; ix<N ; ix = (id<<1)-n2+j, id <<= 2) {
-                for (i0=ix; i0<N; i0+=id) {
-                    i1 = i0 + n4;
-                    i2 = i1 + n4;
-                    i3 = i2 + n4;
-
-                    //sumdiff3(x[i0], x[i2], t0);
-                    tr0 = xr[i0] - xr[i2];
-                    ti0 = xi[i0] - xi[i2];
-                    xr[i0] += xr[i2];
-                    xi[i0] += xi[i2];
-                    //sumdiff3(x[i1], x[i3], t1);
-                    tr1 = xr[i1] - xr[i3];
-                    ti1 = xi[i1] - xi[i3];
-                    xr[i1] += xr[i3];
-                    xi[i1] += xi[i3];
-
-                    // t1 *= Complex(0, 1);  // +isign
-                    tr = tr1;
-                    tr1 = -ti1;
-                    ti1 = tr;
-
-                    //sumdiff(t0, t1);
-                    tr  = tr1 - tr0;
-                    ti  = ti1 - ti0;
-                    tr0 += tr1;
-                    ti0 += ti1;
-                    tr1 = tr;
-                    ti1 = ti;
-
-                    xr[i2] = tr0*wr1 - ti0*wi1;  // .mul(w1);
-                    xi[i2] = ti0*wr1 + tr0*wi1;  // .mul(w1);
-                    xr[i3] = tr1*wr3 - ti1*wi3;  // .mul(w3);
-                    xi[i3] = ti1*wr3 + tr1*wi3;  // .mul(w3);
-                    }
-                }
-            }
-        }
-
-    for (ix=0, id=4 ;  ix<N ;  id<<=2) {
-        for (i0=ix; i0<N; i0+=id) {
-            i1 = i0+1;
-            tr = xr[i1] - xr[i0];
-            ti = xi[i1] - xi[i0];
-            xr[i0] += xr[i1];
-            xi[i0] += xi[i1];
-            xr[i1] = tr;
-            xi[i1] = ti;
-        }
-        ix = id + id - 2; //2*(id-1);
-    }
-
-    /*
-    for (var odx=0 ; odx<N ; odx++) {
-        var bri = bitReversedIndices[odx];
-        xr[odx] = xr[bri];
-        xi[odx] = xi[bri];
-    }
-    */
-    return {r: xr, i: xi};
-
-    }//apply
-
-
-    function powerSpectrum(input) {
-
-        var x  = apply(input);
-        var xr = x.r;
-        var xi = x.i;
-        var len  = N2;
-
-        var ps = new Array(len);
-        for (var j=0 ; j<len ; j++) {
-            var bri = bitReversedIndices[j];
-            var r = xr[bri];
-            var i = xi[bri];
-            ps[j] = r*r + i*i;
-        }
-        return ps;
-    }
-    this.powerSpectrum = powerSpectrum;
-
-
-} //FFTSR
-
-/**
- * Finally got split radix to work!
- */
-function FFTSR2(N) {
     "use strict";
 
     var power = (Math.log(N) / Math.LN2) | 0;
@@ -544,12 +337,47 @@ function FFTSR2(N) {
     this.powerSpectrum = powerSpectrum;
 
 
-} //FFTSR2
+} //FFTSR
 
+
+
+
+function SimpleGoertzel(frequency, sampleRate, N) {
+
+    //which bin out of N are we? Must be an integer.
+    var bin   = (0.5 + frequency / sampleRate * N) | 0; 
+    var w     = 2.0 * Math.PI / N * bin;  //omega
+    var wr    = Math.cos(w);
+    var wr2   = 2.0 * wr;
+    var wi    = Math.sin(w);
+    var prev  = 0.0;
+    var prev2 = 0.0;
+
+    this.X = function() {
+        return new Complex(wr * prev - prev2, wi * prev);
+    };
+
+    //faster for power spectrum
+    this.mag = function() {
+        return prev * prev + prev2 * prev2;
+    };
+    
+    //correct
+    this.mag2 = function() {
+        return prev * prev + prev2 * prev2 - wr2 * prev * prev2;
+    };
+
+    this.update = function(point) {
+        var s = point + (prev * wr2 - prev2);
+        prev2 = prev - point;
+        prev = s;
+    };
+
+}
 
 
 
 module.exports.FFT=FFT;
 module.exports.FFTSR=FFTSR;
-module.exports.FFTSR2=FFTSR2;
+module.exports.SimpleGoertzel=SimpleGoertzel;
 

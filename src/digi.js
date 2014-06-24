@@ -145,7 +145,7 @@ function Digi() {
 
     var FFT_MASK   = Constants.FFT_SIZE - 1;
     //var fft        = new FFT(Constants.FFT_SIZE);
-    var fft        = new FFTSR2(Constants.FFT_SIZE);
+    var fft        = new FFTSR(Constants.FFT_SIZE);
     var ibuf       = new Float32Array(Constants.FFT_SIZE);
     var iptr       = 0;
     var icnt       = 0;
