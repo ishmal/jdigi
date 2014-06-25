@@ -40,6 +40,11 @@ function Mode(par, sampleRateHint) {
     this.getFrequency = function() {
         return frequency;
     };
+
+    this.getBandwidth = function() {
+        return 0;
+    };
+
     
     var loBin, freqBin, hiBin;
     
@@ -51,8 +56,8 @@ function Mode(par, sampleRateHint) {
        var loBin = (freq-bw*0.707) / binWidth;
        var freqBin = freq / binWidth;
        var hiBin = (freq+bw*0.707) / binWidth;
-    
     }
+    adjustAfc();
 
     function computeAfc(ps) {
        var loSum = 0;
@@ -66,10 +71,6 @@ function Mode(par, sampleRateHint) {
 
     this.status = function(msg) {
          par.status("mode: " + msg);
-    };
-
-    this.getBandwidth = function() {
-        return 0;
     };
 
     var decimation = Math.floor(par.getSampleRate() / sampleRateHint);

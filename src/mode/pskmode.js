@@ -522,7 +522,7 @@ function PskMode2(par) {
     var ssctr = 0;
     function scopeOut(i,q) {
         if (! (++ssctr & 1)) return; //skip items
-        scopedata[sctr++] = [log(i + 1) * 10.0, log(q + 1) * 10.0];
+        scopedata[sctr++] = [log(i + 1) * 30.0, log(q + 1) * 30.0];
         if (sctr >= SSIZE) {
             par.showScope(scopedata);
             sctr = 0;
