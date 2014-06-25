@@ -16,10 +16,11 @@
  *    You should have received a copy of the GNU General Public License
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+ 
+var Constants = require("./constants").Constants;
 
 var FFT = require("./fft").FFT;
 var FFTSR = require("./fft").FFTSR;
-var FFTSR2 = require("./fft").FFTSR2;
 
 var AudioInput = require("./audio").AudioInput;
 var Mode = require("./mode").Mode;
@@ -29,10 +30,6 @@ var RttyMode = require("./mode/rttymode").RttyMode;
 var Watcher = require("./watch").Watcher;
 
 
-var Constants = {
-    FFT_SIZE : 2048,
-    BINS     : 1024
-};
 
 
 /**
@@ -160,6 +157,7 @@ function Digi() {
             var ps = fft.powerSpectrum(ibuf);
             //console.log("ps: " + ps[100]);
             self.tuner.update(ps);
+            mode.receiveFft(ps);
         }
     };
 
@@ -183,5 +181,4 @@ function Digi() {
 
 } //Digi
 
-module.exports.Constants=Constants;
 module.exports.Digi=Digi;

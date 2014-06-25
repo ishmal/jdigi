@@ -17,7 +17,7 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-var Constants = require('./digi').Constants;
+var Constants = require("./constants").Constants;
 
 /**
  * Provides a Waterfall display and tuning interactivity

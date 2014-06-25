@@ -20,29 +20,7 @@
 var Resampler = require("./resample").Resampler;
 var ResamplerX = require("./resample").ResamplerX;
 var Nco = require("./nco").Nco;
-var SimpleGoertzel = require("./fft").SimpleGoertzel;
-
-function Afc(frequency, bandwidth, sampleRate) {
-    var loFft = new SimpleGoertzel(frequency-bandwidth*0.5, bandwidth, sampleRate);
-    var hiFft = new SimpleGoertzel(frequency+bandwidth*0.5, bandwidth, sampleRate);
-    var N = loFft.N;
-    
-    var count=0;
-    
-    this.update = function(v, func) {
-        loFft.update(v);
-        hiFft.update(v);
-        if (count++ >= N) {
-            count=0;
-            var diff = hiFft.mag() - loFft.mag();
-            func(diff);
-            loFft.reset();
-            hiFft.reset();
-        }
-    };
-}
-
-
+var Constants = require("./constants").Constants;
 
 
 function Mode(par, sampleRateHint) {
@@ -57,10 +35,34 @@ function Mode(par, sampleRateHint) {
     this.setFrequency = function(freq) {
         frequency = freq;
         nco.setFrequency(freq);
+        adjustAfc();
     };
     this.getFrequency = function() {
         return frequency;
     };
+    
+    var loBin, freqBin, hiBin;
+    
+    function adjustAfc() {
+       var freq = frequency;
+       var fs = par.getSampleRate();
+       var bw = self.getBandwidth();
+       var binWidth = fs * 0.5 / Constants.BINS;
+       var loBin = (freq-bw*0.707) / binWidth;
+       var freqBin = freq / binWidth;
+       var hiBin = (freq+bw*0.707) / binWidth;
+    
+    }
+
+    function computeAfc(ps) {
+       var loSum = 0;
+       var hiSum = 0;
+       for (var i=loBin, j=hiBin ; i < freqBin ; i++, j--) {
+            loSum += ps[i];
+            hiSum += ps[j];
+       }
+       nco.setError(hiSum-loSum);
+    }
 
     this.status = function(msg) {
          par.status("mode: " + msg);
@@ -81,13 +83,12 @@ function Mode(par, sampleRateHint) {
     var rate = 31.25;
     this.setRate = function(v) {
         rate = v;
-        afc = new Afc(0, rate, self.getSampleRate());
+        adjustAfc();
     };
     this.getRate = function() {
         return rate;
     };
 
-    var afc = new Afc(0, rate, this.getSampleRate());
 
     this.getSamplesPerSymbol = function() {
         return this.getSampleRate() / rate;
@@ -106,22 +107,22 @@ function Mode(par, sampleRateHint) {
 
     var nco = new Nco(this.getFrequency(), par.getSampleRate());
 
-    var loFft, hiFft;
 
 
     //#######################
     //# RECEIVE
     //#######################
+    
+    this.receiveFft = function(ps) {
+        if (useAfc) {
+            computeAfc(ps);
+        }
+    };
 
 
     this.receiveData = function(v) {
-        function preReceive(v) {
-            if (useAfc)
-                afc.update(v, nco.setError);
-            self.receive(v);
-        }
         var cx = nco.mixNext(v);
-        decimator.decimate(cx, preReceive);
+        decimator.decimate(cx, self.receive);
     };
 
 

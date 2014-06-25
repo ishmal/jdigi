@@ -490,6 +490,8 @@ function PskMode2(par) {
         sampSym = this.getSamplesPerSymbol()|0;
         halfSym = sampSym >> 1;
     };
+    
+    this.setUseAfc(true);
         
     var lastSign = -1;
     var samples = 0;
