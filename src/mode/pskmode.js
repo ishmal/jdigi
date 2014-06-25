@@ -19,6 +19,7 @@
 
 var Mode    = require("../mode").Mode;
 var FIR     = require("../filter").FIR;
+var Biquad  = require("../filter").Biquad;
 
 /**
  * This contains the definitions of the bit patterns for the Varicode set
@@ -474,14 +475,17 @@ function PskMode2(par) {
 
     //var bpf = FIR.bandpass(13, -0.7*this.getRate(), 0.7*this.getRate(), this.getSampleRate());
     
-    this.setUseCostas(false);
-
     this.getBandwidth = function() { return this.getRate(); };
+    
+    var ilp = Biquad.lowPass(this.getRate()*0.5, this.getSampleRate());
+    var qlp = Biquad.lowPass(this.getRate()*0.5, this.getSampleRate());
     
 
     var super_setRate = this.setRate;
     this.setRate = function(rate) {
         super_setRate(rate);
+        ilp = Biquad.lowPass(rate*0.5, this.getSampleRate());
+        qlp = Biquad.lowPass(rate*0.5, this.getSampleRate());
         //bpf = FIR.bandpass(13, -0.7*this.getRate(), 0.7*this.getRate(), this.getSampleRate());
         sampSym = this.getSamplesPerSymbol()|0;
         halfSym = sampSym >> 1;
@@ -493,16 +497,17 @@ function PskMode2(par) {
     var halfSym = sampSym >> 1;
     
     this.receive = function(z) {
-        //var z = bpf.updatex(v);
-        scopeOut(z);
-        var sign = (z.r > 0) ? 1 : -1;     //Math.sign() not on Chrome
+        var i = ilp.update(z.r);
+        var q = qlp.update(z.i);
+        scopeOut(i, q);
+        var sign = (i > 0) ? 1 : -1; //Math.sign() not on Chrome
         if (sign != lastSign) {
             samples=0;
         } else {
             samples++;
         }
         if ((samples%sampSym) === halfSym) {
-            processSymbol(z);
+            processSymbol(i, q);
             //processBit(sign>0);
         }
         lastSign = sign;
@@ -513,9 +518,9 @@ function PskMode2(par) {
     var sctr = 0;
     var log = Math.log;
     var ssctr = 0;
-    function scopeOut(z) {
+    function scopeOut(i,q) {
         if (! (++ssctr & 1)) return; //skip items
-        scopedata[sctr++] = [log(z.r + 1) * 10.0, log(z.i + 1) * 10.0];
+        scopedata[sctr++] = [log(i + 1) * 10.0, log(q + 1) * 10.0];
         if (sctr >= SSIZE) {
             par.showScope(scopedata);
             sctr = 0;
@@ -565,13 +570,14 @@ function PskMode2(par) {
     var lastBit   = false;
 
 
-    function processSymbol(v) {
+    function processSymbol(i,q) {
 
-        var vn, dv, d00, d01, d10, d11;
+        var dv, d00, d01, d10, d11;
+        
+        var vn = Math.atan2(q, i);
 
         if (qpskMode) {
             /**/
-            vn  = v.arg();
             dv  = angleDiff(vn,  lastv);
             d00 = distance(dv, Math.PI);
             d01 = distance(dv,  halfpi);
@@ -581,13 +587,12 @@ function PskMode2(par) {
             //println("%6.3f %6.3f %6.3f  :  %3d %3d %3d %3d".format(lastv, vn, dv, d00, d01, d10, d11))
             var bits = decoder.decodeOne(bm);
             var len = bits.length;
-            for (var i=0 ; i < len ; i++)
-                processBit(bits[i]);
+            for (var idx=0 ; idx < len ; idx++)
+                processBit(bits[idx]);
             lastv = vn;
             /**/
         } else { //bpsk
             /**/
-            vn  = v.arg();
             dv  = angleDiff(vn,  lastv);
             d00 = distance(dv, Math.PI);
             d11 = distance(dv,     0.0);

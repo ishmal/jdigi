@@ -56,7 +56,7 @@ function Nco(frequency, sampleRate) {
         phase = (phase + freq) & 0xffffffff;
         return table[(phase >> 16) & 0xffff];
     };
-    
+            
     this.mixNext = function (v) {
         phase = (phase + freq) & 0xffffffff;
         var cs = table[(phase >> 16) & 0xffff];

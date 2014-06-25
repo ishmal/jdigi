@@ -243,7 +243,7 @@ function Costas(frequency, dataRate, sampleRate, plotter) {
     function setDataRate(rate) {
         ilp = Biquad.lowPass(rate*0.5, sampleRate);
         qlp = Biquad.lowPass(rate*0.5, sampleRate);
-        dlp = Biquad.lowPass(rate*4.0, sampleRate);
+        dlp = Biquad.lowPass(rate*6.0, sampleRate);
         minFreq = freq0 - dataRate * omega;
         maxFreq = freq0 + dataRate * omega;
     }
