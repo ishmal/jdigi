@@ -59,6 +59,7 @@ function Nco(frequency, sampleRate) {
         else if (err < -maxErr)
             err = -maxErr;
     }
+    this.setError = setError;
     
     var phase = 0|0;
     var table = ncoTable;
