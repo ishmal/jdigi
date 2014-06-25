@@ -342,38 +342,72 @@ function FFTSR(N) {
 
 
 
-function SimpleGoertzel(frequency, sampleRate, N) {
+function SimpleGoertzel(frequency, binWidth, sampleRate) {
 
+    //how many bins would there be for this binWidth? Integer
+    var N     = (sampleRate / binWidth) | 0;
     //which bin out of N are we? Must be an integer.
     var bin   = (0.5 + frequency / sampleRate * N) | 0; 
     var w     = 2.0 * Math.PI / N * bin;  //omega
     var wr    = Math.cos(w);
     var wr2   = 2.0 * wr;
     var wi    = Math.sin(w);
-    var prev  = 0.0;
-    var prev2 = 0.0;
+    var pr1=0, pr2=0, pi1=0, pi2=0;
+    var damping = 0.999;
+    
+    this.N = N;
+    
+    this.reset = function() {
+        pr1=0; pr2=0; pi1=0; pi2=0;
+    };
 
+    //use this if computed with update()
+    this.x = function() {
+        return new Complex(wr * pr1 - pr2, wi * pr1);
+    };
+
+    //use this if computed with updateX()
     this.X = function() {
-        return new Complex(wr * prev - prev2, wi * prev);
+        var realr = wr * pr1 - pr2;
+        var reali = wi * pr1;
+        var imagr = wr * pi1 - p12;
+        var imagi = wi * pi1;
+        return new Complex(realr-imagi, reali+imagr); 
     };
 
     //faster for power spectrum
     this.mag = function() {
-        return prev * prev + prev2 * prev2;
+        return pr1 * pr1 + pr2 * pr2;
     };
     
     //correct
     this.mag2 = function() {
-        return prev * prev + prev2 * prev2 - wr2 * prev * prev2;
+        return pr1 * pr1 + pr2 * pr2 - wr2 * pr1 * pr2;
+    };
+
+    //for complex values
+    this.magX = function() {
+        return this.X().mag();
     };
 
     this.update = function(point) {
-        var s = point + (prev * wr2 - prev2);
-        prev2 = prev - point;
-        prev = s;
+        var r = point + (pr1 * wr2 - pr2);
+        pr2 = pr1 - point;
+        pr1 = r;
     };
 
+    this.updateX = function(point) {
+        var r = point.r + (pr1 * wr2 - pr2);
+        pr2 = pr1 - point.r;
+        pr1  = r * damping;
+        var i = point.i + (pi1 * wr2 - pi2);
+        pi2 = pi1 - point.i;
+        pi1  = i * damping;
+    };
+
+
 }
+
 
 
 

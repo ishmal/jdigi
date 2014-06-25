@@ -20,7 +20,28 @@
 var Resampler = require("./resample").Resampler;
 var ResamplerX = require("./resample").ResamplerX;
 var Nco = require("./nco").Nco;
-var Costas  = require("./costas").Costas;
+var SimpleGoertzel = require("./fft").SimpleGoertzel;
+
+function Afc(frequency, bandwidth, sampleRate) {
+    var loFft = new SimpleGoertzel(frequency-bandwidth*0.5, bandwidth, sampleRate);
+    var hiFft = new SimpleGoertzel(frequency+bandwidth*0.5, bandwidth, sampleRate);
+    var N = loFft.N;
+    
+    var count=0;
+    
+    this.update = function(v, func) {
+        loFft.update(v);
+        hiFft.update(v);
+        if (count++ >= N) {
+            count=0;
+            var diff = hiFft.mag() - loFft.mag();
+            func(diff);
+            loFft.reset();
+            hiFft.reset();
+        }
+    };
+}
+
 
 
 
@@ -36,7 +57,6 @@ function Mode(par, sampleRateHint) {
     this.setFrequency = function(freq) {
         frequency = freq;
         nco.setFrequency(freq);
-        costas.setFrequency(freq);
     };
     this.getFrequency = function() {
         return frequency;
@@ -56,33 +76,37 @@ function Mode(par, sampleRateHint) {
     this.getSampleRate = function() {
         return sampleRate;
     };
+    
 
     var rate = 31.25;
     this.setRate = function(v) {
         rate = v;
-        costas.setDataRate(v);
+        afc = new Afc(0, rate, self.getSampleRate());
     };
     this.getRate = function() {
         return rate;
     };
 
+    var afc = new Afc(0, rate, this.getSampleRate());
+
     this.getSamplesPerSymbol = function() {
         return this.getSampleRate() / rate;
     };
     
-    var useCostas = false;
-    this.getUseCostas = function() {
-        return useCostas;
+    var useAfc = false;
+    this.getUseAfc = function() {
+        return useAfc;
     };
-    this.setUseCostas = function(v) {
-        useCostas = v;
+    this.setUseAfc = function(v) {
+        useAfc = v;
     };
 
     var decimator = new ResamplerX(decimation);
     var interpolator = new Resampler(decimation);
 
     var nco = new Nco(this.getFrequency(), par.getSampleRate());
-    var costas = new Costas(this.getFrequency(), this.getRate(), par.getSampleRate());
+
+    var loFft, hiFft;
 
 
     //#######################
@@ -91,8 +115,13 @@ function Mode(par, sampleRateHint) {
 
 
     this.receiveData = function(v) {
-        var cx = (useCostas) ? costas.update(v) : nco.mixNext(v);
-        decimator.decimate(cx, this.receive);
+        function preReceive(v) {
+            if (useAfc)
+                afc.update(v, nco.setError);
+            self.receive(v);
+        }
+        var cx = nco.mixNext(v);
+        decimator.decimate(cx, preReceive);
     };
 
 

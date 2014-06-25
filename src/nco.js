@@ -48,17 +48,28 @@ function Nco(frequency, sampleRate) {
     }
     this.setFrequency = setFrequency;
     setFrequency(frequency);
+
+    var err = 0;
+    var maxErr =  (4294967296.0 * 30 / sampleRate)|0;  //in hertz
+    
+    function setError(v) {
+        err = (err+v)|0;
+        if (err > maxErr) 
+            err = maxErr;
+        else if (err < -maxErr)
+            err = -maxErr;
+    }
     
     var phase = 0|0;
     var table = ncoTable;
     
     this.next = function() {
-        phase = (phase + freq) & 0xffffffff;
+        phase = (phase + freq + err) & 0xffffffff;
         return table[(phase >> 16) & 0xffff];
     };
             
     this.mixNext = function (v) {
-        phase = (phase + freq) & 0xffffffff;
+        phase = (phase + freq + err) & 0xffffffff;
         var cs = table[(phase >> 16) & 0xffff];
         return new Complex(v*cs.cos, v*cs.sin);
     };
