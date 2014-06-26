@@ -53,20 +53,20 @@ function Mode(par, sampleRateHint) {
        var fs = par.getSampleRate();
        var bw = self.getBandwidth();
        var binWidth = fs * 0.5 / Constants.BINS;
-       var loBin = (freq-bw*0.707) / binWidth;
-       var freqBin = freq / binWidth;
-       var hiBin = (freq+bw*0.707) / binWidth;
+       loBin = ((freq-bw*0.707) / binWidth) | 0;
+       freqBin = (freq / binWidth) | 0;
+       hiBin = ((freq+bw*0.707) / binWidth) | 0;
+       //console.log("afc: " + loBin + "," + freqBin + "," + hiBin);
     }
     adjustAfc();
 
     function computeAfc(ps) {
-       var loSum = 0;
-       var hiSum = 0;
+       var sum = 0;
        for (var i=loBin, j=hiBin ; i < freqBin ; i++, j--) {
-            loSum += ps[i];
-            hiSum += ps[j];
+            if (ps[j] > ps[i]) sum++;
+            else if (ps[i] > ps[j]) sum--;
        }
-       nco.setError(hiSum-loSum);
+       nco.setError(sum);
     }
 
     this.status = function(msg) {
