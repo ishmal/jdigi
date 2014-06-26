@@ -39,6 +39,15 @@ app.controller("MainController", ['$scope', function($scope) {
 	       }
     });
     */
+    $scope.afc = digi.getUseAfc();
+    $scope.$watch('afc', function() {
+        digi.setUseAfc($scope.afc);
+    });
+    $scope.tx = digi.getTxMode();
+    $scope.$watch('tx', function() {
+        digi.setTxMode($scope.tx);
+    });
+    
     $scope.modes = digi.modes;
     $scope.changeMode = function(mode) {
         digi.setMode(mode);
