@@ -41,23 +41,26 @@ var ncoTable = (function() {
  */
 function Nco(frequency, sampleRate) {
     "use strict";
+    var hzToInt = 4294967296.0 / sampleRate;
     var freq = 0|0;
     function setFrequency(frequency) {
-        freq  = (4294967296.0 * frequency / sampleRate)|0;
-		return freq;
+        freq  = (frequency * hzToInt)|0;
     }
     this.setFrequency = setFrequency;
     setFrequency(frequency);
 
     var err = 0;
-    var maxErr =  (4294967296.0 * 30 / sampleRate)|0;  //in hertz
+    var maxErr =  (50 * hzToInt)|0;  //in hertz
+    console.log("maxErr: " + maxErr);
+    var minErr = -(50 * hzToInt)|0;  //in hertz
     
     function setError(v) {
-        err = (err+v)|0;
+        err = (err * 0.9 + v * 100000.0)|0;
+        //console.log("err:" + err + "  v:" + v);
         if (err > maxErr) 
             err = maxErr;
-        else if (err < -maxErr)
-            err = -maxErr;
+        else if (err < minErr)
+            err = minErr;
     }
     this.setError = setError;
     

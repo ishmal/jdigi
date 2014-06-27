@@ -87,6 +87,20 @@ function Digi() {
     this.getFrequency = function() {
         return mode.getFrequency();
     };
+    
+    this.getUseAfc = function() {
+        return mode.getUseAfc();
+    };
+    this.setUseAfc = function(v) {
+        mode.setUseAfc(v);
+    };
+
+    this.getTxMode = function() {
+        return false;
+    };
+    this.setTxMode = function(v) {
+        //dostuff
+    };
 
 	this.tuner = {
 	    setFrequency : function(freq) {},
