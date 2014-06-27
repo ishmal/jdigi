@@ -24,9 +24,10 @@ var FFTSR = require("./fft").FFTSR;
 
 var AudioInput = require("./audio").AudioInput;
 var Mode = require("./mode").Mode;
-var PskMode = require("./mode/pskmode").PskMode;
-var PskMode2 = require("./mode/pskmode").PskMode2;
-var RttyMode = require("./mode/rttymode").RttyMode;
+var PskMode = require("./mode/psk").PskMode;
+var PskMode2 = require("./mode/psk").PskMode2;
+var RttyMode = require("./mode/rtty").RttyMode;
+var PacketMode = require("./mode/packet").PacketMode;
 var Watcher = require("./watch").Watcher;
 
 
@@ -63,8 +64,9 @@ function Digi() {
      */
     var pskMode = new PskMode2(this);
     var rttyMode = new RttyMode(this);
+    var packetMode = new PacketMode(this);
     var mode = pskMode;
-    this.modes = [pskMode, rttyMode];
+    this.modes = [pskMode, rttyMode, packetMode];
     this.setMode = function(v) {
         mode = v;
         this.status("mode switched");
