@@ -232,13 +232,13 @@ function RttyMode(par) {
     };
     
     function adjust() {
-        sf = FIR.bandpass(13, -0.75 * shiftval, -0.25 * shiftval, this.getSampleRate());
-        mf = FIR.bandpass(13,  0.25 * shiftval,  0.75 * shiftval, this.getSampleRate());
-        spaceFreq = new Complex(twopi * (-shiftval * 0.5) / this.getSampleRate());
-        markFreq  = new Complex(twopi * ( shiftval * 0.5) / this.getSampleRate());
+        sf = FIR.bandpass(13, -0.75 * shiftval, -0.25 * shiftval, self.getSampleRate());
+        mf = FIR.bandpass(13,  0.25 * shiftval,  0.75 * shiftval, self.getSampleRate());
+        spaceFreq = new Complex(twopi * (-shiftval * 0.5) / self.getSampleRate());
+        markFreq  = new Complex(twopi * ( shiftval * 0.5) / self.getSampleRate());
         //dataFilter = Iir2.lowpass(rate, this.sampleRate);
-        dataFilter = FIR.boxcar(this.getSamplesPerSymbol()|0);
-        txlpf = FIR.lowpass(31,  shiftval * 0.5, this.sampleRate);
+        dataFilter = FIR.boxcar(self.getSamplesPerSymbol()|0);
+        txlpf = FIR.lowpass(31,  shiftval * 0.5, self.sampleRate);
     }
 
     this.status("sampleRate: " + this.getSampleRate() + " samplesPerSymbol: " + this.getSamplesPerSymbol());

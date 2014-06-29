@@ -95,6 +95,14 @@ function Digi() {
         mode.setUseAfc(v);
     };
 
+    var useQrz = false;
+    this.getUseQrz = function() {
+        return watcher.getUseQrz();
+    };
+    this.setUseQrz = function(v) {
+        watcher.setUseQrz(v);
+    };
+
     this.getTxMode = function() {
         return false;
     };

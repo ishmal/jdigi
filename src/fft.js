@@ -188,10 +188,7 @@ function FFTSR(N) {
     }
 
     var stages = generateStageData(power);
-    
     var W = Window.hann(N);
-    
-
     var xr = new Array(N);
     var xi = new Array(N);
     
@@ -323,11 +320,12 @@ function FFTSR(N) {
     function powerSpectrum(input) {
 
         apply(input);
-        var len  = N2;
+        var len = N2;
+        var indices = bitReversedIndices;
 
         var ps = new Array(len);
         for (var j=0 ; j<len ; j++) {
-            var bri = bitReversedIndices[j];
+            var bri = indices[j];
             var r = xr[bri];
             var i = xi[bri];
             ps[j] = r*r + i*i;

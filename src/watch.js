@@ -32,9 +32,19 @@ function Watcher(par) {
     
     var buf = "";
     var calls = {};
+
+    var useQrz = false;
+    this.setUseQrz = function(v) {
+        useQrz = false;
+    };
+    this.getUseQrz = function() {
+        return useQrz;
+    };
     
     function showQrz(call) {
-        window.open("http://qrz.com/db/" + call, "qrzquery", "menubar=true,toolbar=true");
+        if (useQrz)
+            window.open("http://qrz.com/db/" + call,
+                "qrzquery", "menubar=true,toolbar=true");
     }
     
     function announce(call) {

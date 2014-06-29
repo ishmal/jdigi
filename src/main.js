@@ -47,7 +47,11 @@ app.controller("MainController", ['$scope', function($scope) {
     $scope.$watch('tx', function() {
         digi.setTxMode($scope.tx);
     });
-    
+    $scope.qrz = digi.getUseQrz();
+    $scope.$watch('qrz', function() {
+        digi.setUseQrz($scope.qrz);
+    });
+
     $scope.modes = digi.modes;
     $scope.changeMode = function(mode) {
         digi.setMode(mode);
