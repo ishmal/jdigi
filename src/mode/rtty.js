@@ -143,7 +143,7 @@ function RttyMode(par) {
             {
             name: "rate",
             type: "choice",
-            selected: 0,
+            tooltip: "rtty baud rate",
             get value() { return self.getRate(); },
             set value(v) { self.setRate(parseFloat(v)); },
             values : [
@@ -156,7 +156,7 @@ function RttyMode(par) {
             {
             name: "shift",
             type: "choice",
-            selected: 0,
+            tooltip: "frequency distance between mark and space",
             get value() { return self.getShift(); },
             set value(v) { self.setShift(parseFloat(v)); },
             values : [

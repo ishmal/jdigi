@@ -256,6 +256,7 @@ function PskMode(par) {
             {
             name: "rate",
             type: "choice",
+            tooltip: "PSK data rate",
 			get value() { return self.getRate(); },
 			set value(v) { self.setRate(parseFloat(v)); },
             values : [
@@ -267,6 +268,7 @@ function PskMode(par) {
             {
             name: "qpsk",
             type: "boolean",
+            tooltip: "not yet implemented",
 			get value() { return self.getQpskMode(); },
 			set value(v) { self.setQpskMode(v); }
             }

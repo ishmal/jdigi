@@ -314,6 +314,7 @@ function PacketMode(par) {
             {
             name: "rate",
             type: "choice",
+            tooltip: "packet data rate",
 			get value() { return self.getRate(); },
 			set value(v) { self.setRate(parseFloat(v)); },
             values : [
@@ -324,6 +325,7 @@ function PacketMode(par) {
             {
             name: "shift",
             type: "choice",
+            tooltip: "frequency distance between mark and space",
 			get value() { return self.getShift(); },
 			set value(v) { self.setShift(parseFloat(v)); },
             values : [

@@ -69,11 +69,14 @@
     -->
     <div id="toolbar">
         <button type="button" class="btn btn-primary btn-sm" ng-model="tx" ng-class="{btnselect:tx}"
-                btn-checkbox btn-checkbox-true="true" btn-checkbox-false="false">Tx</button>
+                btn-checkbox btn-checkbox-true="true" btn-checkbox-false="false"
+                tooltip="not yet implemented" tooltip-placement="right">Tx</button>
         <button type="button" class="btn btn-primary btn-sm" ng-model="afc" ng-class="{btnselect:afc}"
-                btn-checkbox btn-checkbox-true="true" btn-checkbox-false="false">AFC</button>
+                btn-checkbox btn-checkbox-true="true" btn-checkbox-false="false"
+                tooltip="aids centering on a signal" tooltip-placement="right">AFC</button>
         <button type="button" class="btn btn-primary btn-sm" ng-model="qrz" ng-class="{btnselect:qrz}"
-                btn-checkbox btn-checkbox-true="true" btn-checkbox-false="false">QRZ</button>
+                btn-checkbox btn-checkbox-true="true" btn-checkbox-false="false"
+                tooltip="Show QRZ.com page for callsigns" tooltip-placement="right">QRZ</button>
     </div>
 	<tabset>
 	    <tab ng-repeat="mode in modes" heading="{{mode.properties.name}}" select="changeMode(mode)">
