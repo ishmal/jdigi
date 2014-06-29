@@ -35,7 +35,7 @@ function Watcher(par) {
 
     var useQrz = false;
     this.setUseQrz = function(v) {
-        useQrz = false;
+        useQrz = v;
     };
     this.getUseQrz = function() {
         return useQrz;

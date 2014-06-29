@@ -95,7 +95,6 @@ function Digi() {
         mode.setUseAfc(v);
     };
 
-    var useQrz = false;
     this.getUseQrz = function() {
         return watcher.getUseQrz();
     };

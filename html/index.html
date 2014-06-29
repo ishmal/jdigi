@@ -3,7 +3,7 @@
 <head>
 
 <link href="bootstrap/3.1.1/css/bootstrap.min.css" rel="stylesheet"/>
-<script src="angular.min.js"></script>
+<script src="angular.js"></script>
 <script src="ui-bootstrap-tpls-0.11.0.min.js"></script>
 
 <script src="jdigi.js"></script>
@@ -58,23 +58,15 @@
 
 
 <div id='content' ng-app='JdigiApp' ng-controller='MainController'>
-    <jdigi-tuner></jdigi-tuner>
-    <!--
-    <p>
-	<button type="button" class="btn btn-primary" ng-model="running"
-			btn-checkbox btn-checkbox-true="true" btn-checkbox-false="false">
-			{{ running ? "[X]" : "[>]" }}
-	</button>
-	</p>
-    -->
-    <div id="toolbar">
-        <button type="button" class="btn btn-primary btn-sm" ng-model="tx" ng-class="{btnselect:tx}"
+     <jdigi-tuner></jdigi-tuner>
+     <div id="toolbar">
+        <button type="button" class="btn btn-primary btn-sm" ng-class="{btnselect:toolbar.tx}" ng-model="toolbar.tx"
                 btn-checkbox btn-checkbox-true="true" btn-checkbox-false="false"
                 tooltip="not yet implemented" tooltip-placement="right">Tx</button>
-        <button type="button" class="btn btn-primary btn-sm" ng-model="afc" ng-class="{btnselect:afc}"
+        <button type="button" class="btn btn-primary btn-sm" ng-class="{btnselect:toolbar.afc}" ng-model="toolbar.afc"
                 btn-checkbox btn-checkbox-true="true" btn-checkbox-false="false"
                 tooltip="aids centering on a signal" tooltip-placement="right">AFC</button>
-        <button type="button" class="btn btn-primary btn-sm" ng-model="qrz" ng-class="{btnselect:qrz}"
+        <button type="button" class="btn btn-primary btn-sm" ng-class="{btnselect:toolbar.qrz}" ng-model="toolbar.qrz"
                 btn-checkbox btn-checkbox-true="true" btn-checkbox-false="false"
                 tooltip="Show QRZ.com page for callsigns" tooltip-placement="right">QRZ</button>
     </div>

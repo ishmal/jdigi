@@ -307,7 +307,7 @@ function PskMode(par) {
     }
 
 
-    //val decoder = Viterbi.decoder(5, 0x17, 0x19)
+    //var decoder = Viterbi.decoder(5, 0x17, 0x19)
 
     var qpskMode = false;
 	this.getQpskMode  = function() {
@@ -530,7 +530,7 @@ function PskMode2(par) {
         }
     }
 
-    //val decoder = Viterbi.decoder(5, 0x17, 0x19)
+    //var decoder = Viterbi.decoder(5, 0x17, 0x19)
 
     var qpskMode = false;
 	this.getQpskMode  = function() {

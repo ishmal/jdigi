@@ -27,30 +27,17 @@ var app = angular.module('JdigiApp',['ui.bootstrap']);
 
 app.controller("MainController", ['$scope', function($scope) {
     var digi = new Digi();
-	  $scope.digi = digi;
-      digi.start();
-	  /*
-      $scope.running = false;
-	  $scope.$watch('running', function() {
-        if ($scope.running) {
-	           digi.start();
-	       } else {
-	           digi.stop();
-	       }
-    });
-    */
-    $scope.afc = digi.getUseAfc();
-    $scope.$watch('afc', function() {
-        digi.setUseAfc($scope.afc);
-    });
-    $scope.tx = digi.getTxMode();
-    $scope.$watch('tx', function() {
-        digi.setTxMode($scope.tx);
-    });
-    $scope.qrz = digi.getUseQrz();
-    $scope.$watch('qrz', function() {
-        digi.setUseQrz($scope.qrz);
-    });
+    $scope.digi = digi;
+    digi.start();
+
+    $scope.toolbar = {
+        get tx() { return digi.getTxMode(); },
+        set tx(v) { digi.setTxMode(v); },
+        get afc() { return digi.getUseAfc(); },
+        set afc(v) { digi.setUseAfc(v); },
+        get qrz() { return digi.getUseQrz(); },
+        set qrz(v) { digi.setUseQrz(v); }
+    };
 
     $scope.modes = digi.modes;
     $scope.changeMode = function(mode) {
