@@ -380,7 +380,7 @@ function PacketMode(par) {
         dataFilter = FIR.boxcar(self.getSamplesPerSymbol() | 0);
         txlpf = FIR.lowpass(31,  shift * 0.5, self.getSampleRate());
         symbollen = self.getSamplesPerSymbol() | 0;
-        halfSym = symbollen / 2;
+        halfSym = symbollen >> 1;
     }
         
 
@@ -392,45 +392,64 @@ function PacketMode(par) {
     var lastSym = false;  
     var samplesSinceTransition = 0;
     var symbollen = this.getSamplesPerSymbol() | 0;
-    var halfSym = symbollen / 2;
+    var halfSym = symbollen >> 1;
 
     var lastVal = new Complex(0.0);
+
+    function trace(msg) {
+        console.log(msg);
+    }
     
     /**
      * Basic receive function for all modes
      */         
-    this.update = function(isample) {
+    this.receive = function(isample) {
 
-        var space  = sf.update(isample);
-        var mark   = mf.update(isample);
-        var sample = space + mark;
-        var prod   = sample * lastVal.conj();
+        var space  = sf.updatex(isample);
+        var mark   = mf.updatex(isample);
+        var sample = space.add(mark);
+        var prod   = sample.mul(lastVal.conj());
         lastVal    = sample;
         var demod  = prod.arg();
         var comp   = (demod > 0) ? 10.0 : -10.0;
         var sig    = dataFilter.update(comp);
-        //trace("sig:" + sig + "  comp:" + comp)
+        //trace("sig:" + sig + "  comp:" + comp);
 
-        par.updateScope(sig, 0);
+        scopeOut(sig);
 
-        //trace("sig:" + sig)
+        //trace("sig:" + sig);
         if (sig > hiHys) {
             sym = true;
         } else if (sig < loHys) {
             sym = false;
         }
 
+        //trace("a:" +samplesSinceTransition + "," + halfSym );
 		samplesSinceTransition = (sym !== lastSym) ? 0 : samplesSinceTransition+1;
 		lastSym = sym;
         if ((samplesSinceTransition % symbollen) === halfSym)
             process(sym);
 	};
  
-    
+    var SSIZE = 200;
+    var scopedata = new Array(SSIZE);
+    var scnt = 0;
+    var sx = -1;
+    function scopeOut(v) {
+        scopedata[scnt++] = [sx, Math.log(v + 1)*0.25];
+        sx += 0.01;
+        if (scnt >= SSIZE) {
+            scnt = 0;
+            sx = -1;
+            par.showScope(scopedata);
+            scopedata = new Array(SSIZE);
+        }
+    }
+
     var RxStart = 0;  //the initial state
     var RxTxd   = 1;  //after the first flag, wait until no more flags
     var RxData  = 2;  //after the flag.  all octets until another flag
-    var RxFlag  = 3;  //Test whether we have a flag or a stuffed bit
+    var RxFlag1 = 3;  //Test whether we have a flag or a stuffed bit
     var RxFlag2 = 4;  //It was a flag.  grab the last bit
     
     var state = RxStart;
@@ -441,7 +460,6 @@ function PacketMode(par) {
     var octet    = 0;
     var ones     = 0;
 
-    
     var bufPtr = 0;
     var rxbuf = new Array(4096);
     
@@ -468,8 +486,8 @@ function PacketMode(par) {
 		switch (state) {
 
 			case RxStart :
-				//trace("RxStart")
-				//trace("st octet: %02x".format(octet))
+				//trace("RxStart");
+				//trace("st octet: %02x".format(octet));
 				if (octet === FLAG) {
 					state    = RxTxd;
 					bitcount = 0;
@@ -477,10 +495,10 @@ function PacketMode(par) {
 				break;
 
 			case RxTxd :
-				//trace("RxTxd")
+				//trace("RxTxd");
 				bitcount++;
 				if (bitcount >= 8) {
-					//trace("txd octet: %02x".format(octet))
+					//trace("txd octet: %02x".format(octet));
 					bitcount = 0;
 					if (octet !== FLAG) {
 						state    = RxData;
@@ -491,8 +509,8 @@ function PacketMode(par) {
 				break;
 
 			case RxData :
-				//trace("RxData")
-				if (ones == 5) { // 111110nn, next bit will determine
+				//trace("RxData");
+				if (ones === 5) { // 111110nn, next bit will determine
 					state = RxFlag1;
 				} else {
 					bitcount++;
@@ -509,7 +527,7 @@ function PacketMode(par) {
 				break;
 
 			case RxFlag1 :
-				//trace("RxFlag")
+				//trace("RxFlag");
 				if (bit) { //was really a 6th bit. 
 					state = RxFlag2;
 				} else { //was a zero.  drop it and continue
@@ -520,8 +538,7 @@ function PacketMode(par) {
 
 			case RxFlag2 :
 				//we simply wanted that last bit
-				var outbuf = rxbuf.take(bufPtr);
-				processPacket(outbuf);
+				processPacket(rxbuf, bufPtr);
 				for (var rdx=0 ; rdx < rxbuf.length ; rdx++)
 					rxbuf[rdx] = 0;
 				state = RxStart;
@@ -537,7 +554,7 @@ function PacketMode(par) {
     
     var crc = new Crc();
     
-    function intToStr(ibytes, offset, len) {
+    function rawPacket(ibytes, offset, len) {
         var str = "";
         for (var i=0 ; i<len ; i++) {
             str += String.fromCharCode(ibytes[offset + i]);
@@ -545,14 +562,13 @@ function PacketMode(par) {
         return str;
     }        
     
-    function processPacket(data) {
+    function processPacket(data, len) {
 
-        var len = data.length;
         //trace("raw:" + len)
         if (len < 14)
             return true;
-        //var str = intToStr(data, 14, len-2)
-        //trace("txt: " + str)
+        var str = rawPacket(data, 14, len-2);
+        trace("txt: " + str);
         crc.reset();
         for (var i=0 ; i < len ; i++) {
             crc.updateLE(data[i]);
