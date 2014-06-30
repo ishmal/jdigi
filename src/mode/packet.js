@@ -103,9 +103,9 @@ var CrcTables = {
 
 function Crc() {
 
-	var crc = 0xffff;
+	var crc;
 	
-	this.update = function(cc) {
+	this.update = function(c) {
 	    var table = CrcTables.crcTable;
 	    var j = (c ^ (crc >> 8)) & 0xff;
 	    crc = table[j] ^ (crc << 8);
@@ -115,9 +115,9 @@ function Crc() {
 	    return (crc ^ 0) & 0xffff;
 	};
 	        
-	this.updateLE = function(byte8) {
+	this.updateLE = function(c) {
 	    var table = CrcTables.crcTableLE;
-	    crc = ((crc >> 8) ^ table[(crc ^ byte8) & 0xff]) & 0xffff;
+	    crc = ((crc >> 8) ^ table[(crc ^ c) & 0xff]) & 0xffff;
 	};
 	    
 	this.valueLE = function() {
@@ -127,8 +127,8 @@ function Crc() {
     this.reset = function() {
         crc = 0xffff;
     };
-        
-        
+
+    this.reset();
 }
 
 
@@ -160,54 +160,59 @@ function PacketAddr(call, ssid) {
 
 
 function Packet(dest, src, rpts, ctrl, pid, info) {
-
-
-    this.toOctets = function() {
-        var buf = [];
-        buf[buf.length] = 0x7e; // flag
-        buf = buf.concat(dest.encoded());
-        buf = buf.concat(rc.encoded());
-        for (var ridx=0 ; ridx < rpts.length ; ridx++) {
-            buf = buf.concat(rpts[ridx].encoded());
-        }
-        buf[buf.length] = ctrl;
-        buf[buf.length] = pid;
-        var crc = new Crc();
-        for (var bidx=0 ; bidx < buf.length ; bidx++) {
-            crc.update(buf[bidx]);
-        }
-        var crcv = crc.value();
-        var fcslo = (crcv & 0xff) ^ 0xff;
-        var fcshi = (crcv >>   8) ^ 0xff;
-        buf[buf.length] = fcslo;
-        buf[buf.length] = fcshi;
-        buf[buf.length] = 0x7e; // flag
-        return buf;
-    };   
-        
-    this.toString = function() {
-        var buf = src.toString() + "=>" + dest.toString();
-        
-        for (var ridx=0 ; ridx < rpts.length ; ridx++) {
-            buf += ":";
-            buf += r.toString();
-        }
-        buf += " [" + pid.toString() + "]: ";
-        if (pid !== 0) {
-            buf += String.fromCharCode.apply(null, info);
-        } else {
-            //for (v <- info)
-            //    buf.append(",").append(v.toString)
-            buf += "{" + info(0) + "," + info.size + "}";
-            buf += String.fromCharCode.apply(null, info);
-        }
-            
-        return buf;
-    };
+    this.dest = dest;
+    this.src  = src;
+    this.rpts = rpts;
+    this.ctrl = ctrl;
+    this.pid  = pid;
+    this.info = info;
 }
 
+Packet.prototype.toOctets = function() {
+    var buf = [];
+    buf[buf.length] = 0x7e; // flag
+    buf = buf.concat(this.dest.encoded());
+    buf = buf.concat(this.src.encoded());
+    for (var ridx=0 ; ridx < this.rpts.length ; ridx++) {
+        buf = buf.concat(this.rpts[ridx].encoded());
+    }
+    buf[buf.length] = this.ctrl;
+    buf[buf.length] = this.pid;
+    var crc = new Crc();
+    for (var bidx=0 ; bidx < buf.length ; bidx++) {
+        crc.update(buf[bidx]);
+    }
+    var crcv = crc.value();
+    var fcslo = (crcv & 0xff) ^ 0xff;
+    var fcshi = (crcv >>   8) ^ 0xff;
+    buf[buf.length] = fcslo;
+    buf[buf.length] = fcshi;
+    buf[buf.length] = 0x7e; // flag
+    return buf;
+};
 
-var Packet = {
+Packet.prototype.toString = function() {
+    var buf = src.toString() + "=>" + dest.toString();
+
+    for (var ridx=0 ; ridx < rpts.length ; ridx++) {
+        buf += ":";
+        buf += r.toString();
+    }
+    buf += " [" + pid.toString() + "]: ";
+    if (pid !== 0) {
+        buf += String.fromCharCode.apply(null, info);
+    } else {
+        //for (v <- info)
+        //    buf.append(",").append(v.toString)
+        buf += "{" + info(0) + "," + info.size + "}";
+        buf += String.fromCharCode.apply(null, info);
+    }
+
+    return buf;
+};
+
+
+var Packets = {
     PID_X25           : 0x01,  // ISO 8208/CCITT X.25 PLP
     PID_TCPIP_COMP    : 0x06,  // Compressed TCP/IP packet. Van Jacobson (RFC 1144)
     PID_TCPIP_UNCOMP  : 0x07,  // Uncompressed TCP/IP packet. Van Jacobson (RFC 1144)
@@ -243,16 +248,12 @@ var Packet = {
     FID_FRMR     : 11,  // Frame Reject. Fatal Error
     FID_UI       : 12,  // Unnumbered Information Frame. "Unproto"
     FID_DM       : 13,  // Disconnect Mode. System Busy or Disconnected.
-    
-    
-    IFRAME : 0,
-    SFRAME : 1,
-    UFRAME : 2,
-    
 
+    IFRAME       : 0,
+    SFRAME       : 1,
+    UFRAME       : 2,
 
-
-    apply : function(data) {
+    create : function(data) {
 
 		function getAddr(arr, offset) {
 			var buf = "";
@@ -275,18 +276,17 @@ var Packet = {
         }
 
         var ctrl = data[pos++];
-        
+
         var typ = ((ctrl & 1) === 0) ? IFRAME : ((ctrl & 2) === 0) ? SFRAME : UFRAME;
-        
+
         var pid = (typ === IFRAME) ? data[pos] : 0;
         if (typ === IFRAME) pos++;
-        
+
         var info = data.drop(pos);
-        
-        var pack = new Packet(dest, src, rpts, 0, 0, info);
-        return pack;
+
+        return new Packet(dest, src, rpts, 0, 0, info);
     }
-    
+
 };
 
 
@@ -571,8 +571,8 @@ function PacketMode(par) {
         }
         var v = crc.valueLE();
         trace("crc: " + v.toString(16));
-        if (v === 0xf0b8) {
-            var p = new Packet(data);
+        if (v === 0xec03) {  //f0b8
+            var p = Packets.create(data);
             par.puttext(p.toString() + "\n");
         }
         return true;
