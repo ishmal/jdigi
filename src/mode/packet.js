@@ -673,6 +673,7 @@ function PacketMode(par) {
 
 }
 
+module.exports.Crc = Crc;
 module.exports.PacketMode = PacketMode;
 
 
