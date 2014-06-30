@@ -348,13 +348,14 @@ function PacketMode(par) {
         shift = v;
         adjust();
     };
-    
-    this.rateChanged = function() {
+
+    var super_setRate = this.setRate;
+    this.setRate = function(rate) {
+        super_setRate(rate);
         adjust();
     };
 
     this.setRate(300.0);
-    this.setShift(200.0);
     
     this.getBandwidth = function() {
         return shift;
@@ -362,14 +363,11 @@ function PacketMode(par) {
     
     var twopi = 2.0 * Math.PI;
     
-    var spaceFreq = new Complex(twopi * (-shift * 0.5) / this.getSampleRate());
-    var markFreq  = new Complex(twopi * ( shift * 0.5) / this.getSampleRate());
-    
-    var sf = FIR.bandpass(13, -0.75 * shift, -0.25 * shift, this.getSampleRate());
-    var mf = FIR.bandpass(13,  0.25 * shift,  0.75 * shift, this.getSampleRate());
-    //var dataFilter = Iir2.lowPass(rate, this.getSampleRate());
-    var dataFilter = FIR.boxcar(this.getSamplesPerSymbol() | 0);
-    var txlpf = FIR.lowpass(31,  shift * 0.5, this.getSampleRate());
+    var spaceFreq, markFreq;
+    var symbollen, halfSym;
+    var mf, sf;
+    var dataFilter;
+    var txlpf;
     
     function adjust() {
         sf = FIR.bandpass(13, -0.75 * shift, -0.25 * shift, self.getSampleRate());
@@ -391,8 +389,6 @@ function PacketMode(par) {
     var sym     = false; 
     var lastSym = false;  
     var samplesSinceTransition = 0;
-    var symbollen = this.getSamplesPerSymbol() | 0;
-    var halfSym = symbollen >> 1;
 
     var lastVal = new Complex(0.0);
 
@@ -419,9 +415,9 @@ function PacketMode(par) {
 
         //trace("sig:" + sig);
         if (sig > hiHys) {
-            sym = true;
-        } else if (sig < loHys) {
             sym = false;
+        } else if (sig < loHys) {
+            sym = true;
         }
 
         //trace("a:" +samplesSinceTransition + "," + halfSym );
@@ -502,7 +498,7 @@ function PacketMode(par) {
 					bitcount = 0;
 					if (octet !== FLAG) {
 						state    = RxData;
-						rxbuf[0] = octet & 255;
+						rxbuf[0] = octet & 0xff;
 						bufPtr   = 1;
 					}
 				}
@@ -520,7 +516,7 @@ function PacketMode(par) {
 							//trace("drop")
 							state = RxStart;
 						} else {
-							rxbuf[bufPtr++] = octet & 255;
+							rxbuf[bufPtr++] = octet & 0xff;
 						}
 					}
 				}
@@ -550,14 +546,14 @@ function PacketMode(par) {
 		}//switch
 	}
     
-    
-    
+
     var crc = new Crc();
     
     function rawPacket(ibytes, offset, len) {
         var str = "";
         for (var i=0 ; i<len ; i++) {
-            str += String.fromCharCode(ibytes[offset + i]);
+            var b = (ibytes[offset + i]) >> 1;
+            str += String.fromCharCode(b);
         }
         return str;
     }        
@@ -574,7 +570,7 @@ function PacketMode(par) {
             crc.updateLE(data[i]);
         }
         var v = crc.valueLE();
-        //trace("crc: %04x".format(v))
+        trace("crc: " + v.toString(16));
         if (v === 0xf0b8) {
             var p = new Packet(data);
             par.puttext(p.toString() + "\n");

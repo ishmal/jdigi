@@ -133,6 +133,7 @@ var Parity = {
  *
  */
 function RttyMode(par) {
+    "use strict";
     Mode.call(this, par, 1000.0);
     var self = this;
 
@@ -190,7 +191,7 @@ function RttyMode(par) {
 
     this.setShift = function(v) {
         shiftval = v;
-        this.postSetRate();
+        adjust();
     };
 
     this.getBandwidth = function() { return shiftval; };
@@ -212,16 +213,16 @@ function RttyMode(par) {
     };
 
 
-    this.setRate(45.0);
-    var twopi     = Math.PI * 2.0;
-    var spaceFreq = new Complex(twopi * (-shiftval * 0.5) / this.getSampleRate());
-    var markFreq  = new Complex(twopi * ( shiftval * 0.5) / this.getSampleRate());
 
-    var sf = FIR.bandpass(13, -0.75 * shiftval, -0.25 * shiftval, this.getSampleRate());
-    var mf = FIR.bandpass(13,  0.25 * shiftval,  0.75 * shiftval, this.getSampleRate());
-    //var dataFilter = Iir2.lowpass(rate, this.sampleRate);
-    var dataFilter = FIR.boxcar(this.getSamplesPerSymbol()|0);
-    var txlpf = FIR.lowpass(31,  shiftval * 0.5, this.getSampleRate());
+
+    var twopi = Math.PI * 2.0;
+    var symbollen, halfSym; //timing recovery
+    var spaceFreq, markFreq;
+
+    var sf, mf; //mark and space filters
+
+    var dataFilter;
+    var txlpf;
 
     //var avgFilter = Iir2.lowpass(rate / 100, this.sampleRate);
 
@@ -230,6 +231,9 @@ function RttyMode(par) {
         super_setRate(rate);
         adjust();
     };
+
+    this.setRate(45.0); //makes all rate/shift dependent vars initialize
+
     
     function adjust() {
         sf = FIR.bandpass(13, -0.75 * shiftval, -0.25 * shiftval, self.getSampleRate());
@@ -238,8 +242,12 @@ function RttyMode(par) {
         markFreq  = new Complex(twopi * ( shiftval * 0.5) / self.getSampleRate());
         //dataFilter = Iir2.lowpass(rate, this.sampleRate);
         dataFilter = FIR.boxcar(self.getSamplesPerSymbol()|0);
-        txlpf = FIR.lowpass(31,  shiftval * 0.5, self.sampleRate);
+        txlpf = FIR.lowpass(31,  shiftval * 0.5, self.getSampleRate());
+        symbollen = self.getSamplesPerSymbol() | 0;
+        halfSym = symbollen >> 1;
     }
+
+
 
     this.status("sampleRate: " + this.getSampleRate() + " samplesPerSymbol: " + this.getSamplesPerSymbol());
 
@@ -275,9 +283,9 @@ function RttyMode(par) {
 
         //trace("sig:" + sig)
         if (sig > hiHys) {
-            bit = true;
-        } else if (sig < loHys) {
             bit = false;
+        } else if (sig < loHys) {
+            bit = true;
         }
 
         process(bit);
@@ -341,7 +349,6 @@ function RttyMode(par) {
     function process(inbit) {
 
         var bit = inbit ^ inverted; //LSB/USB flipping
-        var symbollen = self.getSamplesPerSymbol();
 
         switch (state) {
 
@@ -349,7 +356,7 @@ function RttyMode(par) {
                 //trace("RxIdle")
                 if (!bit) {
                     state   = Rx.Start;
-                    counter = symbollen / 2;
+                    counter = halfSym;
                 }
                 break;
             case Rx.Start :
@@ -377,7 +384,7 @@ function RttyMode(par) {
                     counter = symbollen;
                 }
                 if (bitMask >= 0x20) {
-                    if (parityType == Parity.None) // todo:  or zero or 1
+                    if (parityType === Parity.None) // todo:  or zero or 1
                         state = Rx.Stop;
                     else
                         state = Rx.Parity;
@@ -450,12 +457,12 @@ function RttyMode(par) {
                 shifted = false;
             else if (code === SPACE) {
                 par.puttext(" ");
-                if (this.unshiftOnSpace)
+                if (self.unshiftOnSpace)
                     shifted = false;
             }
             else if (code === CR || code === LF) {
                 par.puttext("\n");
-                if (this.unshiftOnSpace)
+                if (self.unshiftOnSpace)
                     shifted = false;
             }
             var v = Baudot.baudCodeToSym[code];
