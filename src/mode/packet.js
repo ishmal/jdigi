@@ -178,6 +178,10 @@ Packet.prototype.toOctets = function() {
     }
     buf[buf.length] = this.ctrl;
     buf[buf.length] = this.pid;
+    var ilen = info.length;
+    for (iidx=0 ; iidx < ilen ; iidx++) {
+        buf[buf.length] = info[iidx];
+    }
     var crc = new Crc();
     for (var bidx=0 ; bidx < buf.length ; bidx++) {
         crc.update(buf[bidx]);
@@ -282,7 +286,7 @@ var Packets = {
         var pid = (typ === IFRAME) ? data[pos] : 0;
         if (typ === IFRAME) pos++;
 
-        var info = data.drop(pos);
+        var info = data.slice(pos, data.length);
 
         return new Packet(dest, src, rpts, 0, 0, info);
     }
@@ -456,8 +460,9 @@ function PacketMode(par) {
     var octet    = 0;
     var ones     = 0;
 
-    var bufPtr = 0;
-    var rxbuf = new Array(4096);
+    var bufPtr   = 0;
+    var RXLEN    = 4096;
+    var rxbuf    = new Array(RXLEN);
     
     var lastBit = false;
 
@@ -471,8 +476,9 @@ function PacketMode(par) {
      */
     function process(inBit) {
 
-		octet = (octet >> 1) & 0xff;
-		var bit = (inBit === lastBit); //nrzi
+        //shift right for the next bit, since ax.25 is lsb-first
+		octet = (octet >> 1) & 0x7f;  //0xff? we dont want the msb
+		var bit = (inBit === lastBit); //google "nrzi"
 		lastBit = inBit;
 		if (bit) 
 			{ ones += 1 ; octet |= 128; }
@@ -487,13 +493,12 @@ function PacketMode(par) {
 				if (octet === FLAG) {
 					state    = RxTxd;
 					bitcount = 0;
-					}
+				}
 				break;
 
 			case RxTxd :
 				//trace("RxTxd");
-				bitcount++;
-				if (bitcount >= 8) {
+				if (++bitcount >= 8) {
 					//trace("txd octet: %02x".format(octet));
 					bitcount = 0;
 					if (octet !== FLAG) {
@@ -509,10 +514,9 @@ function PacketMode(par) {
 				if (ones === 5) { // 111110nn, next bit will determine
 					state = RxFlag1;
 				} else {
-					bitcount++;
-					if (bitcount >= 8) {
+					if (++bitcount >= 8) {
 						bitcount = 0;
-						if (bufPtr >= rxbuf.length) {
+						if (bufPtr >= RXLEN) {
 							//trace("drop")
 							state = RxStart;
 						} else {
@@ -527,7 +531,7 @@ function PacketMode(par) {
 				if (bit) { //was really a 6th bit. 
 					state = RxFlag2;
 				} else { //was a zero.  drop it and continue
-					octet <<= 1;
+					octet = (octet << 1) & 0xfe;
 					state = RxData;
 				}
 				break;
@@ -535,7 +539,7 @@ function PacketMode(par) {
 			case RxFlag2 :
 				//we simply wanted that last bit
 				processPacket(rxbuf, bufPtr);
-				for (var rdx=0 ; rdx < rxbuf.length ; rdx++)
+				for (var rdx=0 ; rdx < RXLEN ; rdx++)
 					rxbuf[rdx] = 0;
 				state = RxStart;
 				break;
@@ -571,7 +575,9 @@ function PacketMode(par) {
         }
         var v = crc.valueLE();
         trace("crc: " + v.toString(16));
-        if (v === 0xec03) {  //f0b8
+        //theory is, if you calculate the CRC of the data, -including- the crc field,
+        //a correct result will always be 0xf0b8
+        if (v === 0xf0b8) {
             var p = Packets.create(data);
             par.puttext(p.toString() + "\n");
         }
