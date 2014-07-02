@@ -21,7 +21,7 @@ var Resampler = require("./resample").Resampler;
 var ResamplerX = require("./resample").ResamplerX;
 var Nco = require("./nco").Nco;
 var Constants = require("./constants").Constants;
-
+var Biquad = require("./filter").Biquad;
 
 function Mode(par, sampleRateHint) {
     "use strict";
@@ -59,6 +59,8 @@ function Mode(par, sampleRateHint) {
        //console.log("afc: " + loBin + "," + freqBin + "," + hiBin);
     }
     adjustAfc();
+    
+    var afcFilter = Biquad.lowPass(1.0, 100.0);
 
     function computeAfc(ps) {
        var sum = 0;
@@ -66,7 +68,8 @@ function Mode(par, sampleRateHint) {
             if (ps[j] > ps[i]) sum++;
             else if (ps[i] > ps[j]) sum--;
        }
-       nco.setError(sum);
+       var filtered = afcFilter.update(sum);
+       nco.setError(filtered);
     }
 
     this.status = function(msg) {
