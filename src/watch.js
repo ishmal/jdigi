@@ -29,6 +29,9 @@ function Watcher(par) {
     var suffix = "(F[A-Z]{3}|[A-Z]{1,3})";  //note:  Fxxx is australian
     var call = prefix + digits + suffix;
     var spot = "[^a-zA-Z0-9]de\\s+(" + call + ")[^a-zA-Z0-9]";
+    //var spot2 = "\\s+(" + call + ")\\s+[Kk]\\s";
+    //var spot3 = "\\s+(" + call + ")\\s+[Cc][Qq]";
+    //var spot = spot1 + "|" + spot2 + "|" + spot3;
     
     var buf = "";
     var calls = {};
