@@ -29,7 +29,7 @@ var Complex = require("../math").Complex;
  */
 var CrcTables = {
 
-	crcTable : [
+    crcTable : [
         0x0000, 0x1021, 0x2042, 0x3063, 0x4084, 0x50a5, 0x60c6, 0x70e7,
         0x8108, 0x9129, 0xa14a, 0xb16b, 0xc18c, 0xd1ad, 0xe1ce, 0xf1ef,
         0x1231, 0x0210, 0x3273, 0x2252, 0x52b5, 0x4294, 0x72f7, 0x62d6,
@@ -64,7 +64,7 @@ var CrcTables = {
         0x6e17, 0x7e36, 0x4e55, 0x5e74, 0x2e93, 0x3eb2, 0x0ed1, 0x1ef0
     ],
 
-	crcTableLE : [
+    crcTableLE : [
         0x0000, 0x1189, 0x2312, 0x329b, 0x4624, 0x57ad, 0x6536, 0x74bf,
         0x8c48, 0x9dc1, 0xaf5a, 0xbed3, 0xca6c, 0xdbe5, 0xe97e, 0xf8f7,
         0x1081, 0x0108, 0x3393, 0x221a, 0x56a5, 0x472c, 0x75b7, 0x643e,
@@ -103,26 +103,26 @@ var CrcTables = {
 
 function Crc() {
 
-	var crc;
-	
-	this.update = function(c) {
-	    var table = CrcTables.crcTable;
-	    var j = (c ^ (crc >> 8)) & 0xff;
-	    crc = table[j] ^ (crc << 8);
-	};
-	    
-	this.value = function() {
-	    return (crc ^ 0) & 0xffff;
-	};
-	        
-	this.updateLE = function(c) {
-	    var table = CrcTables.crcTableLE;
-	    crc = ((crc >> 8) ^ table[(crc ^ c) & 0xff]) & 0xffff;
-	};
-	    
-	this.valueLE = function() {
-	    return crc;
-	};
+    var crc;
+    
+    this.update = function(c) {
+        var table = CrcTables.crcTable;
+        var j = (c ^ (crc >> 8)) & 0xff;
+        crc = table[j] ^ (crc << 8);
+    };
+        
+    this.value = function() {
+        return (crc ^ 0) & 0xffff;
+    };
+            
+    this.updateLE = function(c) {
+        var table = CrcTables.crcTableLE;
+        crc = ((crc >> 8) ^ table[(crc ^ c) & 0xff]) & 0xffff;
+    };
+        
+    this.valueLE = function() {
+        return crc;
+    };
 
     this.reset = function() {
         crc = 0xffff;
@@ -259,13 +259,13 @@ var Packets = {
 
     create : function(data) {
 
-		function getAddr(arr, offset) {
-			var buf = "";
-			var bytes = arr.slice(offset, offset+6).map(function(v) { return v >> 1; });
-			var call = String.fromCharCode.apply(null, bytes).trim();
-			var ssid = (arr[offset+6] >> 1) & 0xf;
-			return new PacketAddr(call, ssid);
-		}
+        function getAddr(arr, offset) {
+            var buf = "";
+            var bytes = arr.slice(offset, offset+6).map(function(v) { return v >> 1; });
+            var call = String.fromCharCode.apply(null, bytes).trim();
+            var ssid = (arr[offset+6] >> 1) & 0xf;
+            return new PacketAddr(call, ssid);
+        }
 
         var pos = 0;
         var dest = getAddr(data, pos);
@@ -319,8 +319,8 @@ function PacketMode(par) {
             name: "rate",
             type: "choice",
             tooltip: "packet data rate",
-			get value() { return self.getRate(); },
-			set value(v) { self.setRate(parseFloat(v)); },
+            get value() { return self.getRate(); },
+            set value(v) { self.setRate(parseFloat(v)); },
             values : [
                 { name :  "300", value :  300.0 },
                 { name : "1200", value : 1200.0 }
@@ -330,8 +330,8 @@ function PacketMode(par) {
             name: "shift",
             type: "choice",
             tooltip: "frequency distance between mark and space",
-			get value() { return self.getShift(); },
-			set value(v) { self.setShift(parseFloat(v)); },
+            get value() { return self.getShift(); },
+            set value(v) { self.setShift(parseFloat(v)); },
             values : [
                 { name :  "200", value :  200.0 },
                 { name : "1000", value : 1000.0 }
@@ -374,8 +374,8 @@ function PacketMode(par) {
     var txlpf;
     
     function adjust() {
-        sf = FIR.bandpass(13, -0.75 * shift, -0.25 * shift, self.getSampleRate());
-        mf = FIR.bandpass(13,  0.25 * shift,  0.75 * shift, self.getSampleRate());
+        sf = FIR.bandpass(13,  -1.0 * shift,  -0.0 * shift, self.getSampleRate());
+        mf = FIR.bandpass(13,  0.0  * shift,   1.0 * shift, self.getSampleRate());
         spaceFreq = new Complex(twopi * (-shift * 0.5) / self.getSampleRate());
         markFreq  = new Complex(twopi * ( shift * 0.5) / self.getSampleRate());
         //dataFilter = Iir2.lowPass(rate, self.getSampeRate());
@@ -425,11 +425,11 @@ function PacketMode(par) {
         }
 
         //trace("a:" +samplesSinceTransition + "," + halfSym );
-		samplesSinceTransition = (sym !== lastSym) ? 0 : samplesSinceTransition+1;
-		lastSym = sym;
+        samplesSinceTransition = (sym !== lastSym) ? 0 : samplesSinceTransition+1;
+        lastSym = sym;
         if ((samplesSinceTransition % symbollen) === halfSym)
             process(sym);
-	};
+    };
  
     var SSIZE = 200;
     var scopedata = new Array(SSIZE);
@@ -477,78 +477,78 @@ function PacketMode(par) {
     function process(inBit) {
 
         //shift right for the next bit, since ax.25 is lsb-first
-		octet = (octet >> 1) & 0x7f;  //0xff? we dont want the msb
-		var bit = (inBit === lastBit); //google "nrzi"
-		lastBit = inBit;
-		if (bit) 
-			{ ones += 1 ; octet |= 128; }
-		else
-			ones = 0;
+        octet = (octet >> 1) & 0x7f;  //0xff? we dont want the msb
+        var bit = (inBit === lastBit); //google "nrzi"
+        lastBit = inBit;
+        if (bit) 
+            { ones += 1 ; octet |= 128; }
+        else
+            ones = 0;
 
-		switch (state) {
+        switch (state) {
 
-			case RxStart :
-				//trace("RxStart");
-				//trace("st octet: %02x".format(octet));
-				if (octet === FLAG) {
-					state    = RxTxd;
-					bitcount = 0;
-				}
-				break;
+            case RxStart :
+                //trace("RxStart");
+                //trace("st octet: %02x".format(octet));
+                if (octet === FLAG) {
+                    state    = RxTxd;
+                    bitcount = 0;
+                }
+                break;
 
-			case RxTxd :
-				//trace("RxTxd");
-				if (++bitcount >= 8) {
-					//trace("txd octet: %02x".format(octet));
-					bitcount = 0;
-					if (octet !== FLAG) {
-						state    = RxData;
-						rxbuf[0] = octet & 0xff;
-						bufPtr   = 1;
-					}
-				}
-				break;
+            case RxTxd :
+                //trace("RxTxd");
+                if (++bitcount >= 8) {
+                    //trace("txd octet: %02x".format(octet));
+                    bitcount = 0;
+                    if (octet !== FLAG) {
+                        state    = RxData;
+                        rxbuf[0] = octet & 0xff;
+                        bufPtr   = 1;
+                    }
+                }
+                break;
 
-			case RxData :
-				//trace("RxData");
-				if (ones === 5) { // 111110nn, next bit will determine
-					state = RxFlag1;
-				} else {
-					if (++bitcount >= 8) {
-						bitcount = 0;
-						if (bufPtr >= RXLEN) {
-							//trace("drop")
-							state = RxStart;
-						} else {
-							rxbuf[bufPtr++] = octet & 0xff;
-						}
-					}
-				}
-				break;
+            case RxData :
+                //trace("RxData");
+                if (ones === 5) { // 111110nn, next bit will determine
+                    state = RxFlag1;
+                } else {
+                    if (++bitcount >= 8) {
+                        bitcount = 0;
+                        if (bufPtr >= RXLEN) {
+                            //trace("drop")
+                            state = RxStart;
+                        } else {
+                            rxbuf[bufPtr++] = octet & 0xff;
+                        }
+                    }
+                }
+                break;
 
-			case RxFlag1 :
-				//trace("RxFlag");
-				if (bit) { //was really a 6th bit. 
-					state = RxFlag2;
-				} else { //was a zero.  drop it and continue
-					octet = (octet << 1) & 0xfe;
-					state = RxData;
-				}
-				break;
+            case RxFlag1 :
+                //trace("RxFlag");
+                if (bit) { //was really a 6th bit. 
+                    state = RxFlag2;
+                } else { //was a zero.  drop it and continue
+                    octet = (octet << 1) & 0xfe;
+                    state = RxData;
+                }
+                break;
 
-			case RxFlag2 :
-				//we simply wanted that last bit
-				processPacket(rxbuf, bufPtr);
-				for (var rdx=0 ; rdx < RXLEN ; rdx++)
-					rxbuf[rdx] = 0;
-				state = RxStart;
-				break;
-			
-			default :
-			    //dont know
+            case RxFlag2 :
+                //we simply wanted that last bit
+                processPacket(rxbuf, bufPtr);
+                for (var rdx=0 ; rdx < RXLEN ; rdx++)
+                    rxbuf[rdx] = 0;
+                state = RxStart;
+                break;
+            
+            default :
+                //dont know
                    
-		}//switch
-	}
+        }//switch
+    }
     
 
     var crc = new Crc();
