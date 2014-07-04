@@ -17,7 +17,7 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-var Mode    = require("../mode").Mode;
+var Mode    = require("./mode").Mode;
 var FIR     = require("../filter").FIR;
 var Biquad  = require("../filter").Biquad;
 var Complex = require("../math").Complex;

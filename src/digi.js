@@ -23,7 +23,7 @@ var FFT = require("./fft").FFT;
 var FFTSR = require("./fft").FFTSR;
 
 var AudioInput = require("./audio").AudioInput;
-var Mode = require("./mode").Mode;
+var Mode = require("./mode/mode").Mode;
 var PskMode = require("./mode/psk").PskMode;
 var PskMode2 = require("./mode/psk").PskMode2;
 var RttyMode = require("./mode/rtty").RttyMode;

@@ -18,11 +18,9 @@
  */
 
 
-var Mode    = require("../mode").Mode;
+var FskBase = require("./fsk").FskBase;
 var FIR     = require("../filter").FIR;
 var Complex = require("../math").Complex;
-
-
 
 
 /**
@@ -112,13 +110,11 @@ var Baudot = (function() {
 /**
  * Enumerations for parity types
  */
-var Parity = {
-    None : 0,
-    One  : 1,
-    Zero : 2,
-    Odd  : 3,
-    Even : 4
-};
+var ParityNone = 0;
+var ParityOne  = 1;
+var ParityZero = 2;
+var ParityOdd  = 3;
+var ParityEven = 4;
 
 
 
@@ -133,6 +129,306 @@ var Parity = {
  *
  */
 function RttyMode(par) {
+    "use strict";
+    FskBase.call(this, par, 1000.0);
+    var self = this;
+
+    this.properties = {
+        name : "rtty",
+        tooltip: "radio teletype",
+        controls : [
+            {
+            name: "rate",
+            type: "choice",
+            tooltip: "rtty baud rate",
+            get value() { return self.getRate(); },
+            set value(v) { self.setRate(parseFloat(v)); },
+            values : [
+                { name :  "45", value :  45.00 },
+                { name :  "50", value :  50.00 },
+                { name :  "75", value :  75.00 },
+                { name : "100", value : 100.00 }
+                ]
+            },
+            {
+            name: "shift",
+            type: "choice",
+            tooltip: "frequency distance between mark and space",
+            get value() { return self.getShift(); },
+            set value(v) { self.setShift(parseFloat(v)); },
+            values : [
+                { name :  "85", value :  85.0 },
+                { name : "170", value : 170.0 },
+                { name : "450", value : 450.0 },
+                { name : "850", value : 850.0 }
+                ]
+             },
+            {
+            name: "inv",
+            type: "boolean",
+            get value() { return self.getInverted(); },
+            set value(v) { self.setInverted(v); }
+            },
+            {
+            name: "UoS",
+            type: "boolean",
+            get value() { return self.getUnshiftOnSpace(); },
+            set value(v) { self.setUnshiftOnSpace(v); }
+            }
+        ]
+    };
+
+    var unshiftOnSpace = false;
+    this.getUnshiftOnSpace = function() {
+        return unshiftOnSpace;
+    };
+    this.setUnshiftOnSpace = function(v) {
+        unshiftOnSpace = v;
+    };
+
+    var inverted = false;
+    this.getInverted = function() {
+        return inverted;
+    };
+    this.setInverted = function(v) {
+        inverted = v;
+    };
+
+    this.setRate(45.0); //makes all rate/shift dependent vars initialize
+
+    var parityType = ParityNone;
+
+    function countbits(n) {
+        var c = 0;
+        while (n) {
+            n &= n-1;
+            c++;
+        }
+        return c;
+    }
+
+    function parityOf(c) {
+        switch (parityType) {
+            case ParityOdd  : return (countbits(c) & 1) !== 0;
+            case ParityEven : return (countbits(c) & 1) === 0;
+            case ParityZero : return false;
+            case ParityOne  : return true;
+            default         : return false;   //None or unknown
+        }
+    }
+
+
+    var RxIdle   = 0;
+    var RxData   = 1;
+    var RxStop   = 2;
+    var RxStop2  = 3;
+    var RxParity = 4;
+
+    var state     = RxIdle;
+    var bitcount  = 0;
+    var code      = 0;
+    var parityBit = false;
+    var bitMask   = 0;
+
+    this.processBit = function(inbit) {
+
+        var bit = inbit ^ inverted; //LSB/USB flipping
+
+        switch (state) {
+
+            case RxIdle :
+                //trace("RxIdle")
+                if (!bit) {
+                    state     = RxData;
+                    code      = 0;
+                    parityBit = false;
+                    bitMask   = 1;
+                    bitcount  = 0;
+                }
+                break;
+            case RxData :
+                //trace("RxData")
+                if (bit) code += bitMask;
+                bitMask <<= 1;
+                if (++bitcount >= 5) {// todo:  or zero or 1
+                    state = (parityType === ParityNone) ? RxStop : RxParity;
+                }
+                break;
+            case RxParity :
+                //trace("RxParity")
+                state     = RxStop;
+                parityBit = bit;
+                break;
+            case RxStop :
+                //trace("RxStop")
+                if (bit) {
+                    outCode(code);
+                    state = RxStop2;
+                }
+                break;
+            case RxStop2 :
+                //trace("RxStop2")
+                state = RxIdle;
+                break;
+            }
+    }; // processBit
+    
+    
+
+    var shifted = false;
+
+    function reverse(v, size) {
+        var a = v;
+        var b = 0;
+        while (size--) {
+            b += a & 1;
+            b <<= 1;
+            a >>= 1;
+        }
+        return b;
+    }
+
+    var cntr = 0;
+    var bitinverter = 0;
+
+    //cache a copy of these here
+    var NUL   = Baudot.baudControl.NUL;
+    var SPACE = Baudot.baudControl.SPACE;
+    var CR    = Baudot.baudControl.CR;
+    var LF    = Baudot.baudControl.LF;
+    var LTRS  = Baudot.baudControl.LTRS;
+    var FIGS  = Baudot.baudControl.FIGS;
+
+    
+    function outCode(rawcode) {
+
+        //println("raw:" + rawcode)
+        var code = rawcode & 0x1f;
+        if (code !== 0) {
+            if (code === FIGS)
+                shifted = true;
+            else if (code === LTRS)
+                shifted = false;
+            else if (code === SPACE) {
+                par.puttext(" ");
+                if (self.unshiftOnSpace)
+                    shifted = false;
+            }
+            else if (code === CR || code === LF) {
+                par.puttext("\n");
+                if (self.unshiftOnSpace)
+                    shifted = false;
+            }
+            var v = Baudot.baudCodeToSym[code];
+            if (v) {
+                var c = (shifted) ? v[1] : v[0];
+                if (c !== 0)
+                    par.puttext(c);
+                }
+            }
+
+        }
+
+    //################################################
+    //# T R A N S M I T
+    //################################################
+    /*
+    var txShifted = false;
+    function txencode(str) {
+        var buf = [];
+        var chars = str.split("");
+        var len = chars.length;
+        for (var cn=0 ; cn<len ; cn++) {
+            var c = chars[cn];
+            if (c === ' ')
+                buf.push(SPACE);
+            else if (c === '\n')
+                buf.push(LF);
+            else if (c === '\r')
+                buf.push(CR);
+            else {
+                var uc = c.toUpper;
+                var code = Baudot.baudLtrsToCode[uc];
+                if (code) {
+                    if (txShifted) {
+                        txShifted = false;
+                        buf.push(LTRS);
+                    }
+                buf.push(code)
+                } else {
+                    code = Baudot.baudFigsToCode[uc];
+                    if (code) {  //check for zero?
+                        if (!txShifted) {
+                            txShifted = true;
+                            buf.push(FIGS);
+                        }
+                        buf.push(code);
+                    }
+                }
+            }
+        }
+        return buf;
+    }
+
+    function txnext() {
+        //var str = "the quick brown fox 1a2b3c4d"
+        var str = par.gettext;
+        var codes = txencode(str);
+        return codes;
+    }
+
+
+    var desiredOutput = 4096;
+
+    */
+    /**
+     * Overridden from Mode.  This method is called by
+     * the audio interface when it needs a fresh buffer
+     * of sampled audio data at its sample rate.  If the
+     * mode has no current data, then it should send padding
+     * in the form of what is considered to be an "idle" signal
+     */
+     /*
+    this.transmit = function() {
+
+        var symbollen = samplesPerSymbol;
+        var buf = [];
+        var codes = txnext();
+        var len = codes.length;
+        for (var idx = 0 ; idx < len ; idx++) {
+            var code = codes[i];
+            for (var s=0 ; s<symbollen ; s++) buf.push(spaceFreq);
+            var mask = 1;
+            for (var ib=0 ; ib < 5 ; ib++) {
+                var bit = (code & mask) === 0;
+                var f = (bit) ? spaceFreq : markFreq;
+                for (j=0 ; j < symbollen ; j++) buf.push(f);
+                mask <<= 1;
+                }
+            for (var s2=0 ; s2<symbollen ; s2++) buf.push(spaceFreq);
+            }
+
+        var pad = desiredOutput - buf.length;
+        while (pad--)
+            buf.push(spaceFreq);
+        //var res = buf.toArray.map(txlpf.update)
+        //todo
+    };
+    */
+
+}// RttyMode
+
+/**
+ * Mode for Radio teletype.  Sends a standard
+ * async code with a start bit, 5 data bits and
+ * a stop bit.  Whether a parity bit is sent or
+ * interpreted should be adjustable.
+ *
+ * @see http://en.wikipedia.org/wiki/Radioteletype
+ * @see http://en.wikipedia.org/wiki/Asynchronous_serial_communication
+ *
+ */
+function RttyMode_orig(par) {
     "use strict";
     Mode.call(this, par, 1000.0);
     var self = this;
@@ -563,5 +859,7 @@ function RttyMode(par) {
     */
 
 }// RttyMode
+
+
 
 module.exports.RttyMode = RttyMode;

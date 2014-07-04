@@ -20,6 +20,7 @@
 
 var Mode    = require("./mode").Mode;
 var FIR     = require("../filter").FIR;
+var Biquad  = require("../filter").Biquad;
 var Complex = require("../math").Complex;
 
 
@@ -66,15 +67,17 @@ function FskBase(par, sampleRateHint) {
     function adjust() {
         sf = FIR.bandpass(13, -0.75 * shiftval, -0.25 * shiftval, self.getSampleRate());
         mf = FIR.bandpass(13,  0.25 * shiftval,  0.75 * shiftval, self.getSampleRate());
-        dataFilter = FIR.boxcar(self.getSamplesPerSymbol()|0);
+        dataFilter = FIR.boxcar((self.getSamplesPerSymbol() * 1.4)|0 );
+        //dataFilter = FIR.lowpass(13, self.getRate() * 0.5, self.getSampleRate());
+        //dataFilter = Biquad.lowPass(self.getRate() * 0.5, self.getSampleRate());
         symbollen = self.getSamplesPerSymbol() | 0;
         halfSym = symbollen >> 1;
     }
 
     this.status("sampleRate: " + this.getSampleRate() + " samplesPerSymbol: " + this.getSamplesPerSymbol());
 
-    var loHys = -0.5;
-    var hiHys =  0.5;
+    var loHys = -2.0;
+    var hiHys =  2.0;
     var bit = false;
     var lastBit = false;
     var lastval = new Complex(0,0);
@@ -122,7 +125,9 @@ function FskBase(par, sampleRateHint) {
     var scnt = 0;
     var sx = -1;
     function scopeOut(v) {
-        scopedata[scnt++] = [sx, Math.log(v + 1)*0.25];
+        var sign = (v>0) ? 1 : -1;
+        var scalar = Math.log(Math.abs(v) + 1)*0.25;
+        scopedata[scnt++] = [sx, sign * scalar];
         sx += 0.01;
         if (scnt >= SSIZE) {
             scnt = 0;

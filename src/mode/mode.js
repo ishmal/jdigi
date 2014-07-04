@@ -17,11 +17,11 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-var Resampler = require("./resample").Resampler;
-var ResamplerX = require("./resample").ResamplerX;
-var Nco = require("./nco").Nco;
-var Constants = require("./constants").Constants;
-var Biquad = require("./filter").Biquad;
+var Resampler = require("../resample").Resampler;
+var ResamplerX = require("../resample").ResamplerX;
+var Nco = require("../nco").Nco;
+var Constants = require("../constants").Constants;
+var Biquad = require("../filter").Biquad;
 
 function Mode(par, sampleRateHint) {
     "use strict";

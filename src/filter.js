@@ -38,10 +38,12 @@ var FIR = (function() {
         for (var i=0 ; i<size ; i++) {
             var v = func(i-center) * W[i];
             sum += v;
-            arr.push(v);
+            arr[arr.length] = v;
         }
-        for (var j=0 ; j<size ; j++)
+        for (var j=0 ; j<size ; j++) {
             arr[j] /= sum;
+            //console.log("coeff " + j + " : " + arr[j]);
+        }
         return arr;
     }
 
