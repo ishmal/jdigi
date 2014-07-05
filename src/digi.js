@@ -28,6 +28,7 @@ var PskMode = require("./mode/psk").PskMode;
 var PskMode2 = require("./mode/psk").PskMode2;
 var RttyMode = require("./mode/rtty").RttyMode;
 var PacketMode = require("./mode/packet").PacketMode;
+var NavtexMode = require("./mode/navtex").NavtexMode;
 var Watcher = require("./watch").Watcher;
 
 
@@ -65,11 +66,12 @@ function Digi() {
     var pskMode = new PskMode2(this);
     var rttyMode = new RttyMode(this);
     var packetMode = new PacketMode(this);
+    var navtexMode = new NavtexMode(this);
     var mode = pskMode;
-    this.modes = [pskMode, rttyMode, packetMode];
+    this.modes = [pskMode, rttyMode, packetMode, navtexMode];
     this.setMode = function(v) {
         mode = v;
-        this.status("mode switched");
+        //this.status("mode switched");
     };
     this.getMode = function() {
         return mode;

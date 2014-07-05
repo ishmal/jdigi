@@ -186,14 +186,6 @@ function RttyMode(par) {
         unshiftOnSpace = v;
     };
 
-    var inverted = false;
-    this.getInverted = function() {
-        return inverted;
-    };
-    this.setInverted = function(v) {
-        inverted = v;
-    };
-
     this.setRate(45.0); //makes all rate/shift dependent vars initialize
 
     var parityType = ParityNone;
@@ -230,9 +222,7 @@ function RttyMode(par) {
     var parityBit = false;
     var bitMask   = 0;
 
-    this.processBit = function(inbit) {
-
-        var bit = inbit ^ inverted; //LSB/USB flipping
+    this.processBit = function(bit) {
 
         switch (state) {
 

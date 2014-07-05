@@ -46,6 +46,15 @@ function FskBase(par, sampleRateHint) {
         shiftval = v;
         adjust();
     };
+    
+    var inverted = false;
+    this.setInverted = function(v) {
+        inverted = v;
+    };
+    
+    this.getInverted = function() {
+        return inverted;
+    };
 
     this.getBandwidth = function() { return shiftval; };
 
@@ -111,6 +120,8 @@ function FskBase(par, sampleRateHint) {
         
         samplesSinceChange = (bit === lastBit) ? samplesSinceChange + 1 : 0;
         lastBit = bit;
+        
+        bit = bit ^ inverted; //user-settable
         
         if ((samplesSinceChange % symbollen) === halfSym) {
             self.processBit(bit);
