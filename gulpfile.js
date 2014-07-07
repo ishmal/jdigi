@@ -1,6 +1,6 @@
 var gulp       = require('gulp');
 var browserify = require('gulp-browserify');
-var clean      = require('gulp-clean');
+var rimraf     = require('gulp-rimraf');
 var concat     = require('gulp-concat');
 var jshint     = require('gulp-jshint');
 var mocha      = require('gulp-mocha');
@@ -36,7 +36,7 @@ gulp.task('copy', function() {
 
 gulp.task('clean', function () {
   return gulp.src('dist/*', {read: false})
-    .pipe(clean());
+    .pipe(rimraf());
 });
 gulp.task('default', ['jshint', 'build', 'copy']);
 gulp.task('test', ['jshint', 'mocha'])

@@ -12,7 +12,7 @@
     "angularjs": "0.0.1",
     "gulp": "^3.8.5",
     "gulp-browserify": "^0.5.0",
-    "gulp-clean": "^0.2.4",
+    "gulp-rimraf": "^0.1.0",
     "gulp-concat": "^2.2.0",
     "gulp-jshint": "^1.6.4",
     "gulp-mocha": "^0.4.1",
