@@ -104,11 +104,12 @@ function Digi() {
         watcher.setUseQrz(v);
     };
 
+    var txmode = false;
     this.getTxMode = function() {
-        return false;
+        return txmode;
     };
     this.setTxMode = function(v) {
-        //dostuff
+        txmode = v;
     };
 
 	this.tuner = {
@@ -187,11 +188,11 @@ function Digi() {
     };
 
 
-    function transmit(data) {
+    this.transmit = function(data) {
 
 
-    }
-
+    };
+    
 
 
     function start() {

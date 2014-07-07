@@ -17,7 +17,7 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-var Mode    = require("./mode").Mode;
+var FskBase = require("./fsk").FskBase;
 var FIR     = require("../filter").FIR;
 var Biquad  = require("../filter").Biquad;
 var Complex = require("../math").Complex;
@@ -308,7 +308,7 @@ var Packets = {
  */    
 function PacketMode(par) {
     "use strict";
-    Mode.call(this, par, 4800.0); //inherit
+    FskBase.call(this, par, 4800.0); //inherit
     var self = this;
     
     this.properties = {
@@ -342,109 +342,14 @@ function PacketMode(par) {
     
     
      
-    var shift = 200.0;
-    
-    this.getShift = function() {
-        return shift;
-    };
-    
-    this.setShift = function(v) {
-        shift = v;
-        adjust();
-    };
-
-    var super_setRate = this.setRate;
-    this.setRate = function(rate) {
-        super_setRate(rate);
-        adjust();
-    };
-
+    this.setShift(200.0);
     this.setRate(300.0);
     
-    this.getBandwidth = function() {
-        return shift;
-    };
     
-    var twopi = 2.0 * Math.PI;
-    
-    var spaceFreq, markFreq;
-    var symbollen, halfSym;
-    var mf, sf;
-    var dataFilter;
-    var txlpf;
-    
-    function adjust() {
-        sf = FIR.bandpass(13,  -1.0 * shift,  -0.0 * shift, self.getSampleRate());
-        mf = FIR.bandpass(13,  0.0  * shift,   1.0 * shift, self.getSampleRate());
-        spaceFreq = new Complex(twopi * (-shift * 0.5) / self.getSampleRate());
-        markFreq  = new Complex(twopi * ( shift * 0.5) / self.getSampleRate());
-        //dataFilter = Iir2.lowPass(rate, self.getSampeRate());
-        dataFilter = FIR.boxcar(self.getSamplesPerSymbol() | 0);
-        txlpf = FIR.lowpass(31,  shift * 0.5, self.getSampleRate());
-        symbollen = self.getSamplesPerSymbol() | 0;
-        halfSym = symbollen >> 1;
-    }
-        
-
-    
-    var loHys = -2.0;
-    var hiHys =  2.0;
-
-    var sym     = false; 
-    var lastSym = false;  
-    var samplesSinceTransition = 0;
-
-    var lastVal = new Complex(0.0);
-
     function trace(msg) {
         console.log(msg);
     }
     
-    /**
-     * Basic receive function for all modes
-     */         
-    this.receive = function(isample) {
-
-        var space  = sf.updatex(isample);
-        var mark   = mf.updatex(isample);
-        var sample = space.add(mark);
-        var prod   = sample.mul(lastVal.conj());
-        lastVal    = sample;
-        var demod  = prod.arg();
-        var comp   = (demod > 0) ? 10.0 : -10.0;
-        var sig    = dataFilter.update(comp);
-        //trace("sig:" + sig + "  comp:" + comp);
-
-        scopeOut(sig);
-
-        //trace("sig:" + sig);
-        if (sig > hiHys) {
-            sym = false;
-        } else if (sig < loHys) {
-            sym = true;
-        }
-
-        //trace("a:" +samplesSinceTransition + "," + halfSym );
-        samplesSinceTransition = (sym !== lastSym) ? 0 : samplesSinceTransition+1;
-        lastSym = sym;
-        if ((samplesSinceTransition % symbollen) === halfSym)
-            process(sym);
-    };
- 
-    var SSIZE = 200;
-    var scopedata = new Array(SSIZE);
-    var scnt = 0;
-    var sx = -1;
-    function scopeOut(v) {
-        scopedata[scnt++] = [sx, Math.log(v + 1)*0.25];
-        sx += 0.01;
-        if (scnt >= SSIZE) {
-            scnt = 0;
-            sx = -1;
-            par.showScope(scopedata);
-            scopedata = new Array(SSIZE);
-        }
-    }
 
     var RxStart = 0;  //the initial state
     var RxTxd   = 1;  //after the first flag, wait until no more flags
@@ -474,7 +379,7 @@ function PacketMode(par) {
      * 01111110 76543210 76543210 76543210 01234567 01234567 01111110
      *   flag    octet     octet   octet    fcs_hi   fcs_lo    flag
      */
-    function process(inBit) {
+    this.processBit = function(inBit) {
 
         //shift right for the next bit, since ax.25 is lsb-first
         octet = (octet >> 1) & 0x7f;  //0xff? we dont want the msb
@@ -548,7 +453,7 @@ function PacketMode(par) {
                 //dont know
                    
         }//switch
-    }
+    };
     
 
     var crc = new Crc();
@@ -556,7 +461,7 @@ function PacketMode(par) {
     function rawPacket(ibytes, offset, len) {
         var str = "";
         for (var i=0 ; i<len ; i++) {
-            var b = (ibytes[offset + i]) >> 1;
+            var b = (ibytes[offset + i]); // >> 1;
             str += String.fromCharCode(b);
         }
         return str;
