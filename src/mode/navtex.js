@@ -319,4 +319,4 @@ function NavtexMode(par) {
 
 
 
-module.exports.NavtexMode = NavtexMode;
+export {NavtexMode};
