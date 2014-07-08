@@ -40,15 +40,19 @@ export function Digi() {
         if (typeof console !== "undefined")
             console.log("Digi: " + msg);
     }
+    this.trace = trace;
 
     function error(msg) {
         if (typeof console !== "undefined")
             console.log("Digi error: " + msg);
     }
+    this.error = error;
 
-    this.status = function(str) {
-        console.log("status: " + str);
-    };
+    function status(str) {
+        if (typeof console !== "undefined")
+            console.log("status: " + str);
+    }
+    this.status = status;
 
     var audioInput = new AudioInput(this);
     this.getSampleRate = function() {

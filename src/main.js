@@ -124,11 +124,17 @@ app.directive("jdigiStatus",  function(){
                 field.html("");
             }
             var timeout = 0;
-			scope.digi.status = function(str) {
-            console.log("setting status: " + str);
+			function statout(str) {
+                //console.log("setting status: " + str);
 				field.html(str);
                 clearTimeout(timeout);
                 timeout = setTimeout(clear, 10000);
+			}
+			scope.digi.status = function(str) {
+			    statout(str);
+			};
+			scope.digi.error = function(str) {
+			    statout("error: " + str);
 			};
 		}//link
 	};
