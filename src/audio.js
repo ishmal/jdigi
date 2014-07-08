@@ -17,11 +17,15 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-var Resampler = require("./resample").Resampler;
+ //"use strict";
+ 
+ /* global window */
+ 
+import {Resampler} from "./resample";
 
 
 
-window.AudioContext = window.AudioContext || window.webkitAudioContext;
+var AudioContext = window.AudioContext || window.webkitAudioContext;
 navigator.getUserMedia = navigator.getUserMedia ||
                          navigator.webkitGetUserMedia ||
                          navigator.mozGetUserMedia ||
@@ -29,7 +33,6 @@ navigator.getUserMedia = navigator.getUserMedia ||
 
 
 function AudioInput(par) {
-    "use strict";
     var self = this;
 
     //Chrome workaround.  Keep a ref to a scriptprocessor node to prevent gc.
@@ -99,7 +102,6 @@ function AudioInput(par) {
  * Getting this to work with interpolation isn't easy
  */
 function AudioOutput(par) {
-    "use strict";
     var self = this;
 
     var scriptNodes = {};
@@ -152,8 +154,7 @@ function AudioOutput(par) {
        
 } //AudioOutput
 
-module.exports.AudioInput = AudioInput;
-module.exports.AudioOutput = AudioOutput;
+export {AudioInput, AudioOutput};
 
 
 

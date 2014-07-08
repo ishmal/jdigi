@@ -17,12 +17,10 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-var Digi  = require("./digi").Digi;
-
-
+/**
+ * @param par Digi
+ */
 function Watcher(par) {
-    "use strict";
-
     //This regex's groups are prefix, digit, suffix
     var prefix = "([A-Z]{1,2}|[0-9][A-Z]|[A-Z][0-9])";
     var digits = "([0-9])";
@@ -106,6 +104,7 @@ function Watcher(par) {
     };
 }
 
-module.exports.Watcher = Watcher;
+export {Watcher};
+
 
 

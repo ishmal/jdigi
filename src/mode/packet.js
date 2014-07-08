@@ -17,10 +17,9 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-var FskBase = require("./fsk").FskBase;
-var FIR     = require("../filter").FIR;
-var Biquad  = require("../filter").Biquad;
-var Complex = require("../math").Complex;
+import {FskBase} from "./fsk";
+import {Biquad,FIR} from "../filter";
+import {Complex} from "../math";
 
 
 /**
@@ -307,7 +306,6 @@ var Packets = {
  * @see http://www.tapr.org/pub_ax25.html
  */    
 function PacketMode(par) {
-    "use strict";
     FskBase.call(this, par, 4800.0); //inherit
     var self = this;
     
@@ -584,7 +582,7 @@ function PacketMode(par) {
 
 }
 
-module.exports.Crc = Crc;
-module.exports.PacketMode = PacketMode;
+export {Crc,PacketMode};
+
 
 

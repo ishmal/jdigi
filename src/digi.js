@@ -17,27 +17,22 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
  
-var Constants = require("./constants").Constants;
-
-var FFT = require("./fft").FFT;
-var FFTSR = require("./fft").FFTSR;
-
-var AudioInput = require("./audio").AudioInput;
-var Mode = require("./mode/mode").Mode;
-var PskMode = require("./mode/psk").PskMode;
-var PskMode2 = require("./mode/psk").PskMode2;
-var RttyMode = require("./mode/rtty").RttyMode;
-var PacketMode = require("./mode/packet").PacketMode;
-var NavtexMode = require("./mode/navtex").NavtexMode;
-var Watcher = require("./watch").Watcher;
-
+import {Constants} from "./constants";
+import {FFT,FFTSR} from "./fft";
+import {AudioInput} from "./audio";
+import {Mode} from "./mode/mode";
+import {PskMode,PskMode2} from "./mode/psk";
+import {RttyMode} from "./mode/rtty";
+import {PacketMode} from "./mode/packet";
+import {NavtexMode} from "./mode/navtex";
+import {Watcher} from "./watch";
 
 
 
 /**
  * This is the top-level GUI-less app.  Extend this with a GUI.
  */
-function Digi() {
+export function Digi() {
 
     var self = this;
 
@@ -207,4 +202,4 @@ function Digi() {
 
 } //Digi
 
-module.exports.Digi=Digi;
+

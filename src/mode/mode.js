@@ -17,14 +17,13 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-var Resampler = require("../resample").Resampler;
-var ResamplerX = require("../resample").ResamplerX;
-var Nco = require("../nco").Nco;
-var Constants = require("../constants").Constants;
-var Biquad = require("../filter").Biquad;
+import {Resampler,ResamplerX} from "../resample";
+import {Nco} from "../nco";
+import {Constants} from "../constants";
+import {Biquad} from "../filter";
+
 
 function Mode(par, sampleRateHint) {
-    "use strict";
 
     var self = this;
 
@@ -106,15 +105,15 @@ function Mode(par, sampleRateHint) {
         useAfc = v;
     };
 
-    var decimator = new ResamplerX(decimation);
-    var interpolator = new Resampler(decimation);
+    var decimator    = new ResamplerX(decimation);
+    var interpolator = new ResamplerX(decimation);
 
     var nco = new Nco(this.getFrequency(), par.getSampleRate());
 
 
 
     //#######################
-    //# RECEIVE
+    //# R E C E I V E
     //#######################
     
     this.receiveFft = function(ps) {
@@ -137,6 +136,24 @@ function Mode(par, sampleRateHint) {
     this.receive = function(v) {
     };
 
+    
+    //#######################
+    //# T R A N S M I T
+    //#######################
+    
+    this.interpbuf = new Array(decimation);
+    
+    this.getTransmitData = function() {
+    
+        var dat = this.getBasebandData();
+        var dlen = dat.length;
+        for (var i=0 ; i<dlen ; i++) {
+            interpolator.interpolate(dat[i], interpbuf);
+        }
+    };
+    
+
 }
 
-module.exports.Mode = Mode;
+export {Mode};
+

@@ -17,12 +17,11 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-var Complex = require("./math").Complex;
-var Window  = require("./window").Window;
+import {Complex} from "./math";
+import {Window} from "./window";
 
 var FIR = (function() {
 
-    
     function boxcar(size) {
         var xs = [];
         for (var i=0 ; i < size ; i++)
@@ -49,11 +48,8 @@ var FIR = (function() {
 
     function FIRCalc(size, coeffs) {
         var sizeless = size-1;
-        var dlr = [];
-        var dli = [];
-        for (var di=0 ; di<size ; di++) {
-            dlr.push(0); dli.push(0);
-        }
+        var dlr = new Array(size);
+        var dli = new Array(size);
         var dptr = 0;
     
         this.update = function(v) {
@@ -150,7 +146,6 @@ var FIR = (function() {
  * A biquad filter
  * @see http://en.wikipedia.org/wiki/Digital_biquad_filter
  */
-
 var Biquad = (function() {
 
     function Filter(b0, b1, b2, a1, a2) {
@@ -242,5 +237,5 @@ var Biquad = (function() {
 
 
 
-module.exports.FIR = FIR;
-module.exports.Biquad = Biquad;
+export {FIR, Biquad};
+

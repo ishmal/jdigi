@@ -17,7 +17,8 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-var Constants = require("./constants").Constants;
+import {Constants} from "./constants";
+
 
 /**
  * Provides a Waterfall display and tuning interactivity
@@ -25,8 +26,6 @@ var Constants = require("./constants").Constants;
  * @canvas the canvas to use for drawing
  */
 function Tuner(par, canvas) {
-    "use strict";
-
     var self = this;
 
     window.requestAnimationFrame =
@@ -352,4 +351,5 @@ function Tuner(par, canvas) {
 
 } //Tuner
 
-module.exports.Tuner = Tuner;
+export {Tuner};
+

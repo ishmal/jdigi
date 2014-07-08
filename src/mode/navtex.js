@@ -18,9 +18,7 @@
  */
 
 
-var FskBase = require("./fsk").FskBase;
-var FIR     = require("../filter").FIR;
-var Complex = require("../math").Complex;
+import {FskBase} from "./fsk";
 
 var CCIR = (function() {
 
@@ -80,7 +78,6 @@ var CCIR = (function() {
  *
  */
 function NavtexMode(par) {
-    "use strict";
     FskBase.call(this, par, 1000.0);
     var self = this;
 

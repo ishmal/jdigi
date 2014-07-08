@@ -17,9 +17,9 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-var Mode    = require("./mode").Mode;
-var FIR     = require("../filter").FIR;
-var Biquad  = require("../filter").Biquad;
+import {Mode} from "./mode";
+import {FIR, Biquad} from "../filter";
+
 
 /**
  * This contains the definitions of the bit patterns for the Varicode set
@@ -245,7 +245,6 @@ function EarlyLate(samplesPerSymbol) {
  * Phase Shift Keying mode.
  */
 function PskMode(par) {
-    "use strict";
     Mode.call(this, par, 2000); //inherit
     var self = this;
 
@@ -447,7 +446,6 @@ function PskMode(par) {
  * Phase Shift Keying mode.
  */
 function PskMode2(par) {
-    "use strict";
     Mode.call(this, par, 1000); //inherit
     var self = this;
 
@@ -666,5 +664,5 @@ function PskMode2(par) {
 
 
 
-module.exports.PskMode = PskMode;
-module.exports.PskMode2 = PskMode2;
+export {PskMode,PskMode2};
+

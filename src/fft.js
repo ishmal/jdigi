@@ -17,9 +17,9 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+import {Complex} from "./math";
+import {Window} from "./window";
 
-var Complex = require("./math").Complex;
-var Window = require("./window").Window;
 
 /**
  * Perform a relatively-efficient FFT
@@ -144,7 +144,6 @@ function FFT(N) {
  * Finally got split radix to work!
  */
 function FFTSR(N) {
-    "use strict";
 
     var power = (Math.log(N) / Math.LN2) | 0;
     var N2 = N >> 1;
@@ -409,7 +408,6 @@ function SimpleGoertzel(frequency, binWidth, sampleRate) {
 
 
 
-module.exports.FFT=FFT;
-module.exports.FFTSR=FFTSR;
-module.exports.SimpleGoertzel=SimpleGoertzel;
+export {FFT,FFTSR,SimpleGoertzel};
+
 

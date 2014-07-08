@@ -17,15 +17,13 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-var Complex = require("./math").Complex;
+import {Complex} from "./math";
 
 /**
  * A highly experimental resampler with hardcoded calculations
  */
 function Resampler(decimation) {
-    
-   "use strict";
-    
+ 
     //#########################################################
     //###  DECIMATION : 2
     //#########################################################
@@ -420,8 +418,6 @@ function Resampler(decimation) {
  */
 function ResamplerX(decimation) {
 
-    "use strict";
-
     var rsamp = new Resampler(decimation);
     var isamp = new Resampler(decimation);
     var tmpr = 0;
@@ -449,8 +445,8 @@ function ResamplerX(decimation) {
 
 }
 
-module.exports.Resampler = Resampler;
-module.exports.ResamplerX = ResamplerX;
+export {Resampler, ResamplerX};
+
 
 
 

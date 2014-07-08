@@ -77,5 +77,6 @@ var Window = {
 
 };
 
-module.exports.Window = Window;
+export {Window};
+
 

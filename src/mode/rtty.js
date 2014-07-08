@@ -17,10 +17,10 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+import {FskBase} from "./fsk";
+import {FIR} from "../filter";
+import {Complex} from "../math";
 
-var FskBase = require("./fsk").FskBase;
-var FIR     = require("../filter").FIR;
-var Complex = require("../math").Complex;
 
 
 /**
@@ -94,7 +94,6 @@ var ParityEven = 4;
  *
  */
 function RttyMode(par) {
-    "use strict";
     FskBase.call(this, par, 1000.0);
     var self = this;
 
@@ -370,4 +369,5 @@ function RttyMode(par) {
 
 
 
-module.exports.RttyMode = RttyMode;
+export {RttyMode};
+

@@ -17,8 +17,9 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-var Tuner = require("./tuner").Tuner;
-var Digi  = require("./digi").Digi;
+import {Digi} from "./digi";
+import {Tuner} from "./tuner";
+
 
 
 var app = angular.module('JdigiApp',['ui.bootstrap']);

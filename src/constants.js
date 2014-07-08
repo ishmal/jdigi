@@ -22,4 +22,5 @@ var Constants = {
     BINS     : 1024
 };
 
-module.exports.Constants=Constants;
+export {Constants};
+

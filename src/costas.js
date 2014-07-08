@@ -17,8 +17,8 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-var Complex = require("./math").Complex;
-var Biquad = require("./filter").Biquad;
+import Complex from "./math";
+import Biquad from "./filter";
 
 
 var cossinTable = (function() {
@@ -57,8 +57,6 @@ function LowPassIIR(cutoff, sampleRate) {
  * frequency and data rate
  */
 function CostasIIR(frequency, dataRate, sampleRate) {
-    "use strict";
-
     var freq = 0;
     var err  = 0;
     var phase = 0|0;
@@ -109,8 +107,6 @@ function CostasIIR(frequency, dataRate, sampleRate) {
  * http://www.trondeau.com/blog/2011/8/13/control-loop-gain-values.html
  */
 function Costas_old(frequency, dataRate, sampleRate) {
-    "use strict";
-
     var err   = 0;
     var alpha = 0;
     var beta  = 0;
@@ -173,8 +169,6 @@ function Costas_old(frequency, dataRate, sampleRate) {
 
 
 function Costas(frequency, dataRate, sampleRate) {
-    "use strict";
-
     var err     = 0;
     var bw      = 2.0 * Math.PI / 200;
     var damp    = 0.707;
@@ -252,7 +246,8 @@ function Costas(frequency, dataRate, sampleRate) {
 }
 
 
-module.exports.Costas = Costas;
+export {Costas};
+
 
 
 

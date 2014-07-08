@@ -17,12 +17,9 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-var Mode    = require("./mode").Mode;
-var FIR     = require("../filter").FIR;
-var Biquad  = require("../filter").Biquad;
-var Complex = require("../math").Complex;
-
+import {Mode} from "./mode";
+import {Biquad,FIR} from "../filter";
+import {Complex} from "../math";
 
 
 
@@ -32,7 +29,6 @@ var Complex = require("../math").Complex;
  * @see http://en.wikipedia.org/wiki/Asynchronous_serial_communication
  */
 function FskBase(par, sampleRateHint) {
-    "use strict";
     Mode.call(this, par, sampleRateHint);
     var self = this;
 
@@ -150,4 +146,5 @@ function FskBase(par, sampleRateHint) {
 
 }// FskBase
 
-module.exports.FskBase = FskBase;
+export {FskBase};
+

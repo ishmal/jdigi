@@ -17,8 +17,7 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-var Complex = require("./math").Complex;
+import {Complex} from "./math";
 
 var ncoTable = (function() {
 
@@ -80,7 +79,7 @@ function Nco(frequency, sampleRate) {
         
 }
 
-module.exports.Nco = Nco;
+export {Nco};
 
 
 
