@@ -141,7 +141,7 @@ function FFT(N) {
 
 
 /**
- * Finally got split radix to work!
+ * Perform a very efficient FFT.  Split Radix!
  */
 function FFTSR(N) {
 
@@ -191,17 +191,36 @@ function FFTSR(N) {
     var xr = new Array(N);
     var xi = new Array(N);
     
-    
-    function apply(input) {
-        var ix, id, i0, i1, i2, i3;
-        var j,k;
-        var tr, ti, tr0, ti0, tr1, ti1;
-        var n2, n4;
 
+    /**
+     * Real samples
+     */
+    function apply(input) {
         for (var idx=0 ; idx<N ; idx++) {
             xr[idx] = input[idx]; // * W[idx];
             xi[idx] = 0;
         }
+        compute();
+    }
+    
+    /**
+     * Complex samples
+     */
+    function applyX(input) {
+        for (var idx=0 ; idx<N ; idx++) {
+            var cx = input[idx];
+            xr[idx] = cx.r; // * W[idx];
+            xi[idx] = cx.i;
+        }
+        compute();
+    }
+    
+    
+    function compute() {
+        var ix, id, i0, i1, i2, i3;
+        var j,k;
+        var tr, ti, tr0, ti0, tr1, ti1;
+        var n2, n4;
 
         var stageidx = 0;
 
@@ -316,12 +335,9 @@ function FFTSR(N) {
     }//apply
 
 
-    function powerSpectrum(input) {
-
-        apply(input);
+    function computePowerSpectrum() {
         var len = N2;
         var indices = bitReversedIndices;
-
         var ps = new Array(len);
         for (var j=0 ; j<len ; j++) {
             var bri = indices[j];
@@ -331,7 +347,18 @@ function FFTSR(N) {
         }
         return ps;
     }
+
+    function powerSpectrum(input) {
+        apply(input);
+        return computePowerSpectrum();
+    }
     this.powerSpectrum = powerSpectrum;
+
+    function powerSpectrumX(input) {
+        applyX(input);
+        return computePowerSpectrum();
+    }
+    this.powerSpectrumX = powerSpectrumX;
 
 
 } //FFTSR

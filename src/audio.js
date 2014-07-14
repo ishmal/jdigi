@@ -70,8 +70,9 @@ function AudioInput(par) {
         inputNode.onaudioprocess = function(e) {
             var input  = e.inputBuffer.getChannelData(0);
             var len = input.length;
+            var d = decimator;
             for (var i=0 ; i < len ; i++) {
-                decimator.decimate(input[i], par.receive);
+                d.decimate(input[i], par.receive);
             }
         };
     

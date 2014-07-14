@@ -33,6 +33,8 @@ function Resampler(decimation) {
     var c0203 = 0.452254;
     var c0204 = 0.109973;
     var c0205 = 0.00000;
+    var d21 = c0201 + c0203;
+    var d22 =         c0202 + c0204;
 
     //#########################################################
     //###  DECIMATION : 3
@@ -46,6 +48,9 @@ function Resampler(decimation) {
     var c0306 = 0.106103;
     var c0307 = 0.00932308;
     var c0308 = -0.00000;
+    var d31 = c0301 + c0303;
+    var d32 = c0302 + c0304 + c0306;
+    var d33 =         c0305 + c0307;
 
     //#########################################################
     //###  DECIMATION : 4
@@ -62,6 +67,10 @@ function Resampler(decimation) {
     var c0409 = 0.0219296;
     var c0410 = 7.73526e-19;
     var c0411 = -0.00000;
+    var d41 = c0401 + c0404;
+    var d42 = c0402 + c0405 + c0408;
+    var d43 = c0403 + c0406 + c0409;
+    var d44 =         c0407 + c0410;
 
     //#########################################################
     //###  DECIMATION : 5
@@ -81,6 +90,11 @@ function Resampler(decimation) {
     var c0512 = 0.00411497;
     var c0513 = -0.000885547;
     var c0514 = -0.00000;
+    var d51 = c0501 + c0505;
+    var d52 = c0502 + c0506 + c0510; 
+    var d53 = c0503 + c0507 + c0511; 
+    var d54 = c0504 + c0508 + c0512; 
+    var d55 =         c0509 + c0513; 
 
     //#########################################################
     //###  DECIMATION : 6
@@ -103,6 +117,12 @@ function Resampler(decimation) {
     var c0615 = 8.47823e-19;
     var c0616 = -0.000767670;
     var c0617 = -0.00000;
+    var d61 = c0601 + c0606;
+    var d62 = c0602 + c0607 + c0612;
+    var d63 = c0603 + c0608 + c0613;
+    var d64 = c0604 + c0609 + c0614;
+    var d65 = c0605 + c0610 + c0615;
+    var d66 =         c0611 + c0616;
 
     //#########################################################
     //###  DECIMATION : 7
@@ -128,6 +148,14 @@ function Resampler(decimation) {
     var c0718 = -0.000901830;
     var c0719 = -0.000571381;
     var c0720 = -0.00000;
+    //notice the diagonals
+    var d71 = c0701 + c0707;
+    var d72 = c0702 + c0708 + c0714;
+    var d73 = c0703 + c0709 + c0715;
+    var d74 = c0704 + c0710 + c0716;
+    var d75 = c0705 + c0711 + c0717;
+    var d76 = c0706 + c0712 + c0718;
+    var d77 =         c0713 + c0719;
 
     var idx = 0;
     
@@ -171,8 +199,7 @@ function Resampler(decimation) {
             r1 = r3;
             r2 = buf[0];
             r3 = buf[1];
-            var sum = /*r0 * c0200 +*/ r1 * c0202 + r2 * c0204 +
-                      r1 * c0201 + r2 * c0203/* + r3 * c0205*/;
+            var sum = r1*d21 + r2*d22;
             f(sum);
             }
     }
@@ -197,9 +224,7 @@ function Resampler(decimation) {
             r2 = buf[0];
             r3 = buf[1];
             r4 = buf[2];
-            var sum = /*r0*c0300 + */r1*c0303 + r2*c0306 +
-                      r1*c0301 + r2*c0304 + r3*c0307 +
-                      r2*c0302 + r3*c0305/* + r4*c0308*/;
+            var sum = r1*d31 + r2*d32 + d3*d33;
             f(sum);
             }
     }
@@ -226,10 +251,7 @@ function Resampler(decimation) {
             r3 = buf[1];
             r4 = buf[2];
             r5 = buf[3];
-            var sum = /*r0*c0400 + */r1*c0404 + r2*c0408 +
-                      r1*c0401 + r2*c0405 + r3*c0409 +
-                      r2*c0402 + r3*c0406 + r4*c0410 +
-                      r3*c0403 + r4*c0407/* + r5*c0411*/;
+            var sum = r1*d41 + r2*d42 + r3*d43 + r4*d44;
             f(sum);
             }
     }
@@ -258,11 +280,7 @@ function Resampler(decimation) {
             r4 = buf[2];
             r5 = buf[3];
             r6 = buf[4];
-            var sum = /*r0*c0500 + */r1*c0505 + r2*c0510 +
-                      r1*c0501 + r2*c0506 + r3*c0511 +
-                      r2*c0502 + r3*c0507 + r4*c0512 +
-                      r3*c0503 + r4*c0508 + r5*c0513 +
-                      r4*c0504 + r5*c0509/* + r6*c0514*/;
+            var sum = r1*d51 + r2*d52 + r3*d53 + r4*d54 + r5*d55;
             f(sum);
             }
     }
@@ -293,12 +311,7 @@ function Resampler(decimation) {
             r5 = buf[3];
             r6 = buf[4];
             r7 = buf[5];
-            var sum = /*r0*c0600 +*/ r1*c0606 + r2*c0612 +
-                      r1*c0601 + r2*c0607 + r3*c0613 +
-                      r2*c0602 + r3*c0608 + r4*c0614 +
-                      r3*c0603 + r4*c0609 + r5*c0615 +
-                      r4*c0604 + r5*c0610 + r6*c0616 +
-                      r5*c0605 + r6*c0611/* + r7*c0617*/;
+            var sum = r1*d61 + r2*d62 + r3*d63 + r4*d64 + r5*d65 + r6*d66;
             f(sum);
             }
     }
@@ -318,6 +331,7 @@ function Resampler(decimation) {
     //# 7
     //#############################################
 
+
     function decimate7(v, f) {
         buf[idx++] = v;
         if (idx >= decimation) {
@@ -331,15 +345,9 @@ function Resampler(decimation) {
             r6 = buf[4];
             r7 = buf[5];
             r8 = buf[6];
-            var sum = /*r0*c0700 + */r1*c0707 + r2*c0714 +
-                      r1*c0701 + r2*c0708 + r3*c0715 +
-                      r2*c0702 + r3*c0709 + r4*c0716 +
-                      r3*c0703 + r4*c0710 + r5*c0717 +
-                      r4*c0704 + r5*c0711 + r6*c0718 +
-                      r5*c0705 + r6*c0712 + r7*c0719 +
-                      r6*c0706 + r7*c0713/* + r8*c0720*/;
+            var sum = r1*d71 + r2*d72 + r3*d73 + r4*d74 * r5*d75 + r6*d76 + r7*d77;
             f(sum);
-            }
+        }
     }
 
     function interpolate7(v, buf) {
