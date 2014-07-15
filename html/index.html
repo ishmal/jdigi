@@ -55,7 +55,7 @@
 
 <body>
 
-<h3>Jdigi  <a href="http://github.com/ishmal/jdigi">http://github.com/ishmal/jdigi</a></h3>
+
 
 
 <div id='content' ng-app='JdigiApp' ng-controller='MainController'>
@@ -70,6 +70,7 @@
         <button type="button" class="btn btn-primary btn-sm" ng-class="{btnselect:toolbar.qrz}" ng-model="toolbar.qrz"
                 btn-checkbox btn-checkbox-true="true" btn-checkbox-false="false"
                 tooltip="Show QRZ.com page for callsigns" tooltip-placement="right">QRZ</button>
+        <span>Jdigi  <a target="_new" href="http://github.com/ishmal/jdigi">http://github.com/ishmal/jdigi</a></span>
     </div>
 	<tabset>
 	    <tab ng-repeat="mode in modes" heading="{{mode.properties.name}}" select="changeMode(mode)">
