@@ -171,6 +171,7 @@ export function Digi() {
     var ibuf       = new Float32Array(Constants.FFT_SIZE);
     var iptr       = 0;
     var icnt       = 0;
+    var psbuf      = new Float32Array(Constants.BINS);
     var FFT_WINDOW = 700;
 
     this.receive = function(data) {
@@ -179,10 +180,10 @@ export function Digi() {
         iptr &= FFT_MASK;
         if (++icnt >= FFT_WINDOW) {
             icnt = 0;
-            var ps = fft.powerSpectrum(ibuf);
+            fft.powerSpectrum(ibuf, psbuf);
             //console.log("ps: " + ps[100]);
-            self.tuner.update(ps);
-            mode.receiveFft(ps);
+            self.tuner.update(psbuf);
+            mode.receiveFft(psbuf);
         }
     };
 

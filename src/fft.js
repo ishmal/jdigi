@@ -335,28 +335,26 @@ function FFTSR(N) {
     }//apply
 
 
-    function computePowerSpectrum() {
+    function computePowerSpectrum(ps) {
         var len = N2;
         var indices = bitReversedIndices;
-        var ps = new Array(len);
         for (var j=0 ; j<len ; j++) {
             var bri = indices[j];
             var r = xr[bri];
             var i = xi[bri];
             ps[j] = r*r + i*i;
         }
-        return ps;
     }
 
-    function powerSpectrum(input) {
+    function powerSpectrum(input, ps) {
         apply(input);
-        return computePowerSpectrum();
+        computePowerSpectrum(ps);
     }
     this.powerSpectrum = powerSpectrum;
 
-    function powerSpectrumX(input) {
+    function powerSpectrumX(input, ps) {
         applyX(input);
-        return computePowerSpectrum();
+        computePowerSpectrum(ps);
     }
     this.powerSpectrumX = powerSpectrumX;
 
