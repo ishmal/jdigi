@@ -68,6 +68,9 @@ function AudioInput(par) {
         var decimator = new Resampler(decimation);
         var inputNode = keep(actx.createScriptProcessor(4096, 1, 1));
         inputNode.onaudioprocess = function(e) {
+            if (!enabled) {
+                return;
+            }
             var input  = e.inputBuffer.getChannelData(0);
             var len = input.length;
             var d = decimator;
@@ -81,6 +84,14 @@ function AudioInput(par) {
 
         isRunning = true;
 
+    }
+    
+    var enabled = false
+    this.setEnabled = function(v) {
+        enabled = v;
+    };
+    this.getEnabled = function() {
+        return enabled;
     }
 
     this.start = function() { 
@@ -120,6 +131,14 @@ function AudioOutput(par) {
 
     var isRunning = false;
     
+    var enabled = false
+    this.setEnabled = function(v) {
+        enabled = v;
+    };
+    this.getEnabled = function() {
+        return enabled;
+    }
+
     this.start = function() {
 
         /**/
@@ -130,6 +149,9 @@ function AudioOutput(par) {
         var resampler = new Resampler(decimation);
         var outputNode = keep(actx.createScriptProcessor(bufferSize, 0, 1));
         outputNode.onaudioprocess = function(e) {
+            if (!enabled) {
+                return;
+            }
             var output  = e.outputBuffer.getChannelData(0);
             var len = output.length;
             for (var i=0 ; i < len ; i++) {
