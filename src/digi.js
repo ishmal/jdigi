@@ -19,7 +19,7 @@
  
 import {Constants} from "./constants";
 import {FFT,FFTSR} from "./fft";
-import {AudioInput} from "./audio";
+import {AudioInput,AudioOutput} from "./audio";
 import {Mode} from "./mode/mode";
 import {PskMode,PskMode2} from "./mode/psk";
 import {RttyMode} from "./mode/rtty";
@@ -55,9 +55,12 @@ export function Digi() {
     this.status = status;
 
     var audioInput = new AudioInput(this);
+    var audioOutput = new AudioOutput(this);
+
     this.getSampleRate = function() {
         return audioInput.sampleRate;
     };
+
 
     /**
      * Add our modes here and set the default
@@ -109,6 +112,13 @@ export function Digi() {
     };
     this.setTxMode = function(v) {
         txmode = v;
+        if (v) {
+            audioInput.setEnabled(false);
+            audioOutput.setEnabled(true);
+        } else {
+            audioInput.setEnabled(true);
+            audioOutput.setEnabled(false);
+        }
     };
 
 	this.tuner = {
@@ -189,19 +199,20 @@ export function Digi() {
 
 
     this.transmit = function(data) {
-
-
+		return self.getMode().getTransmitData();
     };
     
 
 
     function start() {
         audioInput.start();
+        audioOutput.start();
     }
     this.start = start;
 
     function stop() {
         audioInput.stop();
+        audioOutput.stop();
     }
     this.stop = stop;
 

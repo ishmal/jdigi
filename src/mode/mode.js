@@ -141,15 +141,33 @@ function Mode(par, sampleRateHint) {
     //# T R A N S M I T
     //#######################
     
-    this.interpbuf = new Array(decimation);
+    var obuf = new Float32Array(decimation);
+    var optr = 0;
+    var ibuf = [];
+    var ilen;
+    var iptr = 0;
     
     this.getTransmitData = function() {
     
-        var dat = this.getBasebandData();
-        var dlen = dat.length;
-        for (var i=0 ; i<dlen ; i++) {
-            interpolator.interpolate(dat[i], interpbuf);
+        //output buffer empty?
+        if (optr >= decimation) {
+            //input buffer empty?
+            if (iptr >= ilen) {
+                ibuf = this.getBasebandData();
+                ilen = ibuf.length;
+                if (ilen === 0) {
+                    ilen=1;
+                    ibuf = [0];
+                }
+                iptr = 0;
+            }
+            var v = ibuf[iptr++];
+            interpolator.interpolate(v, interpbuf);
+            optr = 0;
         }
+        var cx = obuf[optr];
+        var upmixed = nco.mixNext(cx);
+        return upmixed.abs();
     };
     
 

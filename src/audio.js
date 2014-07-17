@@ -50,7 +50,6 @@ function AudioInput(par) {
     var decimation  = 7;
     this.sampleRate = actx.sampleRate / decimation;
     this.source     = null;
-    var isRunning   = false;
     var stream      = null;
     
     
@@ -67,6 +66,7 @@ function AudioInput(par) {
         var bufferSize = 8192;
         var decimator = new Resampler(decimation);
         var inputNode = keep(actx.createScriptProcessor(4096, 1, 1));
+        enabled = true;
         inputNode.onaudioprocess = function(e) {
             if (!enabled) {
                 return;
@@ -82,17 +82,16 @@ function AudioInput(par) {
         self.source.connect(inputNode);
         inputNode.connect(actx.destination);
 
-        isRunning = true;
 
     }
     
-    var enabled = false
+    var enabled = false;
     this.setEnabled = function(v) {
         enabled = v;
     };
     this.getEnabled = function() {
         return enabled;
-    }
+    };
 
     this.start = function() { 
         navigator.getUserMedia( { audio : true }, startStream, function(userMediaError) {
@@ -131,20 +130,21 @@ function AudioOutput(par) {
 
     var isRunning = false;
     
-    var enabled = false
+    var enabled = false;
     this.setEnabled = function(v) {
         enabled = v;
     };
     this.getEnabled = function() {
         return enabled;
-    }
+    };
+    
 
     this.start = function() {
 
         /**/
         var bufferSize = 4096;
         var decimation = 7;
-        var ibuf = new Array(decimation);
+        var ibuf = new Float32Array(decimation);
         var iptr = decimation;
         var resampler = new Resampler(decimation);
         var outputNode = keep(actx.createScriptProcessor(bufferSize, 0, 1));
@@ -156,7 +156,7 @@ function AudioOutput(par) {
             var len = output.length;
             for (var i=0 ; i < len ; i++) {
                 if (iptr >= decimation) {
-                    var v = parent.transmit();
+                    var v = par.transmit();
                     resampler.interpolate(v, ibuf);
                     iptr = 0;
                 }
