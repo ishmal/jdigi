@@ -95,7 +95,7 @@ function CostasIIR(frequency, dataRate, sampleRate) {
         err = dz * 100000.0; // this too coarse?
         console.log("freq: " + freq + "  err: " + err);
         //console.log("iz: " + iz);
-        return new Complex(iz,qz);
+        return {r:iz,i:qz};
     };
     
         
@@ -161,7 +161,7 @@ function Costas_old(frequency, dataRate, sampleRate) {
             err = maxErr;
         console.log("" + iz + " " + qz + " " + angle + " " + err);
         //console.log("iq: " + iz + ", " + qz);
-        return new Complex(iz,qz);
+        return {r:iz,i:qz};
     };
     
         
@@ -241,7 +241,7 @@ function Costas(frequency, dataRate, sampleRate) {
         //if (++counter % 10 === 0)
         //    plotter.update([iz, qz, angle, err, freq, minFreq, maxFreq]);
         //console.log("iq: " + iz + ", " + qz);
-        return new Complex(iz,qz);
+        return {r:iz,i:qz};
     };      
 }
 

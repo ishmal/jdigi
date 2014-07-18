@@ -74,9 +74,8 @@ function Nco(frequency, sampleRate) {
     this.mixNext = function (v) {
         phase = (phase + freq + err) & 0xffffffff;
         var cs = table[(phase >> 16) & 0xffff];
-        return new Complex(v*cs.cos, v*cs.sin);
-    };
-        
+        return {r:v*cs.cos, i:v*cs.sin};
+    };   
 }
 
 export {Nco};

@@ -19,8 +19,6 @@
 
 import {FskBase} from "./fsk";
 import {Biquad,FIR} from "../filter";
-import {Complex} from "../math";
-
 
 /**
  * CRC-CCITT-16 calculator, that handles both big and little-endian byte

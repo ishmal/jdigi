@@ -437,7 +437,7 @@ function ResamplerX(decimation) {
             tmpr = r;
         });
         isamp.decimate(v.i, function(i) {
-            var cpx = new Complex(tmpr, i);
+            var cpx = {r:tmpr, i:i};
             f(cpx);
         });
     };
@@ -446,11 +446,9 @@ function ResamplerX(decimation) {
         rsamp.interpolate(v.r, rbuf);
         isamp.interpolate(v.i, ibuf);
         for (var i=0 ; i < decimation ; i++) {
-            buf[i] = new Complex(rbuf[i], ibuf[i]);
+            buf[i] = {r:rbuf[i], i:ibuf[i]};
         }
     };
-
-
 }
 
 export {Resampler, ResamplerX};

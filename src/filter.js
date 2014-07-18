@@ -76,7 +76,7 @@ var FIR = (function() {
                 sumi += coeffs[i] * dli[ptr];
                 ptr = [ptr+sizeless]%size;
             }
-            return new Complex(sumr, sumi);
+            return {r:sumr, i:sumi};
         };
     
     }
@@ -154,8 +154,6 @@ var Biquad = (function() {
         var x1r=0, x2r=0, y1r=0, y2r=0;
         var x1i=0, x2i=0, y1i=0, y2i=0;
 
-
-    
         this.update = function(x) {
             var y = b0*x + b1*x1 + b2*x2 - a1*y1 - a2*y2;
             x2 = x1; x1 = x;
@@ -171,7 +169,7 @@ var Biquad = (function() {
             x2i = x1i; x1i = i;
             y2r = y1r; y1r = yr;
             y2i = y1i; y1i = yi;
-            return new Complex(yr, yi);
+            return {r:yr, i:yi};
         };
     }
     

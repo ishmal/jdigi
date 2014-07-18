@@ -18,42 +18,21 @@
  */
                                                                
 
-function Complex(real, imaginary) {
-    this.r = real;
-    this.i = imaginary;
-    Object.freeze(this);
-}
-Complex.prototype.add =
-    function(other) { return new Complex(this.r + other.r, this.i + other.i); };
-Complex.prototype.sub =
-    function(other) { return new Complex(this.r - other.r, this.i - other.i); };
-Complex.prototype.scale =
-    function(scalar){ return new Complex(this.r * scalar,  this.i * scalar ); };
-Complex.prototype.mul =
-    function(other) { var r = this.r; var i = this.i; var or = other.r; var oi = other.i;
-        return new Complex(r * or - i * oi, r * oi + i * or); };
-Complex.prototype.neg =
-    function() { return new Complex(-this.r, -this.i); };
-Complex.prototype.conj =
-    function() { return new Complex(this.r, -this.i); };
-Complex.prototype.isign =  // this * (0,1)
-    function() { return new Complex(-this.i, this.r); };
-Complex.prototype.mag =
-    function() { var r = this.r; var i = this.i; return r*r+i*i; };
-Complex.prototype.abs =
-    function() { var r = this.r; var i = this.i; return Math.sqrt(r*r+i*i); };
-Complex.prototype.arg =
-    function() { return Math.atan2(this.i, this.r); };
-Complex.prototype.toString =
-    function() { return "(" + this.r.toString() + "," + this.i.toString() + ")"; };
-Complex.ZERO =
-    new Complex(0,0);
-Complex.ONE =
-    new Complex(1,0);
-Complex.I =
-    new Complex(0,1);
-
-
+var Complex = { 
+    add: function(a,b) { return {r:a.r+b.r, i:a.i+b.i}; },
+    sub: function(a,b) { return {r:a.r-b.r, i:a.i-b.i}; },
+    scale: function(a,v) { return {r:a.r*v,  i:a.i*v }; },
+    mul: function(a,b) { var ar = a.r; var ai = a.i; var br = b.r; var bi = b.i;
+        return {r:ar*br - ai*bi, i:ar*bi + ai*br}; },
+    neg: function(a) { return {r:-a.r, i:-a.i}; },
+    conj: function(a) { return {r:a.r, i:-a.i}; },
+    mag: function(a) { var r = a.r; var i = a.i; return r*r+i*i; },
+    abs: function(a) { return Math.hypot(a.r, a.i); },
+    arg: function(a) { return Math.atan2(a.i, a.r); },
+    ZERO: {r:0, i:0},
+    ONE: {r:1,i:0},
+    I: {r:0,i:1}
+};
 
 export {Complex};
 

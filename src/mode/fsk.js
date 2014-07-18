@@ -19,9 +19,6 @@
 
 import {Mode} from "./mode";
 import {Biquad,FIR} from "../filter";
-import {Complex} from "../math";
-
-
 
 
 /**
@@ -85,7 +82,8 @@ function FskBase(par, sampleRateHint) {
     var hiHys =  2.0;
     var bit = false;
     var lastBit = false;
-    var lastval = new Complex(0,0);
+    var lastr = 0;
+    var lasti = 0;
     var samplesSinceChange = 0;
 
     /**
@@ -95,14 +93,17 @@ function FskBase(par, sampleRateHint) {
      * the signal.  This is called a polar discrminator.
      */
     this.receive = function(isample) {
-        var space  = sf.updatex(isample);
-        var mark   = mf.updatex(isample);
-        var sample = space.add(mark);
-        var prod   = sample.mul(lastval.conj());
-        lastval    = sample;
-        var demod  = prod.arg();
-        var comp   = (demod<0) ? -10.0 : 10.0;
-        var sig    = dataFilter.update(comp);
+        var space = sf.updatex(isample);
+        var mark  = mf.updatex(isample);
+        var r     = space.r+mark.r;
+        var i     = space.i+mark.i;
+        var prodr = r*lastr - i*lasti;
+        var prodi = r*lasti + i*lastr;
+        lastr     = r; //save the conjugate
+        lasti     = -i;
+        var demod = Math.atan2(prodi, prodr);  //arg
+        var comp  = (demod<0) ? -10.0 : 10.0;
+        var sig   = dataFilter.update(comp);
         //trace("sig:" + sig + "  comp:" + comp)
 
         scopeOut(sig);

@@ -394,7 +394,7 @@ function SimpleGoertzel(frequency, binWidth, sampleRate) {
         var reali = wi * pr1;
         var imagr = wr * pi1 - p12;
         var imagi = wi * pi1;
-        return new Complex(realr-imagi, reali+imagr); 
+        return {r:realr-imagi, i:reali+imagr}; 
     };
 
     //faster for power spectrum
@@ -409,7 +409,7 @@ function SimpleGoertzel(frequency, binWidth, sampleRate) {
 
     //for complex values
     this.magX = function() {
-        return this.X().mag();
+        return Complex.mag(this.X());
     };
 
     this.update = function(point) {
