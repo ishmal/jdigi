@@ -94,7 +94,7 @@ function Mode(par, sampleRateHint) {
 
 
     this.getSamplesPerSymbol = function() {
-        return this.getSampleRate() / rate;
+        return self.getSampleRate() / rate;
     };
     
     var useAfc = false;

@@ -67,8 +67,8 @@ function FskBase(par, sampleRateHint) {
     this.setRate(45.0); //makes all rate/shift dependent vars initialize
 
     function adjust() {
-        sf = FIR.bandpass(13, -0.75 * shiftval, -0.25 * shiftval, self.getSampleRate());
-        mf = FIR.bandpass(13,  0.25 * shiftval,  0.75 * shiftval, self.getSampleRate());
+        sf = FIR.bandpass(21, -0.75 * shiftval, -0.25 * shiftval, self.getSampleRate());
+        mf = FIR.bandpass(21,  0.25 * shiftval,  0.75 * shiftval, self.getSampleRate());
         dataFilter = FIR.boxcar((self.getSamplesPerSymbol() * 1.4)|0 );
         //dataFilter = FIR.lowpass(13, self.getRate() * 0.5, self.getSampleRate());
         //dataFilter = Biquad.lowPass(self.getRate() * 0.5, self.getSampleRate());
@@ -76,7 +76,8 @@ function FskBase(par, sampleRateHint) {
         halfSym = symbollen >> 1;
     }
 
-    this.status("sampleRate: " + this.getSampleRate() + " samplesPerSymbol: " + this.getSamplesPerSymbol());
+    this.status("Fs: " + this.getSampleRate() + " rate: " + this.getRate() +
+          " sps: " + this.getSamplesPerSymbol());
 
     var loHys = -2.0;
     var hiHys =  2.0;
@@ -97,12 +98,12 @@ function FskBase(par, sampleRateHint) {
         var mark  = mf.updatex(isample);
         var r     = space.r+mark.r;
         var i     = space.i+mark.i;
-        var prodr = r*lastr - i*lasti;
-        var prodi = r*lasti + i*lastr;
+        var x     = r*lastr - i*lasti;
+        var y     = r*lasti + i*lastr;
         lastr     = r; //save the conjugate
         lasti     = -i;
-        var demod = Math.atan2(prodi, prodr);  //arg
-        var comp  = (demod<0) ? -10.0 : 10.0;
+        var angle = Math.atan2(y, x);  //arg
+        var comp  = (angle<0) ? -10.0 : 10.0;
         var sig   = dataFilter.update(comp);
         //trace("sig:" + sig + "  comp:" + comp)
 

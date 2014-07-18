@@ -119,6 +119,7 @@ function Tuner(par, canvas) {
         var delta = (evt.detail < 0 || evt.wheelDelta > 0) ? 1 : -1;
         setFrequency(frequency + delta * 1); //or other increments here
         evt.preventDefault();
+        return false;
     }
 
     //fine tuning, + or - one hertz
@@ -130,6 +131,7 @@ function Tuner(par, canvas) {
             setFrequency(frequency + 1);
         }
         evt.preventDefault();
+        return false;
     }
 
 

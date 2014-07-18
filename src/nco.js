@@ -17,7 +17,6 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import {Complex} from "./math";
 
 var ncoTable = (function() {
 
@@ -67,14 +66,14 @@ function Nco(frequency, sampleRate) {
     var table = ncoTable;
     
     this.next = function() {
-        phase = (phase + freq + err) & 0xffffffff;
+        phase = (phase + (freq + err)) & 0xffffffff;
         return table[(phase >> 16) & 0xffff];
     };
             
     this.mixNext = function (v) {
-        phase = (phase + freq + err) & 0xffffffff;
+        phase = (phase + (freq + err)) & 0xffffffff;
         var cs = table[(phase >> 16) & 0xffff];
-        return {r:v*cs.cos, i:v*cs.sin};
+        return {r:v*cs.cos, i:-v*cs.sin};
     };   
 }
 
