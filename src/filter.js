@@ -17,17 +17,51 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import {Complex} from "./math";
 import {Window} from "./window";
+
+/**
+ * Hardcoded filter for size 13.  Pick 13!
+ */
+function newFilter13(coeffs) {
+
+    var c0  = coeffs[0], c1  = coeffs[1], c2  = coeffs[2],  c3  = coeffs[3],
+        c4  = coeffs[4], c5  = coeffs[5], c6  = coeffs[6],  c7  = coeffs[7],
+        c8  = coeffs[8], c9  = coeffs[9], c10 = coeffs[10], c11 = coeffs[11],
+        c12 = coeffs[12];
+
+    var r0=0, r1=0, r2=0, r3=0, r4=0, r5=0, r6=0, 
+        r7=0, r8=0, r9=0, r10=0, r11=0, r12=0;
+    var i0=0, i1=0, i2=0, i3=0, i4=0, i5=0, i6=0, 
+        i7=0, i8=0, i9=0, i10=0, i11=0, i12=0;
+        
+    return {
+        update : function(v) {
+            r12=r11; r11=r10; r10=r9; r9=r8; r8=r7; r7=r6; r6=r5;
+            r5=r4; r4=r3; r3=r2; r2=r1; r1=r0; r0=v;
+
+            return c0*r12 + c1*r11 + c2*r10 + c3*r9 + c4*r8 + c5*r7 + c6*r6 + 
+                  c7*r5 + c8*r4 + c9*r3 + c10*r2 + c11*r1 + c12*r0;
+        },
+        
+        updatex : function(v) {
+            r12=r11; r11=r10; r10=r9; r9=r8; r8=r7; r7=r6; r6=r5;
+            r5=r4; r4=r3; r3=r2; r2=r1; r1=r0; r0=v.r;
+            i12=i11; i11=i10; i10=i9; i9=i8; i8=i7; i7=i6; i6=i5;
+            i5=i4; i4=i3; i3=i2; i2=i1; i1=i0; i0=v.i;
+
+            return {
+                r: c0*r12 + c1*r11 + c2*r10 + c3*r9 + c4*r8 + c5*r7 + c6*r6 + 
+                   c7*r5 + c8*r4 + c9*r3 + c10*r2 + c11*r1 + c12*r0,
+                i: c0*i12 + c1*i11 + c2*i10 + c3*i9 + c4*i8 + c5*i7 + c6*i6 + 
+                   c7*i5 + c8*i4 + c9*i3 + c10*i2 + c11*i1 + c12*i0
+            };
+        }
+    };
+}
+
 
 var FIR = (function() {
 
-    function boxcar(size) {
-        var xs = [];
-        for (var i=0 ; i < size ; i++)
-            delay.push(1.0);
-    }
-    
     function genCoeffs(size, window, func) {
         window = window || Window.hann;
         var W = window(size);
@@ -46,39 +80,41 @@ var FIR = (function() {
         return arr;
     }
 
-    function FIRCalc(size, coeffs) {
+    function newFilter(size, coeffs) {
         var sizeless = size-1;
         var dlr = new Array(size);
         var dli = new Array(size);
         var dptr = 0;
     
-        this.update = function(v) {
-            dlr[dptr++] = v;
-            dptr %= size;
-            var ptr = dptr;
-            var sum = 0;
-            for (var i=0 ; i < size ; i++) {
-                sum += coeffs[i] * dlr[ptr];
-                ptr = [ptr+sizeless]%size;
+        var filter = {
+            update : function(v) {
+                dlr[dptr++] = v;
+                dptr %= size;
+                var ptr = dptr;
+                var sum = 0;
+                for (var i=0 ; i < size ; i++) {
+                    sum += coeffs[i] * dlr[ptr];
+                    ptr = [ptr+sizeless]%size;
+                }
+                return sum;
+            },
+        
+            updatex : function(v) {
+                dlr[dptr]   = v.r;
+                dli[dptr++] = v.i;
+                dptr %= size;
+                var ptr = dptr;
+                var sumr = 0;
+                var sumi = 0;
+                for (var i=0 ; i < size ; i++) {
+                    sumr += coeffs[i] * dlr[ptr];
+                    sumi += coeffs[i] * dli[ptr];
+                    ptr = [ptr+sizeless]%size;
+                }
+                return {r:sumr, i:sumi};
             }
-            return sum;
         };
-    
-        this.updatex = function(v) {
-            dlr[dptr]   = v.r;
-            dli[dptr++] = v.i;
-            dptr %= size;
-            var ptr = dptr;
-            var sumr = 0;
-            var sumi = 0;
-            for (var i=0 ; i < size ; i++) {
-                sumr += coeffs[i] * dlr[ptr];
-                sumi += coeffs[i] * dli[ptr];
-                ptr = [ptr+sizeless]%size;
-            }
-            return {r:sumr, i:sumi};
-        };
-    
+        return filter;
     }
 
     var cls = {
@@ -86,12 +122,12 @@ var FIR = (function() {
         average : function(size, window) {
             var omega = 1.0 / size;
             var coeffs = genCoeffs(size, window, function(i) {  return omega; });
-            return new FIRCalc(size, coeffs);
+            return (size===13) ? newFilter13(coeffs) : newFilter(size, coeffs);
         },
     
         boxcar : function(size, cutoffFreq, sampleRate, window) {
             var coeffs = genCoeffs(size, window, function(i) { return 1.0; });
-            return new FIRCalc(size, coeffs);
+            return (size===13) ? newFilter13(coeffs) : newFilter(size, coeffs);
         },
     
         lowpass : function(size, cutoffFreq, sampleRate, window) {
@@ -99,7 +135,7 @@ var FIR = (function() {
             var coeffs = genCoeffs(size, window, function(i) {
                  return (i === 0) ? omega / Math.PI : Math.sin(omega * i) / (Math.PI * i);
             });
-            return new FIRCalc(size, coeffs);
+            return (size===13) ? newFilter13(coeffs) : newFilter(size, coeffs);
         },
     
         highpass : function(size, cutoffFreq, sampleRate, window) {
@@ -107,7 +143,7 @@ var FIR = (function() {
             var coeffs = genCoeffs(size, window, function(i) {
                  return (i === 0) ? 1.0 - omega / Math.PI : -Math.sin(omega * i) / (Math.PI * i);
             });
-            return new FIRCalc(size, coeffs);
+            return (size===13) ? newFilter13(coeffs) : newFilter(size, coeffs);
         },
     
         bandpass : function(size, loCutoffFreq, hiCutoffFreq, sampleRate, window) {
@@ -117,7 +153,7 @@ var FIR = (function() {
                  return (i === 0) ? (omega2 - omega1) / Math.PI : 
                     (Math.sin(omega2 * i) - Math.sin(omega1 * i)) / (Math.PI * i);
             });
-            return new FIRCalc(size, coeffs);
+            return (size===13) ? newFilter13(coeffs) : newFilter(size, coeffs);
         },
         
         bandreject : function(size, loCutoffFreq, hiCutoffFreq, sampleRate, window) {
@@ -127,14 +163,13 @@ var FIR = (function() {
                  return (i === 0) ? 1.0 - (omega2 - omega1) / Math.PI : 
                     (Math.sin(omega1 * i) - Math.sin(omega2 * i)) / (Math.PI * i);
             });
-            return new FIRCalc(size, coeffs);
+            return (size===13) ? newFilter13(coeffs) : newFilter(size, coeffs);
         }
     
     };
     
     return cls;
     
-
 })();
 
 

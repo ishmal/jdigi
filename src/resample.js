@@ -224,7 +224,7 @@ function Resampler(decimation) {
             r2 = buf[0];
             r3 = buf[1];
             r4 = buf[2];
-            var sum = r1*d31 + r2*d32 + d3*d33;
+            var sum = r1*d31 + r2*d32 + r3*d33;
             f(sum);
             }
     }

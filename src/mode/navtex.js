@@ -78,10 +78,9 @@ var CCIR = (function() {
  *
  */
 function NavtexMode(par) {
-    FskBase.call(this, par, 1000.0);
     var self = this;
 
-    this.properties = {
+    var props = {
         name : "navtex",
         tooltip: "international naval teleprinter",
         controls : [
@@ -99,6 +98,7 @@ function NavtexMode(par) {
             }
         ]
     };
+    FskBase.call(this, par, props, 1000.0);
 
     var unshiftOnSpace = false;
     this.getUnshiftOnSpace = function() {

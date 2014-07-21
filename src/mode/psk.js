@@ -245,10 +245,9 @@ function EarlyLate(samplesPerSymbol) {
  * Phase Shift Keying mode.
  */
 function PskMode(par) {
-    Mode.call(this, par, 2000); //inherit
     var self = this;
 
-    this.properties = {
+    var props = {
         name : "psk",
         tooltip: "phase shift keying",
         controls : [
@@ -273,6 +272,7 @@ function PskMode(par) {
             }
         ]
     };
+    Mode.call(this, par, props, 2000); //inherit
 
     var timer = new EarlyLate(this.getSamplesPerSymbol());
     var bpf   = FIR.bandpass(13, -0.7*this.getRate(), 0.7*this.getRate(), this.getSampleRate());
@@ -446,10 +446,9 @@ function PskMode(par) {
  * Phase Shift Keying mode.
  */
 function PskMode2(par) {
-    Mode.call(this, par, 1000); //inherit
     var self = this;
 
-    this.properties = {
+    var props = {
         name : "psk",
         tooltip: "phase shift keying",
         controls : [
@@ -472,6 +471,7 @@ function PskMode2(par) {
             }
         ]
     };
+    Mode.call(this, par, props, 1000); //inherit
 
     //var bpf = FIR.bandpass(13, -0.7*this.getRate(), 0.7*this.getRate(), this.getSampleRate());
     
@@ -480,21 +480,22 @@ function PskMode2(par) {
     var ilp = Biquad.lowPass(this.getRate()*0.5, this.getSampleRate());
     var qlp = Biquad.lowPass(this.getRate()*0.5, this.getSampleRate());
     
+    var symbollen, halfSym;
+
 
     var super_setRate = this.setRate;
     this.setRate = function(rate) {
         super_setRate(rate);
-        ilp = Biquad.lowPass(rate*0.5, this.getSampleRate());
-        qlp = Biquad.lowPass(rate*0.5, this.getSampleRate());
+        ilp = Biquad.lowPass(rate*0.5, self.getSampleRate());
+        qlp = Biquad.lowPass(rate*0.5, self.getSampleRate());
         //bpf = FIR.bandpass(13, -0.7*this.getRate(), 0.7*this.getRate(), this.getSampleRate());
-        sampSym = this.getSamplesPerSymbol()|0;
-        halfSym = sampSym >> 1;
+        symbollen = self.getSamplesPerSymbol()|0;
+        halfSym = symbollen >> 1;
     };
+    this.setRate(31.25);
     
     var lastSign = -1;
     var samples = 0;
-    var sampSym = this.getSamplesPerSymbol()|0;
-    var halfSym = sampSym >> 1;
     
     this.receive = function(z) {
         var i = ilp.update(z.r);
@@ -506,7 +507,7 @@ function PskMode2(par) {
         } else {
             samples++;
         }
-        if ((samples%sampSym) === halfSym) {
+        if ((samples%symbollen) === halfSym) {
             processSymbol(i, q);
             //processBit(sign>0);
         }

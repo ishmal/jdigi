@@ -304,10 +304,9 @@ var Packets = {
  * @see http://www.tapr.org/pub_ax25.html
  */    
 function PacketMode(par) {
-    FskBase.call(this, par, 4800.0); //inherit
     var self = this;
     
-    this.properties = {
+    var props = {
         name : "packet",
         tooltip: "AX.25 and APRS",
         controls : [
@@ -335,6 +334,7 @@ function PacketMode(par) {
             }
         ]
     };
+    FskBase.call(this, par, props, 4800.0); //inherit
     
     
      

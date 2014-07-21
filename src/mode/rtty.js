@@ -93,11 +93,10 @@ var ParityEven = 4;
  *
  */
 function RttyMode(par) {
-    FskBase.call(this, par, 1000.0);
     var self = this;
 
-    this.properties = {
-        name : "rtty",
+    var props = {
+        name: "rtty",
         tooltip: "radio teletype",
         controls : [
             {
@@ -107,7 +106,7 @@ function RttyMode(par) {
             get value() { return self.getRate(); },
             set value(v) { self.setRate(parseFloat(v)); },
             values : [
-                { name :  "45", value :  45.00 },
+                { name :  "45", value :  45.45 },
                 { name :  "50", value :  50.00 },
                 { name :  "75", value :  75.00 },
                 { name : "100", value : 100.00 }
@@ -140,6 +139,7 @@ function RttyMode(par) {
             }
         ]
     };
+    FskBase.call(this, par, props, 1000.0);
 
     var unshiftOnSpace = false;
     this.getUnshiftOnSpace = function() {
@@ -183,28 +183,30 @@ function RttyMode(par) {
     var bitcount  = 0;
     var code      = 0;
     var parityBit = false;
-    var bitMask   = 0;
+    var counter   = 0;
 
-    this.processBit = function(bit) {
+    this.processBit = function(bit, symbollen, isMid) {
 
         switch (state) {
 
             case RxIdle :
                 //trace("RxIdle")
-                if (!bit) {
+                if (!bit && isMid) {
                     state     = RxData;
                     code      = 0;
                     parityBit = false;
-                    bitMask   = 1;
                     bitcount  = 0;
+                    counter   = symbollen;
                 }
                 break;
             case RxData :
-                //trace("RxData")
-                if (bit) code += bitMask;
-                bitMask <<= 1;
-                if (++bitcount >= 5) {// todo:  or zero or 1
-                    state = (parityType === ParityNone) ? RxStop : RxParity;
+                if (--counter <= 0) {
+                    counter = symbollen;
+                    //trace("RxData")
+                    code = (code<<1) | ((bit) ? 1 : 0);
+                    if (++bitcount >= 5) {// todo:  or zero or 1
+                        state = (parityType === ParityNone) ? RxStop : RxParity;
+                    }
                 }
                 break;
             case RxParity :
@@ -214,14 +216,22 @@ function RttyMode(par) {
                 break;
             case RxStop :
                 //trace("RxStop")
-                if (bit) {
-                    outCode(code);
-                    state = RxStop2;
+                if (--counter <= 0) {
+                    counter = symbollen;
+                    if (bit) {
+                        outCode(code);
+                        state = RxStop2;
+                    }
                 }
                 break;
             case RxStop2 :
-                //trace("RxStop2")
-                state = RxIdle;
+                if (--counter <= 0) {
+                    counter=symbollen;
+                    //trace("RxStop2")
+                    if (bit) {
+                        state = RxIdle;
+                    }
+                }
                 break;
             }
     }; // processBit

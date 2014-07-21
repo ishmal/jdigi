@@ -23,12 +23,11 @@ import {Constants} from "../constants";
 import {Biquad} from "../filter";
 
 
-function Mode(par, sampleRateHint) {
-
+function Mode(par, props, sampleRateHint) {
     var self = this;
 
-    this.properties = {};
-
+    this.properties = props;
+    
     var frequency = 1000;
 
     this.setFrequency = function(freq) {
@@ -72,7 +71,7 @@ function Mode(par, sampleRateHint) {
     }
 
     this.status = function(msg) {
-         par.status("mode: " + msg);
+        par.status(self.properties.name + " : " + msg);
     };
 
     var decimation = Math.floor(par.getSampleRate() / sampleRateHint);
@@ -87,6 +86,9 @@ function Mode(par, sampleRateHint) {
     this.setRate = function(v) {
         rate = v;
         adjustAfc();
+        self.status("Fs: " + self.getSampleRate() + " rate: " + v +
+             " sps: " + self.getSamplesPerSymbol());
+
     };
     this.getRate = function() {
         return rate;

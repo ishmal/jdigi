@@ -34,12 +34,12 @@ var ncoTable = (function() {
 })();
 
 /**
- * A sine generator with a 32-bit accumulator and a 16-bit
+ * A sine generator with a 31-bit accumulator and a 16-bit
  * lookup table.  Much faster than Math.whatever
  */
 function Nco(frequency, sampleRate) {
     "use strict";
-    var hzToInt = 4294967296.0 / sampleRate;
+    var hzToInt = 0x7fffffff / sampleRate;
     var freq = 0|0;
     function setFrequency(frequency) {
         freq  = (frequency * hzToInt)|0;
@@ -66,12 +66,12 @@ function Nco(frequency, sampleRate) {
     var table = ncoTable;
     
     this.next = function() {
-        phase = (phase + (freq + err)) & 0xffffffff;
+        phase = (phase + (freq + err)) & 0x7fffffff;
         return table[(phase >> 16) & 0xffff];
     };
             
     this.mixNext = function (v) {
-        phase = (phase + (freq + err)) & 0xffffffff;
+        phase = (phase + (freq + err)) & 0x7fffffff;
         var cs = table[(phase >> 16) & 0xffff];
         return {r:v*cs.cos, i:-v*cs.sin};
     };   

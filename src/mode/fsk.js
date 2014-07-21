@@ -25,8 +25,8 @@ import {Biquad,FIR} from "../filter";
  * This is a base class for all two-tone FSK modes.
  * @see http://en.wikipedia.org/wiki/Asynchronous_serial_communication
  */
-function FskBase(par, sampleRateHint) {
-    Mode.call(this, par, sampleRateHint);
+function FskBase(par, props, sampleRateHint) {
+    Mode.call(this, par, props, sampleRateHint);
     var self = this;
 
     var shiftval = 170.0;
@@ -67,17 +67,15 @@ function FskBase(par, sampleRateHint) {
     this.setRate(45.0); //makes all rate/shift dependent vars initialize
 
     function adjust() {
-        sf = FIR.bandpass(21, -0.75 * shiftval, -0.25 * shiftval, self.getSampleRate());
-        mf = FIR.bandpass(21,  0.25 * shiftval,  0.75 * shiftval, self.getSampleRate());
-        dataFilter = FIR.boxcar((self.getSamplesPerSymbol() * 1.4)|0 );
+        sf = FIR.bandpass(13, -0.75 * shiftval, -0.25 * shiftval, self.getSampleRate());
+        mf = FIR.bandpass(13,  0.25 * shiftval,  0.75 * shiftval, self.getSampleRate());
+        dataFilter = FIR.boxcar((self.getSamplesPerSymbol() * 0.7)|0 );
         //dataFilter = FIR.lowpass(13, self.getRate() * 0.5, self.getSampleRate());
         //dataFilter = Biquad.lowPass(self.getRate() * 0.5, self.getSampleRate());
-        symbollen = self.getSamplesPerSymbol() | 0;
-        halfSym = symbollen >> 1;
+        symbollen = self.getSamplesPerSymbol();
+        halfSym = Math.round(symbollen * 0.5);
     }
 
-    this.status("Fs: " + this.getSampleRate() + " rate: " + this.getRate() +
-          " sps: " + this.getSamplesPerSymbol());
 
     var loHys = -2.0;
     var hiHys =  2.0;
@@ -121,12 +119,12 @@ function FskBase(par, sampleRateHint) {
         
         bit = bit ^ inverted; //user-settable
         
-        if ((samplesSinceChange % symbollen) === halfSym) {
-            self.processBit(bit);
-        }
+        var isMid = (Math.round(samplesSinceChange % symbollen) === halfSym);
+            
+        self.processBit(bit, symbollen, isMid);
     };
     
-    this.processBit = function(bit) {
+    this.processBit = function(bit, symbollen, isMid) {
     };
 
     var SSIZE = 200;
