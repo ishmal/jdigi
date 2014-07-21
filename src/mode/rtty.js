@@ -185,7 +185,7 @@ function RttyMode(par) {
     var parityBit = false;
     var counter   = 0;
 
-    this.processBit = function(bit, symbollen, isMid) {
+    this.processBit = function(bit, symbollen, isMarkSpace, corr) {
 
         switch (state) {
 
@@ -196,7 +196,7 @@ function RttyMode(par) {
                     code      = 0;
                     parityBit = false;
                     bitcount  = 0;
-                    counter   = symbollen;
+                    counter   = symbollen-corr; //minor shift left or right
                 }
                 break;
             case RxData :

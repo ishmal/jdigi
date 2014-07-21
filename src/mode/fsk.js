@@ -52,7 +52,7 @@ function FskBase(par, props, sampleRateHint) {
     this.getBandwidth = function() { return shiftval; };
 
     var twopi = Math.PI * 2.0;
-    var symbollen, halfSym; //timing recovery
+    var symbollen, halfsym, symarray, symptr, symptr_last; //timing recovery
     var sf, mf; //mark and space filter
     var dataFilter;
 
@@ -72,8 +72,13 @@ function FskBase(par, props, sampleRateHint) {
         dataFilter = FIR.boxcar((self.getSamplesPerSymbol() * 0.7)|0 );
         //dataFilter = FIR.lowpass(13, self.getRate() * 0.5, self.getSampleRate());
         //dataFilter = Biquad.lowPass(self.getRate() * 0.5, self.getSampleRate());
-        symbollen = self.getSamplesPerSymbol();
-        halfSym = Math.round(symbollen * 0.5);
+        symbollen = Math.round(self.getSamplesPerSymbol());
+        symarray = new Array(symbollen);
+        for (var i=0; i<symbollen ; i++) {
+            symarray[i] = false;
+        }
+        symptr = 0;
+        halfsym = symbollen >> 1;
     }
 
 
@@ -84,6 +89,7 @@ function FskBase(par, props, sampleRateHint) {
     var lastr = 0;
     var lasti = 0;
     var samplesSinceChange = 0;
+    var bitsum = 0;
 
     /**
      * note: multiplying one complex sample of an
@@ -94,8 +100,8 @@ function FskBase(par, props, sampleRateHint) {
     this.receive = function(isample) {
         var space = sf.updatex(isample);
         var mark  = mf.updatex(isample);
-        var r     = space.r+mark.r;
-        var i     = space.i+mark.i;
+        var r     = space.r + mark.r;
+        var i     = space.i + mark.i;
         var x     = r*lastr - i*lasti;
         var y     = r*lasti + i*lastr;
         lastr     = r; //save the conjugate
@@ -114,6 +120,26 @@ function FskBase(par, props, sampleRateHint) {
             bit = true;
         }
         
+        //use a delay line to check if we have a mark-to-space transition,
+        //then get a correction so that we center on symbol centers
+        symarray[symptr++] = bit;
+        symptr %= symbollen;
+        var last = symarray[symptr];
+        var isMarkToSpace = false;
+        var corr = 0;
+        if (last && !bit) {
+            var ptr = symptr;
+            var sum = -halfsym;
+            for (var pp=0 ; pp< symbollen ; pp++) {
+                sum += symarray[ptr++];
+                ptr %= symbollen;
+            }
+            if (sum > -3 && sum < 3) {
+                isMarkToSpace = true;
+                corr = -sum;
+            }
+        }
+        
         samplesSinceChange = (bit === lastBit) ? samplesSinceChange + 1 : 0;
         lastBit = bit;
         
@@ -124,7 +150,7 @@ function FskBase(par, props, sampleRateHint) {
         self.processBit(bit, symbollen, isMid);
     };
     
-    this.processBit = function(bit, symbollen, isMid) {
+    this.processBit = function(bit, symbollen, isMarkToSpace, corr) {
     };
 
     var SSIZE = 200;
