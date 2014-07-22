@@ -185,13 +185,13 @@ function RttyMode(par) {
     var parityBit = false;
     var counter   = 0;
 
-    this.processBit = function(bit, symbollen, isMarkSpace, corr) {
+    this.processBit = function(bit, symbollen, isMarkToSpace, corr) {
 
         switch (state) {
 
             case RxIdle :
                 //trace("RxIdle")
-                if (!bit && isMid) {
+                if (!bit && isMarkToSpace) {
                     state     = RxData;
                     code      = 0;
                     parityBit = false;

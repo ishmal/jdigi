@@ -120,6 +120,8 @@ function FskBase(par, props, sampleRateHint) {
             bit = true;
         }
         
+        bit = bit ^ inverted; //user-settable
+        
         //use a delay line to check if we have a mark-to-space transition,
         //then get a correction so that we center on symbol centers
         symarray[symptr++] = bit;
@@ -143,11 +145,7 @@ function FskBase(par, props, sampleRateHint) {
         samplesSinceChange = (bit === lastBit) ? samplesSinceChange + 1 : 0;
         lastBit = bit;
         
-        bit = bit ^ inverted; //user-settable
-        
-        var isMid = (Math.round(samplesSinceChange % symbollen) === halfSym);
-            
-        self.processBit(bit, symbollen, isMid);
+        self.processBit(bit, symbollen, isMarkToSpace, corr);
     };
     
     this.processBit = function(bit, symbollen, isMarkToSpace, corr) {
