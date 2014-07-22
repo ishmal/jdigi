@@ -174,9 +174,9 @@ function RttyMode(par) {
 
 
     var RxIdle   = 0;
-    var RxData   = 1;
-    var RxStop   = 2;
-    var RxStop2  = 3;
+    var RxStart  = 1;
+    var RxData   = 2;
+    var RxStop   = 3;
     var RxParity = 4;
 
     var state     = RxIdle;
@@ -185,52 +185,57 @@ function RttyMode(par) {
     var parityBit = false;
     var counter   = 0;
 
-    this.processBit = function(bit, symbollen, isMarkToSpace, corr) {
+    this.processBit = function(bit, parms) {
 
+        var symbollen = parms.symbollen;
+        
         switch (state) {
 
             case RxIdle :
-                //trace("RxIdle")
-                if (!bit && isMarkToSpace) {
-                    state     = RxData;
-                    code      = 0;
-                    parityBit = false;
-                    bitcount  = 0;
-                    counter   = symbollen-corr; //minor shift left or right
+                //console.log("RxIdle");
+                if (parms.isMarkToSpace) {
+                    state     = RxStart;
+                    counter   = parms.corr; //minor shift left or right
+                }
+                break;
+            case RxStart :
+                //console.log("RxStart");
+                if (--counter <= 0) {
+					if (!bit) {
+						state     = RxData;
+						code      = 0;
+						parityBit = false;
+						bitcount  = 0;
+						counter   = symbollen;
+					} else {
+					    state = RxIdle;
+					}
                 }
                 break;
             case RxData :
+                //console.log("RxData");
                 if (--counter <= 0) {
                     counter = symbollen;
-                    //trace("RxData")
-                    code = (code<<1) | ((bit) ? 1 : 0);
-                    if (++bitcount >= 5) {// todo:  or zero or 1
+                    code = (code<<1) | bit;
+                    if (++bitcount >= 5) {
                         state = (parityType === ParityNone) ? RxStop : RxParity;
                     }
                 }
                 break;
             case RxParity :
-                //trace("RxParity")
-                state     = RxStop;
-                parityBit = bit;
-                break;
-            case RxStop :
-                //trace("RxStop")
+                //console.log("RxParity");
                 if (--counter <= 0) {
-                    counter = symbollen;
-                    if (bit) {
-                        outCode(code);
-                        state = RxStop2;
-                    }
+					state     = RxStop;
+					parityBit = bit;
                 }
                 break;
-            case RxStop2 :
+            case RxStop :
+                //console.log("RxStop");
                 if (--counter <= 0) {
-                    counter=symbollen;
-                    //trace("RxStop2")
                     if (bit) {
-                        state = RxIdle;
+                        outCode(code);
                     }
+                state = RxIdle;
                 }
                 break;
             }

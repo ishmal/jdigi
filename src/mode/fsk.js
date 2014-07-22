@@ -52,7 +52,7 @@ function FskBase(par, props, sampleRateHint) {
     this.getBandwidth = function() { return shiftval; };
 
     var twopi = Math.PI * 2.0;
-    var symbollen, halfsym, symarray, symptr, symptr_last; //timing recovery
+    var symbollen, halfsym, symarray, symptr; //timing recovery
     var sf, mf; //mark and space filter
     var dataFilter;
 
@@ -85,10 +85,8 @@ function FskBase(par, props, sampleRateHint) {
     var loHys = -2.0;
     var hiHys =  2.0;
     var bit = false;
-    var lastBit = false;
     var lastr = 0;
     var lasti = 0;
-    var samplesSinceChange = 0;
     var bitsum = 0;
 
     /**
@@ -128,27 +126,33 @@ function FskBase(par, props, sampleRateHint) {
         symptr %= symbollen;
         var last = symarray[symptr];
         var isMarkToSpace = false;
+        var isMark = false;
         var corr = 0;
         if (last && !bit) {
             var ptr = symptr;
-            var sum = -halfsym;
-            for (var pp=0 ; pp< symbollen ; pp++) {
+            var sum = 0;
+            for (var pp=0 ; pp<symbollen ; pp++) {
                 sum += symarray[ptr++];
                 ptr %= symbollen;
             }
-            if (sum > -3 && sum < 3) {
+            isMark = (sum > halfsym);
+            if (Math.abs(halfsym-sum)<6) {
                 isMarkToSpace = true;
-                corr = -sum;
+                corr = sum;
             }
         }
-        
-        samplesSinceChange = (bit === lastBit) ? samplesSinceChange + 1 : 0;
-        lastBit = bit;
-        
-        self.processBit(bit, symbollen, isMarkToSpace, corr);
+
+        var parms = {
+            symbollen : symbollen,
+            isMarkToSpace : isMarkToSpace,
+            corr : corr
+        };
+
+        self.processBit(isMark, parms);
     };
+
     
-    this.processBit = function(bit, symbollen, isMarkToSpace, corr) {
+    this.processBit = function(bit, parms) {
     };
 
     var SSIZE = 200;
