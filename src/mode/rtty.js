@@ -197,6 +197,8 @@ function RttyMode(par) {
     var code      = 0;
     var parityBit = false;
     var counter   = 0;
+    var NRBITS    = 5;//todo: make this selectable
+    var msbit     = 1<<(NRBITS-1);
 
     /**
      * We wish to sample data at the end of a symbol period, with
@@ -259,7 +261,7 @@ function RttyMode(par) {
                 if (--counter <= 0) {
 					if (!isMark) {
 						state     = RxData;
-						code      = 0;
+						code      = 0|0;
 						parityBit = false;
 						bitcount  = 0;
 						counter   = symbollen;
@@ -272,8 +274,9 @@ function RttyMode(par) {
                 //console.log("RxData");
                 if (--counter <= 0) {
                     counter = symbollen;
-                    code = (code<<1) | isMark;
-                    if (++bitcount >= 5) {
+                    //code = (code<<1) + isMark; //msb
+                    code = ((code>>>1) + ((isMark) ? msbit : 0))|0; //lsb
+                    if (++bitcount >= NRBITS) {
                         state = (parityType === ParityNone) ? RxStop : RxParity;
                     }
                 }
@@ -324,6 +327,7 @@ function RttyMode(par) {
 
     function outCode(rawcode) {
         //println("raw:" + rawcode)
+        //rawcode = reverse(rawcode, 5);
         var code = rawcode & 0x1f;
         if (code === NUL) {
         } else if (code === FIGS) {

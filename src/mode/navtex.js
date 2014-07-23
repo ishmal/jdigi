@@ -261,11 +261,11 @@ function NavtexMode(par) {
     function processCode(code) {
         //trace("code: " + code.toHexString + " mode: " + dxMode)
         var res = ResultOk;
-        if (code === CCIR.REPEAT) {
+        if (code === REPEAT) {
             qadd(code);
             shifted = false;
             dxMode = false;
-        } else if (code == CCIR.ALPHA) {
+        } else if (code === ALPHA) {
             shifted = false;
             dxMode = true;
         } else {
@@ -303,11 +303,11 @@ function NavtexMode(par) {
         } else if (code < 0) {
             //par.puttext("_");
             res = '_';
-        } else if (code === CCIR.ALPHA || code === CCIR.REPEAT) {
+        } else if (code === ALPHA || code === REPEAT) {
             //shouldnt be here
-        } else if (code === CCIR.LTRS) {
+        } else if (code === LTRS) {
             shifted = false;
-        } else if (code === CCIR.FIGS) {
+        } else if (code === FIGS) {
             shifted = true;
         } else {
             var v = table[code];
