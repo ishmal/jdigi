@@ -125,7 +125,7 @@ var FIR = (function() {
             return (size===13) ? newFilter13(coeffs) : newFilter(size, coeffs);
         },
     
-        boxcar : function(size, cutoffFreq, sampleRate, window) {
+        boxcar : function(size, window) {
             var coeffs = genCoeffs(size, window, function(i) { return 1.0; });
             return (size===13) ? newFilter13(coeffs) : newFilter(size, coeffs);
         },
@@ -162,6 +162,27 @@ var FIR = (function() {
             var coeffs = genCoeffs(size, window, function(i) {
                  return (i === 0) ? 1.0 - (omega2 - omega1) / Math.PI : 
                     (Math.sin(omega1 * i) - Math.sin(omega2 * i)) / (Math.PI * i);
+            });
+            return (size===13) ? newFilter13(coeffs) : newFilter(size, coeffs);
+        },
+    
+        raisedcosine : function(size, rolloff, symbolFreq, sampleRate, window) {
+            var T  = sampleRate / symbolFreq;
+            var a = rolloff;
+
+            var coeffs = genCoeffs(size, window, function(i) {
+				var nT = i / T;
+				var anT = a * nT;
+				var c = 0;
+				if (i === 0)
+					c = 1.0;
+				else if (anT === 0.5 || anT === -0.5)//look at denominator below
+					c = Math.sin(Math.PI*nT)/(Math.PI*nT) * Math.PI / 4.0; 
+				else
+					c = Math.sin(Math.PI*nT)/(Math.PI*nT) * Math.cos(Math.PI * anT) /
+							(1.0 - 4.0 * anT * anT);
+				console.log("c:" + c);
+				return c;
             });
             return (size===13) ? newFilter13(coeffs) : newFilter(size, coeffs);
         }

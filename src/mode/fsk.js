@@ -69,7 +69,8 @@ function FskBase(par, props, sampleRateHint) {
     function adjust() {
         sf = FIR.bandpass(13, -0.75 * shiftval, -0.25 * shiftval, self.getSampleRate());
         mf = FIR.bandpass(13,  0.25 * shiftval,  0.75 * shiftval, self.getSampleRate());
-        dataFilter = FIR.boxcar((self.getSamplesPerSymbol() * 0.7)|0 );
+        //dataFilter = FIR.boxcar((self.getSamplesPerSymbol() * 0.7)|0 );
+        dataFilter = FIR.raisedcosine(13, 1.0, self.getRate(), self.getSampleRate());
         //dataFilter = FIR.lowpass(13, self.getRate() * 0.5, self.getSampleRate());
         //dataFilter = Biquad.lowPass(self.getRate() * 0.5, self.getSampleRate());
         symbollen = Math.round(self.getSamplesPerSymbol());
@@ -102,7 +103,7 @@ function FskBase(par, props, sampleRateHint) {
         var angle = Math.atan2(y, x);  //arg
         var comp  = (angle>0) ? -10.0 : 10.0;
         var sig   = dataFilter.update(comp);
-        //trace("sig:" + sig + "  comp:" + comp)
+        //console.log("sig:" + sig + "  comp:" + comp)
 
         scopeOut(sig);
 
