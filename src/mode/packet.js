@@ -376,6 +376,10 @@ function PacketMode(par) {
      *   flag    octet     octet   octet    fcs_hi   fcs_lo    flag
      */
     this.processBit = function(inBit) {
+    
+        if (!self.isMiddleBit(inBit)) {
+            return;
+        }
 
         //shift right for the next bit, since ax.25 is lsb-first
         octet = (octet >> 1) & 0x7f;  //0xff? we dont want the msb

@@ -52,7 +52,7 @@ function FskBase(par, props, sampleRateHint) {
     this.getBandwidth = function() { return shiftval; };
 
     var twopi = Math.PI * 2.0;
-    var symbollen, halfsym, symarray, symptr; //timing recovery
+    var symbollen, halfsym; 
     var sf, mf; //mark and space filter
     var dataFilter;
 
@@ -73,11 +73,6 @@ function FskBase(par, props, sampleRateHint) {
         //dataFilter = FIR.lowpass(13, self.getRate() * 0.5, self.getSampleRate());
         //dataFilter = Biquad.lowPass(self.getRate() * 0.5, self.getSampleRate());
         symbollen = Math.round(self.getSamplesPerSymbol());
-        symarray = new Array(symbollen);
-        for (var i=0; i<symbollen ; i++) {
-            symarray[i] = false;
-        }
-        symptr = 0;
         halfsym = symbollen >> 1;
     }
 
@@ -105,7 +100,7 @@ function FskBase(par, props, sampleRateHint) {
         lastr     = r; //save the conjugate
         lasti     = -i;
         var angle = Math.atan2(y, x);  //arg
-        var comp  = (angle<0) ? -10.0 : 10.0;
+        var comp  = (angle>0) ? -10.0 : 10.0;
         var sig   = dataFilter.update(comp);
         //trace("sig:" + sig + "  comp:" + comp)
 
@@ -120,39 +115,26 @@ function FskBase(par, props, sampleRateHint) {
         
         bit = bit ^ inverted; //user-settable
         
-        //use a delay line to check if we have a mark-to-space transition,
-        //then get a correction so that we center on symbol centers
-        symarray[symptr++] = bit;
-        symptr %= symbollen;
-        var last = symarray[symptr];
-        var isMarkToSpace = false;
-        var isMark = false;
-        var corr = 0;
-        if (last && !bit) {
-            var ptr = symptr;
-            var sum = 0;
-            for (var pp=0 ; pp<symbollen ; pp++) {
-                sum += symarray[ptr++];
-                ptr %= symbollen;
-            }
-            isMark = (sum > halfsym);
-            if (Math.abs(halfsym-sum)<6) {
-                isMarkToSpace = true;
-                corr = sum;
-            }
-        }
-
-        var parms = {
-            symbollen : symbollen,
-            isMarkToSpace : isMarkToSpace,
-            corr : corr
-        };
-
-        self.processBit(isMark, parms);
+        self.processBit(bit);
     };
 
     
     this.processBit = function(bit, parms) {
+    };
+    
+    
+    var samplesSinceChange = 0;
+    var lastbit = false;
+    
+    /**
+     * Used for modes without start/stop. Test if the current bit is the middle
+     * of where a symbol is expected to be.
+     */
+    this.isMiddleBit = function(bit) {
+        samplesSinceChange = (bit===lastbit) ? samplesSinceChange+1 : 0;
+        lastbit = bit;
+        var middleBit = (samplesSinceChange%symbollen === halfsym);
+        return middleBit;
     };
 
     var SSIZE = 200;

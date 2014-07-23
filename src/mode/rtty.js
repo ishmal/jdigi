@@ -148,6 +148,19 @@ function RttyMode(par) {
     this.setUnshiftOnSpace = function(v) {
         unshiftOnSpace = v;
     };
+    
+    var symbollen, halfsym, symarray, symptr=0;
+    
+    var super_setRate = this.setRate;
+    this.setRate = function(rate) {
+        super_setRate(rate);
+        symbollen = Math.round(self.getSamplesPerSymbol());
+        halfsym = symbollen>>1;
+        symarray = new Array(symbollen);
+        for (var pp=0 ; pp<symbollen ; pp++) {
+            symarray[pp] = false;
+        }
+    };
 
     this.setRate(45.0); //makes all rate/shift dependent vars initialize
 
@@ -171,8 +184,8 @@ function RttyMode(par) {
             default         : return false;   //None or unknown
         }
     }
-
-
+    
+    
     var RxIdle   = 0;
     var RxStart  = 1;
     var RxData   = 2;
@@ -185,23 +198,66 @@ function RttyMode(par) {
     var parityBit = false;
     var counter   = 0;
 
-    this.processBit = function(bit, parms) {
+    /**
+     * We wish to sample data at the end of a symbol period, with
+     * Use a cirsular delay line to check if we have a mark-to-space transition,
+     * then get a correction so that we align on symbol centers.  Once we do that,
+     * we are hopefully aligned on a trailing edge, then we can sense a mark or
+     * space by which has the most bits.
+     *
+     * |<-----symbollen ---->| Now
+     *
+     * ----3----|
+     *          |
+     *          |-----3------
+     *          
+     *          |<---corr-->|
+     *
+     * 
+     *
+     * While reading bits, are most of the bits set? Then it's
+     * a mark, else a space.
+     *
+     * |<-----symbollen ---->| Now
+     *  |------------------|
+     *  |                  |
+     * -|                  |-
+     *
+     */
+    this.processBit = function(bit) {
+    
+        symarray[symptr++] = bit;
+        symptr %= symbollen;
+        var last = symarray[symptr];
+        var isMarkToSpace = false;
+        var corr = 0;
+		var ptr = symptr;
+		var sum = 0;
+		for (var pp=0 ; pp<symbollen ; pp++) {
+			sum += symarray[ptr++];
+			ptr %= symbollen;
+		}
+		var isMark = (sum > halfsym);
+        if (last && !bit) {
+            if (Math.abs(halfsym-sum)<6) {
+                isMarkToSpace = true;
+                corr = sum;
+            }
+        }
 
-        var symbollen = parms.symbollen;
-        
         switch (state) {
 
             case RxIdle :
                 //console.log("RxIdle");
-                if (parms.isMarkToSpace) {
+                if (isMarkToSpace) {
                     state     = RxStart;
-                    counter   = parms.corr; //minor shift left or right
+                    counter   = corr; //lets us re-center
                 }
                 break;
             case RxStart :
                 //console.log("RxStart");
                 if (--counter <= 0) {
-					if (!bit) {
+					if (!isMark) {
 						state     = RxData;
 						code      = 0;
 						parityBit = false;
@@ -216,7 +272,7 @@ function RttyMode(par) {
                 //console.log("RxData");
                 if (--counter <= 0) {
                     counter = symbollen;
-                    code = (code<<1) | bit;
+                    code = (code<<1) | isMark;
                     if (++bitcount >= 5) {
                         state = (parityType === ParityNone) ? RxStop : RxParity;
                     }
@@ -226,13 +282,13 @@ function RttyMode(par) {
                 //console.log("RxParity");
                 if (--counter <= 0) {
 					state     = RxStop;
-					parityBit = bit;
+					parityBit = isMark;
                 }
                 break;
             case RxStop :
                 //console.log("RxStop");
                 if (--counter <= 0) {
-                    if (bit) {
+                    if (isMark) {
                         outCode(code);
                     }
                 state = RxIdle;

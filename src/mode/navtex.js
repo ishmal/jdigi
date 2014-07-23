@@ -109,8 +109,8 @@ function NavtexMode(par) {
     };
 
     this.setShift(170.0);
+    
     this.setRate(100.0); //makes all rate/shift dependent vars initialize
-
 
 
     var RxSync1  = 0;
@@ -147,8 +147,14 @@ function NavtexMode(par) {
         a = b;
         sync4 = ((sync4 << 1) + a) & 0x7f;
     }
+    
+
    
     this.processBit = function(bit) {
+    
+        if (!self.isMiddleBit(bit)) {
+            return;
+        }
 
         switch(state) {
             case RxSync1 :
@@ -232,7 +238,7 @@ function NavtexMode(par) {
         q1 = v;
     }
 
-    var table = CCIR.t;
+    var table  = CCIR.t;
     var NUL    = CCIR.NUL;
     var LTRS   = CCIR.LTRS;
     var FIGS   = CCIR.FIGS;
