@@ -162,7 +162,7 @@ function RttyMode(par) {
         }
     };
 
-    this.setRate(45.0); //makes all rate/shift dependent vars initialize
+    this.setRate(45.45); //makes all rate/shift dependent vars initialize
 
     var parityType = ParityNone;
 
