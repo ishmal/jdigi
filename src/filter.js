@@ -181,7 +181,6 @@ var FIR = (function() {
 				else
 					c = Math.sin(Math.PI*nT)/(Math.PI*nT) * Math.cos(Math.PI * anT) /
 							(1.0 - 4.0 * anT * anT);
-				console.log("c:" + c);
 				return c;
             });
             return (size===13) ? newFilter13(coeffs) : newFilter(size, coeffs);
