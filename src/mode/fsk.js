@@ -70,7 +70,7 @@ function FskBase(par, props, sampleRateHint) {
         sf = FIR.bandpass(13, -0.75 * shiftval, -0.25 * shiftval, self.getSampleRate());
         mf = FIR.bandpass(13,  0.25 * shiftval,  0.75 * shiftval, self.getSampleRate());
         //dataFilter = FIR.boxcar((self.getSamplesPerSymbol() * 0.7)|0 );
-        dataFilter = FIR.raisedcosine(13, 0.5, self.getRate(), self.getSampleRate());
+        dataFilter = FIR.raisedcosine(13, 0.5, self.getRate()*0.5, self.getSampleRate());
         //dataFilter = FIR.lowpass(13, self.getRate() * 0.5, self.getSampleRate());
         //dataFilter = Biquad.lowPass(self.getRate() * 0.5, self.getSampleRate());
         symbollen = Math.round(self.getSamplesPerSymbol());
