@@ -477,11 +477,8 @@ function PskMode2(par) {
     
     this.getBandwidth = function() { return this.getRate(); };
     
-    var ilp = Biquad.lowPass(this.getRate()*0.5, this.getSampleRate());
-    var qlp = Biquad.lowPass(this.getRate()*0.5, this.getSampleRate());
-    
+    var ilp,qlp;
     var symbollen, halfSym;
-
 
     var super_setRate = this.setRate;
     this.setRate = function(rate) {

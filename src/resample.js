@@ -181,9 +181,6 @@ function Resampler(decimation) {
     var i8 = 0.0;
     var i9 = 0.0;
 
-
-    var buf = new Float32Array(decimation);
-    
     function decimate1(v, f) { f(v); }
     function interpolate1(v, buf) { buf[0]=v; }
 
@@ -192,13 +189,9 @@ function Resampler(decimation) {
     //#############################################
         
     function decimate2(v,f) {
-        buf[idx++] = v;
-        if (idx >= decimation) {
+        r0=r1; r1=r2; r2=r3; r3=v;
+        if (++idx >= 2) {
             idx = 0;
-            r0 = r2;
-            r1 = r3;
-            r2 = buf[0];
-            r3 = buf[1];
             var sum = r1*d21 + r2*d22;
             f(sum);
             }
@@ -216,14 +209,9 @@ function Resampler(decimation) {
     //#############################################
 
     function decimate3(v, f) {
-        buf[idx++] = v;
-        if (idx >= decimation) {
+        r0=r1; r1=r2; r2=r3; r3=r4; r4=v;
+        if (++idx >= 3) {
             idx = 0;
-            r0 = r3;
-            r1 = r4;
-            r2 = buf[0];
-            r3 = buf[1];
-            r4 = buf[2];
             var sum = r1*d31 + r2*d32 + r3*d33;
             f(sum);
             }
@@ -242,15 +230,9 @@ function Resampler(decimation) {
     //#############################################
 
     function decimate4(v, f) {
-        buf[idx++] = v;
-        if (idx >= decimation) {
+        r0=r1; r1=r2; r2=r3; r3=r4; r4=r5; r5=v;
+        if (++idx >= 4) {
             idx = 0;
-            r0 = r4;
-            r1 = r5;
-            r2 = buf[0];
-            r3 = buf[1];
-            r4 = buf[2];
-            r5 = buf[3];
             var sum = r1*d41 + r2*d42 + r3*d43 + r4*d44;
             f(sum);
             }
@@ -270,16 +252,9 @@ function Resampler(decimation) {
     //#############################################
 
     function decimate5(v, f) {
-        buf[idx++] = v;
-        if (idx >= decimation) {
+        r0=r1; r1=r2; r2=r3; r3=r4; r4=r5; r5=r6; r6=v;
+        if (++idx >= 5) {
             idx = 0;
-            r0 = r5;
-            r1 = r6;
-            r2 = buf[0];
-            r3 = buf[1];
-            r4 = buf[2];
-            r5 = buf[3];
-            r6 = buf[4];
             var sum = r1*d51 + r2*d52 + r3*d53 + r4*d54 + r5*d55;
             f(sum);
             }
@@ -300,17 +275,9 @@ function Resampler(decimation) {
     //#############################################
 
     function decimate6(v, f) {
-        buf[idx++] = v;
-        if (idx >= decimation){
+        r0=r1; r1=r2; r2=r3; r3=r4; r4=r5; r5=r6; r6=r7; r7=v;
+        if (++idx >= 6) {
             idx = 0;
-            r0 = r6;
-            r1 = r7;
-            r2 = buf[0];
-            r3 = buf[1];
-            r4 = buf[2];
-            r5 = buf[3];
-            r6 = buf[4];
-            r7 = buf[5];
             var sum = r1*d61 + r2*d62 + r3*d63 + r4*d64 + r5*d65 + r6*d66;
             f(sum);
             }
@@ -333,19 +300,10 @@ function Resampler(decimation) {
 
 
     function decimate7(v, f) {
-        buf[idx++] = v;
-        if (idx >= decimation) {
+        r0=r1; r1=r2; r2=r3; r3=r4; r4=r5; r5=r6; r6=r7; r7=r8; r8=v;
+        if (++idx >= 7) {
             idx = 0;
-            r0 = r7;
-            r1 = r8;
-            r2 = buf[0];
-            r3 = buf[1];
-            r4 = buf[2];
-            r5 = buf[3];
-            r6 = buf[4];
-            r7 = buf[5];
-            r8 = buf[6];
-            var sum = r1*d71 + r2*d72 + r3*d73 + r4*d74 * r5*d75 + r6*d76 + r7*d77;
+            var sum = r1*d71 + r2*d72 + r3*d73 + r4*d74 + r5*d75 + r6*d76 + r7*d77;
             f(sum);
         }
     }
