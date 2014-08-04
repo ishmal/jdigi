@@ -20,12 +20,39 @@ function PpGen(columns) {
         p(";"); nl();
     }
     
-    function javaDecShift(pfx, decimation) {
+    function javaDecShift(pfx, decimation, rhs) {
         for (i=0 ; i<decimation+1 ; i++) {
             p(pfx + i + "=" + pfx + (i+1) + "; ");
         }
-        p(pfx + (decimation+1) + "=v;"); nl();
+        p(pfx + (decimation+1) + "=" + rhs + ";"); nl();
     }
+    
+    function javaDecCalc(pfx, coeffs, suffix) {
+        var sep = "";
+        var len = coeffs.length;
+        for (var i=0 ; i<len ; i++) {
+            var c = coeffs[i];
+            //p("c:" + c + ""); nl();
+            if (Math.abs(c) > 0.000001) {
+                p(sep);
+                p(pfx + i + suffix + "*" + c.toFixed(5));
+                sep = PLUS;
+            }
+        }
+    }    
+    
+    function javaIntCalc(pfx, row, suffix) {
+        var sep = "";
+        var len = row.length;
+        for (var col=0 ; col<len ; col++) {
+            var c = row[col];
+            if (Math.abs(c) > 0.00001) {
+                p(sep);
+                p(pfx + col + suffix + " * " + c.toFixed(5));
+                sep = PLUS;
+            }
+        }
+    }    
     
     function javaOutput(decimation, size, table) {
        //showTable(table); return;
@@ -33,16 +60,16 @@ function PpGen(columns) {
         p("/**"); nl();
         p(" * ### decimation : " + decimation); nl(); 
         p(" */"); nl();
-        p("class Resampler" + decimation + "() {"); nl();
+        p("public static class RS" + decimation + " implements RS {"); nl();
         p("    private double ");
         javaDecl("r", decimation);
         p("    private double ");
         javaDecl("i", decimation);
         p("    private int idx = 0;"); nl();
-        p("    private double value = 0.0;"); nl();
-        p("    private double valuei = 0.0;"); nl();
-        p("    public double getValue(){ return value; }"); nl();
-        p("    public double getValueI(){ return valuei; }"); nl();
+        p("    private double r = 0.0;"); nl();
+        p("    private double i = 0.0;"); nl();
+        p("    public double getR(){ return r; }"); nl();
+        p("    public double getI(){ return i; }"); nl();
         nl();
  
         /**
@@ -50,11 +77,11 @@ function PpGen(columns) {
          */
         p("    public boolean decimate(double v) {"); nl();
         p("        ");
-        javaDecShift("r", decimation);
+        javaDecShift("r", decimation, "v");
         p("        if (++idx >= " + decimation + ") {"); nl();
         p("            idx = 0;"); nl();
-        p("            value = ");
-        jsDecCalc(coeffs, "");
+        p("            r = ");
+        javaDecCalc("r", coeffs, "");
         p(";"); nl();
         p("            return true;"); nl();
         p("        } else {"); nl();
@@ -68,16 +95,16 @@ function PpGen(columns) {
          */
         p("    public boolean decimate(double r, double i) {"); nl();
         p("        ");
-        javaDecShift("r", decimation);
+        javaDecShift("r", decimation, "r");
         p("        ");
-        javaDecShift("i", decimation);
+        javaDecShift("i", decimation, "i");
         p("        if (++idx >= " + decimation + ") {"); nl();
         p("            idx = 0;"); nl();
-        p("            value = ");
-        jsDecCalc(coeffs, ".r");
+        p("            r = ");
+        javaDecCalc("r", coeffs, "");
         p(";"); nl();
-        p("            valuei = ");
-        jsDecCalc(coeffs, ".i");
+        p("            i = ");
+        javaDecCalc("i", coeffs, "");
         p(";"); nl();
         p("            return true;"); nl();
         p("        } else {"); nl();
@@ -89,15 +116,15 @@ function PpGen(columns) {
         /**
          * REAL INTERPOLATION
          */
-        p("    this.interpolate = function(v, buf) {"); nl();
-        p("        d0 = d1; d1 = d2; d2 = v;"); nl();
+        p("    public void interpolate(double v, double buf[]) {"); nl();
+        p("        r0 = r1; r1 = r2; r2 = v;"); nl();
         for (var row = 0 ; row < decimation ; row++) {
             var rowarr = table[row];
             p("        buf[" + row + "] = ");
             if (Math.abs(arrsum(rowarr)) < 0.0001) {
                 p("0");
             } else {
-                jsIntCalc(rowarr, "");
+                javaIntCalc("r", rowarr, "");
             }
             p(";"); nl();
         }
@@ -107,22 +134,24 @@ function PpGen(columns) {
        /**
          * COMPLEX INTERPOLATION
          */
-        p("    this.interpolatex = function(v, buf) {"); nl();
-        p("        d0 = d1; d1 = d2; d2 = v;"); nl();
+        p("    public void interpolate(double r, double i, double rbuf[], double ibuf[]) {"); nl();
+        p("        r0 = r1; r1 = r2; r2 = r;"); nl();
+        p("        i0 = i1; i1 = i2; i2 = i;"); nl();
         for (row = 0 ; row < decimation ; row++) {
             var rowarr2 = table[row];
-            p("        buf[" + row + "] = ");
+            p("        rbuf[" + row + "] = ");
             if (Math.abs(arrsum(rowarr2)) < 0.0001) {
-                p("{r:0,i:0};"); nl();
+                p("0.0;"); nl();
             } else {
-                p("{"); nl();
-                p("            r: ");
-                jsIntCalc(rowarr2, ".r");
-                p(","); nl();
-                p("            i: ");
-                jsIntCalc(rowarr2, ".r");
-                nl();
-                p("        };"); nl();
+                javaIntCalc("r", rowarr2, "");
+                p(";"); nl();
+            }
+            p("        ibuf[" + row + "] = ");
+            if (Math.abs(arrsum(rowarr2)) < 0.0001) {
+                p("0.0;"); nl();
+            } else {
+                javaIntCalc("i", rowarr2, "");
+                p(";"); nl();
             }
         }
         p("    };"); nl();
@@ -131,12 +160,50 @@ function PpGen(columns) {
         //# END
         p("}"); nl();
         nl();
+    }
     
- 
+    function javaHeader() {
+        p("public class Resampler {"); nl();
+        p("    public interface RS {"); nl();
+        p("        public boolean decimate(double v);"); nl();
+        p("        public boolean decimate(double r, double i);"); nl();
+        p("        public void interpolate(double v, double buf[]);"); nl();
+        p("        public void interpolate(double r, double i, double rbuf[], double ibuf[]);"); nl();
+        p("        public double getR();"); nl();
+        p("        public double getI();"); nl();
+        p("    }"); nl();
+        nl();
+        p("    public static class RS1 implements RS {"); nl();
+        p("        private double r; double i;"); nl();
+        p("        public boolean decimate(double v) { r = v ; return true; }"); nl();
+        p("        public boolean decimate(double r, double i) { this.r=r; this.i=i; return true; }"); nl();
+        p("        public void interpolate(double v, double buf[]) { buf[0] = v; }"); nl();
+        p("        public void interpolate(double r, double i, double rbuf[], double ibuf[]) "); nl();
+        p("            { rbuf[0]=r; ibuf[0] = i; }"); nl();
+        p("        public double getR() { return r; }"); nl();
+        p("        public double getI() { return i; }"); nl();
+        p("    }"); nl();
+        nl();
+    }
     
     
+    function javaFooter() {
+        p("    public static RS create(int decimation) {"); nl();
+        p("        switch (decimation) {"); nl();
+        p("            case 2 : return new RS2();"); nl();
+        p("            case 3 : return new RS3();"); nl();
+        p("            case 4 : return new RS4();"); nl();
+        p("            case 5 : return new RS5();"); nl();
+        p("            case 6 : return new RS6();"); nl();
+        p("            case 7 : return new RS7();"); nl();
+        p("            default :"); nl();
+        p("                throw new IllegalArgumentException(\"Decimation \" + decimation + \" is not supported\");"); nl();
+        p("        }"); nl();
+        p("    }"); nl();
         p("}"); nl();
     }
+    
+    
     
     /* ####################################################################
     ##  JAVASCRIPT
@@ -278,7 +345,9 @@ function PpGen(columns) {
     
     }
     
-    var output = jsOutput;
+    var header = javaHeader;
+    var output = javaOutput;
+    var footer = javaFooter;
 
     /* ####################################################################
     ##  M A I N
@@ -392,13 +461,14 @@ function PpGen(columns) {
     
     function doIt() {
     
+        header();
+        
         for (var decim=2 ; decim<=7 ; decim++) {
             generate(decim);
         }
         generate(11);
-        generate(13);
-        generate(17);
-        generate(19);
+        
+        footer();
     }
     
     this.doIt = doIt;
