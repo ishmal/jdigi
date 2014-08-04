@@ -17,7 +17,7 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import {Resampler,ResamplerX} from "../resample";
+import {Resampler} from "../resample";
 import {Nco} from "../nco";
 import {Constants} from "../constants";
 import {Biquad} from "../filter";
@@ -107,8 +107,8 @@ function Mode(par, props, sampleRateHint) {
         useAfc = v;
     };
 
-    var decimator    = new ResamplerX(decimation);
-    var interpolator = new ResamplerX(decimation);
+    var decimator    = Resampler.create(decimation);
+    var interpolator = Resampler.create(decimation);
 
     var nco = new Nco(this.getFrequency(), par.getSampleRate());
 
@@ -127,7 +127,10 @@ function Mode(par, props, sampleRateHint) {
 
     this.receiveData = function(v) {
         var cx = nco.mixNext(v);
-        decimator.decimate(cx, self.receive);
+        if (decimator.decimatex(cx)) {
+            var dv = decimator.value;
+            self.receive(dv);
+        }
     };
 
 
@@ -164,7 +167,7 @@ function Mode(par, props, sampleRateHint) {
                 iptr = 0;
             }
             var v = ibuf[iptr++];
-            interpolator.interpolate(v, interpbuf);
+            interpolator.interpolatex(v, interpbuf);
             optr = 0;
         }
         var cx = obuf[optr];

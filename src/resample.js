@@ -19,397 +19,985 @@
 
 import {Complex} from "./math";
 
-/**
- * A highly experimental resampler with hardcoded calculations
- */
-function Resampler(decimation) {
- 
-    //#########################################################
-    //###  DECIMATION : 2
-    //#########################################################
-    var c0200 = -0.00000;
-    var c0201 = 6.73393e-18;
-    var c0202 = 0.287914;
-    var c0203 = 0.452254;
-    var c0204 = 0.109973;
-    var c0205 = 0.00000;
-    var d21 = c0201 + c0203;
-    var d22 =         c0202 + c0204;
-
-    //#########################################################
-    //###  DECIMATION : 3
-    //#########################################################
-    var c0300 = -0.00000;
-    var c0301 = -0.00665934;
-    var c0302 = 0.0318310;
-    var c0303 = 0.181130;
-    var c0304 = 0.318310;
-    var c0305 = 0.271694;
-    var c0306 = 0.106103;
-    var c0307 = 0.00932308;
-    var c0308 = -0.00000;
-    var d31 = c0301 + c0303;
-    var d32 = c0302 + c0304 + c0306;
-    var d33 =         c0305 + c0307;
-
-    //#########################################################
-    //###  DECIMATION : 4
-    //#########################################################
-    var c0400 = -0.00000;
-    var c0401 = -0.00357305;
-    var c0402 = 2.84852e-18;
-    var c0403 = 0.0428519;
-    var c0404 = 0.131690;
-    var c0405 = 0.220520;
-    var c0406 = 0.244937;
-    var c0407 = 0.186237;
-    var c0408 = 0.0909025;
-    var c0409 = 0.0219296;
-    var c0410 = 7.73526e-19;
-    var c0411 = -0.00000;
-    var d41 = c0401 + c0404;
-    var d42 = c0402 + c0405 + c0408;
-    var d43 = c0403 + c0406 + c0409;
-    var d44 =         c0407 + c0410;
-
-    //#########################################################
-    //###  DECIMATION : 5
-    //#########################################################
-    var c0500 = -0.00000;
-    var c0501 = -0.00196172;
-    var c0502 = -0.00336679;
-    var c0503 = 0.00849726;
-    var c0504 = 0.0449745;
-    var c0505 = 0.103355;
-    var c0506 = 0.163178;
-    var c0507 = 0.196726;
-    var c0508 = 0.186985;
-    var c0509 = 0.139359;
-    var c0510 = 0.0778281;
-    var c0511 = 0.0286021;
-    var c0512 = 0.00411497;
-    var c0513 = -0.000885547;
-    var c0514 = -0.00000;
-    var d51 = c0501 + c0505;
-    var d52 = c0502 + c0506 + c0510; 
-    var d53 = c0503 + c0507 + c0511; 
-    var d54 = c0504 + c0508 + c0512; 
-    var d55 =         c0509 + c0513; 
-
-    //#########################################################
-    //###  DECIMATION : 6
-    //#########################################################
-    var c0600 = -0.00000;
-    var c0601 = -0.00116344;
-    var c0602 = -0.00296700;
-    var c0603 = 1.80051e-18;
-    var c0604 = 0.0144470;
-    var c0605 = 0.0438880;
-    var c0606 = 0.0850224;
-    var c0607 = 0.127510;
-    var c0608 = 0.157800;
-    var c0609 = 0.165248;
-    var c0610 = 0.147236;
-    var c0611 = 0.110447;
-    var c0612 = 0.0675699;
-    var c0613 = 0.0312787;
-    var c0614 = 0.00882135;
-    var c0615 = 8.47823e-19;
-    var c0616 = -0.000767670;
-    var c0617 = -0.00000;
-    var d61 = c0601 + c0606;
-    var d62 = c0602 + c0607 + c0612;
-    var d63 = c0603 + c0608 + c0613;
-    var d64 = c0604 + c0609 + c0614;
-    var d65 = c0605 + c0610 + c0615;
-    var d66 =         c0611 + c0616;
-
-    //#########################################################
-    //###  DECIMATION : 7
-    //#########################################################
-    var c0700 = -0.00000;
-    var c0701 = -0.000738756;
-    var c0702 = -0.00222959;
-    var c0703 = -0.00194649;
-    var c0704 = 0.00376483;
-    var c0705 = 0.0180421;
-    var c0706 = 0.0417122;
-    var c0707 = 0.0722011;
-    var c0708 = 0.103761;
-    var c0709 = 0.129071;
-    var c0710 = 0.141661;
-    var c0711 = 0.138195;
-    var c0712 = 0.119674;
-    var c0713 = 0.0910713;
-    var c0714 = 0.0595247;
-    var c0715 = 0.0318653;
-    var c0716 = 0.0124668;
-    var c0717 = 0.00224596;
-    var c0718 = -0.000901830;
-    var c0719 = -0.000571381;
-    var c0720 = -0.00000;
-    //notice the diagonals
-    var d71 = c0701 + c0707;
-    var d72 = c0702 + c0708 + c0714;
-    var d73 = c0703 + c0709 + c0715;
-    var d74 = c0704 + c0710 + c0716;
-    var d75 = c0705 + c0711 + c0717;
-    var d76 = c0706 + c0712 + c0718;
-    var d77 =         c0713 + c0719;
-
-    var idx = 0;
-    
-    var r0 = 0.0;
-    var r1 = 0.0;
-    var r2 = 0.0;
-    var r3 = 0.0;
-    var r4 = 0.0;
-    var r5 = 0.0;
-    var r6 = 0.0;
-    var r7 = 0.0;
-    var r8 = 0.0;
-    var r9 = 0.0;
-    
-    var i0 = 0.0;
-    var i1 = 0.0;
-    var i2 = 0.0;
-    var i3 = 0.0;
-    var i4 = 0.0;
-    var i5 = 0.0;
-    var i6 = 0.0;
-    var i7 = 0.0;
-    var i8 = 0.0;
-    var i9 = 0.0;
-
-    function decimate1(v, f) { f(v); }
-    function interpolate1(v, buf) { buf[0]=v; }
-
-    //#############################################
-    //# 2
-    //#############################################
-        
-    function decimate2(v,f) {
-        r0=r1; r1=r2; r2=r3; r3=v;
-        if (++idx >= 2) {
-            idx = 0;
-            var sum = r1*d21 + r2*d22;
-            f(sum);
-            }
-    }
-
-    function interpolate2(v, buf) {
-        r0 = r1; r1 = r2; r2 = v;
-        buf[0] = /*r0 * c0200 + */r1 * c0202 + r2 * c0204;
-        buf[1] = r0 * c0201 + r1 * c0203/* + r2 * c0205*/;
-    }
-
-
-    //#############################################
-    //# 3
-    //#############################################
-
-    function decimate3(v, f) {
-        r0=r1; r1=r2; r2=r3; r3=r4; r4=v;
-        if (++idx >= 3) {
-            idx = 0;
-            var sum = r1*d31 + r2*d32 + r3*d33;
-            f(sum);
-            }
-    }
-
-    function interpolate3(v, buf) {
-        r0 = r1; r1 = r2; r2 = v;
-        buf[0] = r0*c0300 + r1*c0303 + r2*c0306;
-        buf[1] = r0*c0301 + r1*c0304 + r2*c0307;
-        buf[2] = r0*c0302 + r1*c0305 + r2*c0308;
-    }
-
-
-    //#############################################
-    //# 4
-    //#############################################
-
-    function decimate4(v, f) {
-        r0=r1; r1=r2; r2=r3; r3=r4; r4=r5; r5=v;
-        if (++idx >= 4) {
-            idx = 0;
-            var sum = r1*d41 + r2*d42 + r3*d43 + r4*d44;
-            f(sum);
-            }
-    }
-
-    function interpolate4(v, buf) {
-        r0 = r1; r1 = r2; r2 = v;
-        buf[0] = r0*c0400 + r1*c0404 + r2*c0408;
-        buf[1] = r0*c0401 + r1*c0405 + r2*c0409;
-        buf[2] = r0*c0402 + r1*c0406 + r2*c0410;
-        buf[3] = r0*c0403 + r1*c0407 + r2*c0411;
-    }
-
-
-    //#############################################
-    //# 5
-    //#############################################
-
-    function decimate5(v, f) {
-        r0=r1; r1=r2; r2=r3; r3=r4; r4=r5; r5=r6; r6=v;
-        if (++idx >= 5) {
-            idx = 0;
-            var sum = r1*d51 + r2*d52 + r3*d53 + r4*d54 + r5*d55;
-            f(sum);
-            }
-    }
-
-    function interpolate5(v, buf) {
-        r0 = r1; r1 = r2; r2 = v;
-        buf[0] = r0*c0500 + r1*c0505 + r2*c0510;
-        buf[1] = r0*c0501 + r1*c0506 + r2*c0511;
-        buf[2] = r0*c0502 + r1*c0507 + r2*c0512;
-        buf[3] = r0*c0503 + r1*c0508 + r2*c0513;
-        buf[4] = r0*c0504 + r1*c0509 + r2*c0514;
-    }
-
-
-    //#############################################
-    //# 6
-    //#############################################
-
-    function decimate6(v, f) {
-        r0=r1; r1=r2; r2=r3; r3=r4; r4=r5; r5=r6; r6=r7; r7=v;
-        if (++idx >= 6) {
-            idx = 0;
-            var sum = r1*d61 + r2*d62 + r3*d63 + r4*d64 + r5*d65 + r6*d66;
-            f(sum);
-            }
-    }
-
-    function interpolate6(v, buf) {
-        r0 = r1; r1 = r2; r2 = v;
-        buf[0] = r0*c0600 + r1*c0606 + r2*c0612;
-        buf[1] = r0*c0601 + r1*c0607 + r2*c0613;
-        buf[2] = r0*c0602 + r1*c0608 + r2*c0614;
-        buf[3] = r0*c0603 + r1*c0609 + r2*c0615;
-        buf[4] = r0*c0604 + r1*c0610 + r2*c0616;
-        buf[5] = r0*c0605 + r1*c0611 + r2*c0617;
-    }
-
-
-    //#############################################
-    //# 7
-    //#############################################
-
-
-    function decimate7(v, f) {
-        r0=r1; r1=r2; r2=r3; r3=r4; r4=r5; r5=r6; r6=r7; r7=r8; r8=v;
-        if (++idx >= 7) {
-            idx = 0;
-            var sum = r1*d71 + r2*d72 + r3*d73 + r4*d74 + r5*d75 + r6*d76 + r7*d77;
-            f(sum);
-        }
-    }
-
-    function interpolate7(v, buf) {
-        r0 = r1; r1 = r2; r2 = v;
-        buf[0] = r0*c0700 + r1*c0707 + r2*c0714;
-        buf[1] = r0*c0701 + r1*c0708 + r2*c0715;
-        buf[2] = r0*c0702 + r1*c0709 + r2*c0716;
-        buf[3] = r0*c0703 + r1*c0710 + r2*c0717;
-        buf[4] = r0*c0704 + r1*c0711 + r2*c0718;
-        buf[5] = r0*c0705 + r1*c0712 + r2*c0719;
-        buf[6] = r0*c0706 + r1*c0713 + r2*c0720;
-    }
-    
-     //#############################################
-    //# M A I N
-    //#############################################
-    
-    function BadDecimationSpecException(message) {
-        this.message = message;
-        this.name = "BadDecimationSpecException";
-    }
-
-    switch (decimation) {
-        case 1 : this.decimate  = decimate1;  this.interpolate  = interpolate1; break;
-        case 2 : this.decimate  = decimate2;  this.interpolate  = interpolate2; break;
-        case 3 : this.decimate  = decimate3;  this.interpolate  = interpolate3; break;
-        case 4 : this.decimate  = decimate4;  this.interpolate  = interpolate4; break;
-        case 5 : this.decimate  = decimate5;  this.interpolate  = interpolate5; break;
-        case 6 : this.decimate  = decimate6;  this.interpolate  = interpolate6; break;
-        case 7 : this.decimate  = decimate7;  this.interpolate  = interpolate7; break;
-        case 8 : var sub8 = new Resampler(4);
-                 this.decimate = function(v, f) {
-                     decimate2(v, function(v1) {
-                         sub8.decimate(v1, f);
-                     });
-                 };
-                 this.interpolate = function(v, f) {
-                     interpolate2(v, function(v1) {
-                         sub8.interpolate(v1, f);
-                     });
-                 };
-                 break;
-        case 9 : var sub9 = new Resampler(3);
-                 this.decimate = function(v, f) {
-                     decimate3(v, function(v1) {
-                         sub9.decimate(v1, f);
-                     });
-                 };
-                 this.interpolate = function(v, f) {
-                     interpolate3(v, function(v1) {
-                         sub9.interpolate(v1, f);
-                     });
-                 };
-                 break;
-        case 10 : var sub10 = new Resampler(5);
-                 this.decimate = function(v, f) {
-                     decimate2(v, function(v1) {
-                         sub10.decimate(v1, f);
-                     });
-                 };
-                 this.interpolate = function(v, f) {
-                     interpolate2(v, function(v1) {
-                         sub10.interpolate(v1, f);
-                     });
-                 };
-                 break;
-        default:  throw new BadDecimationSpecException("Decimation " + decimation + " not supported");
-        }
-
-
-    
-} // Resampler
 
 /**
- * For complex values
+ * ### decimation : 1
  */
-function ResamplerX(decimation) {
-
-    var rsamp = new Resampler(decimation);
-    var isamp = new Resampler(decimation);
-    var tmpr = 0;
-    var rbuf = new Array(decimation);
-    var ibuf = new Array(decimation);
+function Resampler1() {
+    this.value = 0;
     
-    this.decimate = function(v, f) {
-        rsamp.decimate(v.r, function(r) {
-            tmpr = r;
-        });
-        isamp.decimate(v.i, function(i) {
-            var cpx = {r:tmpr, i:i};
-            f(cpx);
-        });
+    this.decimate = function(v) {
+        value = v;
+        return true;
+    };
+
+    this.decimatex = function(v) {
+        value = v;
+        return true;
     };
 
     this.interpolate = function(v, buf) {
-        rsamp.interpolate(v.r, rbuf);
-        isamp.interpolate(v.i, ibuf);
-        for (var i=0 ; i < decimation ; i++) {
-            buf[i] = {r:rbuf[i], i:ibuf[i]};
-        }
+        buf[0] = v;
+    };
+
+    this.interpolatex = function(v, buf) {
+        buf[0] = v;
     };
 }
 
-export {Resampler, ResamplerX};
+//######################################
+//## GENERATED
+//######################################
+
+/**
+ * ### decimation : 2
+ */
+function Resampler2() {
+    var d0=0; var d1=0; var d2=0; var d3=0; 
+    var idx = 0;
+    this.value = 0;
+
+    this.decimate = function(v) {
+        d0=d1; d1=d2; d2=d3; d3=v;
+        if (++idx >= 2) {
+            idx = 0;
+            this.value = d2*0.90451;
+            return true;
+        } else {
+            return false;
+        }
+    };
+
+    this.decimatex = function(v) {
+        d0=d1; d1=d2; d2=d3; d3=v;
+        if (++idx >= 2) {
+            idx = 0;
+            var r = d2.r*0.90451;
+            var i = d2.i*0.90451;
+            this.value = { r:r, i:i };
+            return true;
+        } else {
+            return false;
+        }
+    };
+
+    this.interpolate = function(v, buf) {
+        d0 = d1; d1 = d2; d2 = v;
+        buf[0] = 0;
+        buf[1] = d1 * 0.90451;
+    };
+
+    this.interpolatex = function(v, buf) {
+        d0 = d1; d1 = d2; d2 = v;
+        buf[0] = {r:0,i:0};
+        buf[1] = {
+            r: d1.r * 0.90451,
+            i: d1.r * 0.90451
+        };
+    };
+
+}
+
+/**
+ * ### decimation : 3
+ */
+function Resampler3() {
+    var d0=0; var d1=0; var d2=0; var d3=0; var d4=0; 
+    var idx = 0;
+    this.value = 0;
+
+    this.decimate = function(v) {
+        d0=d1; d1=d2; d2=d3; d3=d4; d4=v;
+        if (++idx >= 3) {
+            idx = 0;
+            this.value = d1*0.21783 + d2*0.48959 + d3*0.21783;
+            return true;
+        } else {
+            return false;
+        }
+    };
+
+    this.decimatex = function(v) {
+        d0=d1; d1=d2; d2=d3; d3=d4; d4=v;
+        if (++idx >= 3) {
+            idx = 0;
+            var r = d1.r*0.21783 + d2.r*0.48959 + d3.r*0.21783;
+            var i = d1.i*0.21783 + d2.i*0.48959 + d3.i*0.21783;
+            this.value = { r:r, i:i };
+            return true;
+        } else {
+            return false;
+        }
+    };
+
+    this.interpolate = function(v, buf) {
+        d0 = d1; d1 = d2; d2 = v;
+        buf[0] = d1 * 0.21783 + d2 * -0.06380;
+        buf[1] = d1 * 0.61719;
+        buf[2] = d0 * -0.06380 + d1 * 0.21783;
+    };
+
+    this.interpolatex = function(v, buf) {
+        d0 = d1; d1 = d2; d2 = v;
+        buf[0] = {
+            r: d1.r * 0.21783 + d2.r * -0.06380,
+            i: d1.r * 0.21783 + d2.r * -0.06380
+        };
+        buf[1] = {
+            r: d1.r * 0.61719,
+            i: d1.r * 0.61719
+        };
+        buf[2] = {
+            r: d0.r * -0.06380 + d1.r * 0.21783,
+            i: d0.r * -0.06380 + d1.r * 0.21783
+        };
+    };
+
+}
+
+/**
+ * ### decimation : 4
+ */
+function Resampler4() {
+    var d0=0; var d1=0; var d2=0; var d3=0; var d4=0; var d5=0; 
+    var idx = 0;
+    this.value = 0;
+
+    this.decimate = function(v) {
+        d0=d1; d1=d2; d2=d3; d3=d4; d4=d5; d5=v;
+        if (++idx >= 4) {
+            idx = 0;
+            this.value = d1*0.00480 + d2*0.29652 + d3*0.37867 + d4*0.25042;
+            return true;
+        } else {
+            return false;
+        }
+    };
+
+    this.decimatex = function(v) {
+        d0=d1; d1=d2; d2=d3; d3=d4; d4=d5; d5=v;
+        if (++idx >= 4) {
+            idx = 0;
+            var r = d1.r*0.00480 + d2.r*0.29652 + d3.r*0.37867 + d4.r*0.25042;
+            var i = d1.i*0.00480 + d2.i*0.29652 + d3.i*0.37867 + d4.i*0.25042;
+            this.value = { r:r, i:i };
+            return true;
+        } else {
+            return false;
+        }
+    };
+
+    this.interpolate = function(v, buf) {
+        d0 = d1; d1 = d2; d2 = v;
+        buf[0] = 0;
+        buf[1] = d0 * 0.00480 + d1 * 0.29652 + d2 * -0.02949;
+        buf[2] = d1 * 0.46578;
+        buf[3] = d0 * -0.05762 + d1 * 0.25042;
+    };
+
+    this.interpolatex = function(v, buf) {
+        d0 = d1; d1 = d2; d2 = v;
+        buf[0] = {r:0,i:0};
+        buf[1] = {
+            r: d0.r * 0.00480 + d1.r * 0.29652 + d2.r * -0.02949,
+            i: d0.r * 0.00480 + d1.r * 0.29652 + d2.r * -0.02949
+        };
+        buf[2] = {
+            r: d1.r * 0.46578,
+            i: d1.r * 0.46578
+        };
+        buf[3] = {
+            r: d0.r * -0.05762 + d1.r * 0.25042,
+            i: d0.r * -0.05762 + d1.r * 0.25042
+        };
+    };
+
+}
+
+/**
+ * ### decimation : 5
+ */
+function Resampler5() {
+    var d0=0; var d1=0; var d2=0; var d3=0; var d4=0; var d5=0; var d6=0; 
+    var idx = 0;
+    this.value = 0;
+
+    this.decimate = function(v) {
+        d0=d1; d1=d2; d2=d3; d3=d4; d4=d5; d5=d6; d6=v;
+        if (++idx >= 5) {
+            idx = 0;
+            this.value = d1*0.07325 + d2*0.23311 + d3*0.31859 + d4*0.23311 + 
+                d5*0.07325;
+            return true;
+        } else {
+            return false;
+        }
+    };
+
+    this.decimatex = function(v) {
+        d0=d1; d1=d2; d2=d3; d3=d4; d4=d5; d5=d6; d6=v;
+        if (++idx >= 5) {
+            idx = 0;
+            var r = d1.r*0.07325 + d2.r*0.23311 + d3.r*0.31859 + d4.r*0.23311 + 
+                d5.r*0.07325;
+            var i = d1.i*0.07325 + d2.i*0.23311 + d3.i*0.31859 + d4.i*0.23311 + 
+                d5.i*0.07325;
+            this.value = { r:r, i:i };
+            return true;
+        } else {
+            return false;
+        }
+    };
+
+    this.interpolate = function(v, buf) {
+        d0 = d1; d1 = d2; d2 = v;
+        buf[0] = d1 * 0.07092 + d2 * -0.03560;
+        buf[1] = d0 * 0.00233 + d1 * 0.26871 + d2 * -0.02747;
+        buf[2] = d1 * 0.37354;
+        buf[3] = d0 * -0.02747 + d1 * 0.26871 + d2 * 0.00233;
+        buf[4] = d0 * -0.03560 + d1 * 0.07092;
+    };
+
+    this.interpolatex = function(v, buf) {
+        d0 = d1; d1 = d2; d2 = v;
+        buf[0] = {
+            r: d1.r * 0.07092 + d2.r * -0.03560,
+            i: d1.r * 0.07092 + d2.r * -0.03560
+        };
+        buf[1] = {
+            r: d0.r * 0.00233 + d1.r * 0.26871 + d2.r * -0.02747,
+            i: d0.r * 0.00233 + d1.r * 0.26871 + d2.r * -0.02747
+        };
+        buf[2] = {
+            r: d1.r * 0.37354,
+            i: d1.r * 0.37354
+        };
+        buf[3] = {
+            r: d0.r * -0.02747 + d1.r * 0.26871 + d2.r * 0.00233,
+            i: d0.r * -0.02747 + d1.r * 0.26871 + d2.r * 0.00233
+        };
+        buf[4] = {
+            r: d0.r * -0.03560 + d1.r * 0.07092,
+            i: d0.r * -0.03560 + d1.r * 0.07092
+        };
+    };
+
+}
+
+/**
+ * ### decimation : 6
+ */
+function Resampler6() {
+    var d0=0; var d1=0; var d2=0; var d3=0; var d4=0; var d5=0; var d6=0; var d7=0; 
+                
+    var idx = 0;
+    this.value = 0;
+
+    this.decimate = function(v) {
+        d0=d1; d1=d2; d2=d3; d3=d4; d4=d5; d5=d6; d6=d7; d7=v;
+        if (++idx >= 6) {
+            idx = 0;
+            this.value = d1*0.00110 + d2*0.12515 + d3*0.22836 + d4*0.27379 + 
+                d5*0.19920 + d6*0.10546;
+            return true;
+        } else {
+            return false;
+        }
+    };
+
+    this.decimatex = function(v) {
+        d0=d1; d1=d2; d2=d3; d3=d4; d4=d5; d5=d6; d6=d7; d7=v;
+        if (++idx >= 6) {
+            idx = 0;
+            var r = d1.r*0.00110 + d2.r*0.12515 + d3.r*0.22836 + d4.r*0.27379 + 
+                d5.r*0.19920 + d6.r*0.10546;
+            var i = d1.i*0.00110 + d2.i*0.12515 + d3.i*0.22836 + d4.i*0.27379 + 
+                d5.i*0.19920 + d6.i*0.10546;
+            this.value = { r:r, i:i };
+            return true;
+        } else {
+            return false;
+        }
+    };
+
+    this.interpolate = function(v, buf) {
+        d0 = d1; d1 = d2; d2 = v;
+        buf[0] = 0;
+        buf[1] = d0 * 0.00110 + d1 * 0.12030 + d2 * -0.02951;
+        buf[2] = d0 * 0.00485 + d1 * 0.25787 + d2 * -0.01442;
+        buf[3] = d1 * 0.31182;
+        buf[4] = d0 * -0.02361 + d1 * 0.24061 + d2 * 0.00125;
+        buf[5] = d0 * -0.04141 + d1 * 0.10420;
+    };
+
+    this.interpolatex = function(v, buf) {
+        d0 = d1; d1 = d2; d2 = v;
+        buf[0] = {r:0,i:0};
+        buf[1] = {
+            r: d0.r * 0.00110 + d1.r * 0.12030 + d2.r * -0.02951,
+            i: d0.r * 0.00110 + d1.r * 0.12030 + d2.r * -0.02951
+        };
+        buf[2] = {
+            r: d0.r * 0.00485 + d1.r * 0.25787 + d2.r * -0.01442,
+            i: d0.r * 0.00485 + d1.r * 0.25787 + d2.r * -0.01442
+        };
+        buf[3] = {
+            r: d1.r * 0.31182,
+            i: d1.r * 0.31182
+        };
+        buf[4] = {
+            r: d0.r * -0.02361 + d1.r * 0.24061 + d2.r * 0.00125,
+            i: d0.r * -0.02361 + d1.r * 0.24061 + d2.r * 0.00125
+        };
+        buf[5] = {
+            r: d0.r * -0.04141 + d1.r * 0.10420,
+            i: d0.r * -0.04141 + d1.r * 0.10420
+        };
+    };
+
+}
+
+/**
+ * ### decimation : 7
+ */
+function Resampler7() {
+    var d0=0; var d1=0; var d2=0; var d3=0; var d4=0; var d5=0; var d6=0; var d7=0; 
+                var d8=0; 
+    var idx = 0;
+    this.value = 0;
+
+    this.decimate = function(v) {
+        d0=d1; d1=d2; d2=d3; d3=d4; d4=d5; d5=d6; d6=d7; d7=d8; d8=v;
+        if (++idx >= 7) {
+            idx = 0;
+            this.value = d1*0.03499 + d2*0.11298 + d3*0.19817 + d4*0.24057 + 
+                d5*0.19817 + d6*0.11298 + d7*0.03499;
+            return true;
+        } else {
+            return false;
+        }
+    };
+
+    this.decimatex = function(v) {
+        d0=d1; d1=d2; d2=d3; d3=d4; d4=d5; d5=d6; d6=d7; d7=d8; d8=v;
+        if (++idx >= 7) {
+            idx = 0;
+            var r = d1.r*0.03499 + d2.r*0.11298 + d3.r*0.19817 + d4.r*0.24057 + 
+                d5.r*0.19817 + d6.r*0.11298 + d7.r*0.03499;
+            var i = d1.i*0.03499 + d2.i*0.11298 + d3.i*0.19817 + d4.i*0.24057 + 
+                d5.i*0.19817 + d6.i*0.11298 + d7.i*0.03499;
+            this.value = { r:r, i:i };
+            return true;
+        } else {
+            return false;
+        }
+    };
+
+    this.interpolate = function(v, buf) {
+        d0 = d1; d1 = d2; d2 = v;
+        buf[0] = d1 * 0.03420 + d2 * -0.02115;
+        buf[1] = d0 * 0.00079 + d1 * 0.13135 + d2 * -0.02904;
+        buf[2] = d0 * 0.00278 + d1 * 0.22721 + d2 * -0.01341;
+        buf[3] = d1 * 0.26740;
+        buf[4] = d0 * -0.01341 + d1 * 0.22721 + d2 * 0.00278;
+        buf[5] = d0 * -0.02904 + d1 * 0.13135 + d2 * 0.00079;
+        buf[6] = d0 * -0.02115 + d1 * 0.03420;
+    };
+
+    this.interpolatex = function(v, buf) {
+        d0 = d1; d1 = d2; d2 = v;
+        buf[0] = {
+            r: d1.r * 0.03420 + d2.r * -0.02115,
+            i: d1.r * 0.03420 + d2.r * -0.02115
+        };
+        buf[1] = {
+            r: d0.r * 0.00079 + d1.r * 0.13135 + d2.r * -0.02904,
+            i: d0.r * 0.00079 + d1.r * 0.13135 + d2.r * -0.02904
+        };
+        buf[2] = {
+            r: d0.r * 0.00278 + d1.r * 0.22721 + d2.r * -0.01341,
+            i: d0.r * 0.00278 + d1.r * 0.22721 + d2.r * -0.01341
+        };
+        buf[3] = {
+            r: d1.r * 0.26740,
+            i: d1.r * 0.26740
+        };
+        buf[4] = {
+            r: d0.r * -0.01341 + d1.r * 0.22721 + d2.r * 0.00278,
+            i: d0.r * -0.01341 + d1.r * 0.22721 + d2.r * 0.00278
+        };
+        buf[5] = {
+            r: d0.r * -0.02904 + d1.r * 0.13135 + d2.r * 0.00079,
+            i: d0.r * -0.02904 + d1.r * 0.13135 + d2.r * 0.00079
+        };
+        buf[6] = {
+            r: d0.r * -0.02115 + d1.r * 0.03420,
+            i: d0.r * -0.02115 + d1.r * 0.03420
+        };
+    };
+
+}
+
+/**
+ * ### decimation : 11
+ */
+function Resampler11() {
+    var d0=0; var d1=0; var d2=0; var d3=0; var d4=0; var d5=0; var d6=0; var d7=0; 
+                var d8=0; var d9=0; var d10=0; var d11=0; var d12=0; 
+    var idx = 0;
+    this.value = 0;
+
+    this.decimate = function(v) {
+        d0=d1; d1=d2; d2=d3; d3=d4; d4=d5; d5=d6; d6=d7; d7=d8; d8=d9; d9=d10; 
+                d10=d11; d11=d12; d12=v;
+        if (++idx >= 11) {
+            idx = 0;
+            this.value = d1*0.01322 + d2*0.03922 + d3*0.07264 + d4*0.11402 + 
+                d5*0.14759 + d6*0.16043 + d7*0.14759 + d8*0.11402 + d9*0.07264 + 
+                d10*0.03922 + d11*0.01322;
+            return true;
+        } else {
+            return false;
+        }
+    };
+
+    this.decimatex = function(v) {
+        d0=d1; d1=d2; d2=d3; d3=d4; d4=d5; d5=d6; d6=d7; d7=d8; d8=d9; d9=d10; 
+                d10=d11; d11=d12; d12=v;
+        if (++idx >= 11) {
+            idx = 0;
+            var r = d1.r*0.01322 + d2.r*0.03922 + d3.r*0.07264 + d4.r*0.11402 + 
+                d5.r*0.14759 + d6.r*0.16043 + d7.r*0.14759 + d8.r*0.11402 + 
+                d9.r*0.07264 + d10.r*0.03922 + d11.r*0.01322;
+            var i = d1.i*0.01322 + d2.i*0.03922 + d3.i*0.07264 + d4.i*0.11402 + 
+                d5.i*0.14759 + d6.i*0.16043 + d7.i*0.14759 + d8.i*0.11402 + 
+                d9.i*0.07264 + d10.i*0.03922 + d11.i*0.01322;
+            this.value = { r:r, i:i };
+            return true;
+        } else {
+            return false;
+        }
+    };
+
+    this.interpolate = function(v, buf) {
+        d0 = d1; d1 = d2; d2 = v;
+        buf[0] = d1 * 0.01307 + d2 * -0.00968;
+        buf[1] = d0 * 0.00014 + d1 * 0.04810 + d2 * -0.01924;
+        buf[2] = d0 * 0.00080 + d1 * 0.09012 + d2 * -0.01845;
+        buf[3] = d0 * 0.00176 + d1 * 0.13050 + d2 * -0.01213;
+        buf[4] = d0 * 0.00197 + d1 * 0.15972 + d2 * -0.00498;
+        buf[5] = d1 * 0.17038;
+        buf[6] = d0 * -0.00498 + d1 * 0.15972 + d2 * 0.00197;
+        buf[7] = d0 * -0.01213 + d1 * 0.13050 + d2 * 0.00176;
+        buf[8] = d0 * -0.01845 + d1 * 0.09012 + d2 * 0.00080;
+        buf[9] = d0 * -0.01924 + d1 * 0.04810 + d2 * 0.00014;
+        buf[10] = d0 * -0.00968 + d1 * 0.01307;
+    };
+
+    this.interpolatex = function(v, buf) {
+        d0 = d1; d1 = d2; d2 = v;
+        buf[0] = {
+            r: d1.r * 0.01307 + d2.r * -0.00968,
+            i: d1.r * 0.01307 + d2.r * -0.00968
+        };
+        buf[1] = {
+            r: d0.r * 0.00014 + d1.r * 0.04810 + d2.r * -0.01924,
+            i: d0.r * 0.00014 + d1.r * 0.04810 + d2.r * -0.01924
+        };
+        buf[2] = {
+            r: d0.r * 0.00080 + d1.r * 0.09012 + d2.r * -0.01845,
+            i: d0.r * 0.00080 + d1.r * 0.09012 + d2.r * -0.01845
+        };
+        buf[3] = {
+            r: d0.r * 0.00176 + d1.r * 0.13050 + d2.r * -0.01213,
+            i: d0.r * 0.00176 + d1.r * 0.13050 + d2.r * -0.01213
+        };
+        buf[4] = {
+            r: d0.r * 0.00197 + d1.r * 0.15972 + d2.r * -0.00498,
+            i: d0.r * 0.00197 + d1.r * 0.15972 + d2.r * -0.00498
+        };
+        buf[5] = {
+            r: d1.r * 0.17038,
+            i: d1.r * 0.17038
+        };
+        buf[6] = {
+            r: d0.r * -0.00498 + d1.r * 0.15972 + d2.r * 0.00197,
+            i: d0.r * -0.00498 + d1.r * 0.15972 + d2.r * 0.00197
+        };
+        buf[7] = {
+            r: d0.r * -0.01213 + d1.r * 0.13050 + d2.r * 0.00176,
+            i: d0.r * -0.01213 + d1.r * 0.13050 + d2.r * 0.00176
+        };
+        buf[8] = {
+            r: d0.r * -0.01845 + d1.r * 0.09012 + d2.r * 0.00080,
+            i: d0.r * -0.01845 + d1.r * 0.09012 + d2.r * 0.00080
+        };
+        buf[9] = {
+            r: d0.r * -0.01924 + d1.r * 0.04810 + d2.r * 0.00014,
+            i: d0.r * -0.01924 + d1.r * 0.04810 + d2.r * 0.00014
+        };
+        buf[10] = {
+            r: d0.r * -0.00968 + d1.r * 0.01307,
+            i: d0.r * -0.00968 + d1.r * 0.01307
+        };
+    };
+
+}
+
+/**
+ * ### decimation : 13
+ */
+function Resampler13() {
+    var d0=0; var d1=0; var d2=0; var d3=0; var d4=0; var d5=0; var d6=0; var d7=0; 
+                var d8=0; var d9=0; var d10=0; var d11=0; var d12=0; var d13=0; var d14=0; 
+                
+    var idx = 0;
+    this.value = 0;
+
+    this.decimate = function(v) {
+        d0=d1; d1=d2; d2=d3; d3=d4; d4=d5; d5=d6; d6=d7; d7=d8; d8=d9; d9=d10; 
+                d10=d11; d11=d12; d12=d13; d13=d14; d14=v;
+        if (++idx >= 13) {
+            idx = 0;
+            this.value = d1*0.00928 + d2*0.02648 + d3*0.04811 + d4*0.07773 + 
+                d5*0.10746 + d6*0.12929 + d7*0.13729 + d8*0.12929 + d9*0.10746 + 
+                d10*0.07773 + d11*0.04811 + d12*0.02648 + d13*0.00928;
+            return true;
+        } else {
+            return false;
+        }
+    };
+
+    this.decimatex = function(v) {
+        d0=d1; d1=d2; d2=d3; d3=d4; d4=d5; d5=d6; d6=d7; d7=d8; d8=d9; d9=d10; 
+                d10=d11; d11=d12; d12=d13; d13=d14; d14=v;
+        if (++idx >= 13) {
+            idx = 0;
+            var r = d1.r*0.00928 + d2.r*0.02648 + d3.r*0.04811 + d4.r*0.07773 + 
+                d5.r*0.10746 + d6.r*0.12929 + d7.r*0.13729 + d8.r*0.12929 + 
+                d9.r*0.10746 + d10.r*0.07773 + d11.r*0.04811 + d12.r*0.02648 + 
+                d13.r*0.00928;
+            var i = d1.i*0.00928 + d2.i*0.02648 + d3.i*0.04811 + d4.i*0.07773 + 
+                d5.i*0.10746 + d6.i*0.12929 + d7.i*0.13729 + d8.i*0.12929 + 
+                d9.i*0.10746 + d10.i*0.07773 + d11.i*0.04811 + d12.i*0.02648 + 
+                d13.i*0.00928;
+            this.value = { r:r, i:i };
+            return true;
+        } else {
+            return false;
+        }
+    };
+
+    this.interpolate = function(v, buf) {
+        d0 = d1; d1 = d2; d2 = v;
+        buf[0] = d1 * 0.00920 + d2 * -0.00715;
+        buf[1] = d0 * 0.00007 + d1 * 0.03319 + d2 * -0.01540;
+        buf[2] = d0 * 0.00044 + d1 * 0.06239 + d2 * -0.01678;
+        buf[3] = d0 * 0.00112 + d1 * 0.09278 + d2 * -0.01359;
+        buf[4] = d0 * 0.00173 + d1 * 0.11945 + d2 * -0.00842;
+        buf[5] = d0 * 0.00160 + d1 * 0.13771 + d2 * -0.00346;
+        buf[6] = d1 * 0.14421;
+        buf[7] = d0 * -0.00346 + d1 * 0.13771 + d2 * 0.00160;
+        buf[8] = d0 * -0.00842 + d1 * 0.11945 + d2 * 0.00173;
+        buf[9] = d0 * -0.01359 + d1 * 0.09278 + d2 * 0.00112;
+        buf[10] = d0 * -0.01678 + d1 * 0.06239 + d2 * 0.00044;
+        buf[11] = d0 * -0.01540 + d1 * 0.03319 + d2 * 0.00007;
+        buf[12] = d0 * -0.00715 + d1 * 0.00920;
+    };
+
+    this.interpolatex = function(v, buf) {
+        d0 = d1; d1 = d2; d2 = v;
+        buf[0] = {
+            r: d1.r * 0.00920 + d2.r * -0.00715,
+            i: d1.r * 0.00920 + d2.r * -0.00715
+        };
+        buf[1] = {
+            r: d0.r * 0.00007 + d1.r * 0.03319 + d2.r * -0.01540,
+            i: d0.r * 0.00007 + d1.r * 0.03319 + d2.r * -0.01540
+        };
+        buf[2] = {
+            r: d0.r * 0.00044 + d1.r * 0.06239 + d2.r * -0.01678,
+            i: d0.r * 0.00044 + d1.r * 0.06239 + d2.r * -0.01678
+        };
+        buf[3] = {
+            r: d0.r * 0.00112 + d1.r * 0.09278 + d2.r * -0.01359,
+            i: d0.r * 0.00112 + d1.r * 0.09278 + d2.r * -0.01359
+        };
+        buf[4] = {
+            r: d0.r * 0.00173 + d1.r * 0.11945 + d2.r * -0.00842,
+            i: d0.r * 0.00173 + d1.r * 0.11945 + d2.r * -0.00842
+        };
+        buf[5] = {
+            r: d0.r * 0.00160 + d1.r * 0.13771 + d2.r * -0.00346,
+            i: d0.r * 0.00160 + d1.r * 0.13771 + d2.r * -0.00346
+        };
+        buf[6] = {
+            r: d1.r * 0.14421,
+            i: d1.r * 0.14421
+        };
+        buf[7] = {
+            r: d0.r * -0.00346 + d1.r * 0.13771 + d2.r * 0.00160,
+            i: d0.r * -0.00346 + d1.r * 0.13771 + d2.r * 0.00160
+        };
+        buf[8] = {
+            r: d0.r * -0.00842 + d1.r * 0.11945 + d2.r * 0.00173,
+            i: d0.r * -0.00842 + d1.r * 0.11945 + d2.r * 0.00173
+        };
+        buf[9] = {
+            r: d0.r * -0.01359 + d1.r * 0.09278 + d2.r * 0.00112,
+            i: d0.r * -0.01359 + d1.r * 0.09278 + d2.r * 0.00112
+        };
+        buf[10] = {
+            r: d0.r * -0.01678 + d1.r * 0.06239 + d2.r * 0.00044,
+            i: d0.r * -0.01678 + d1.r * 0.06239 + d2.r * 0.00044
+        };
+        buf[11] = {
+            r: d0.r * -0.01540 + d1.r * 0.03319 + d2.r * 0.00007,
+            i: d0.r * -0.01540 + d1.r * 0.03319 + d2.r * 0.00007
+        };
+        buf[12] = {
+            r: d0.r * -0.00715 + d1.r * 0.00920,
+            i: d0.r * -0.00715 + d1.r * 0.00920
+        };
+    };
+
+}
+
+/**
+ * ### decimation : 17
+ */
+function Resampler17() {
+    var d0=0; var d1=0; var d2=0; var d3=0; var d4=0; var d5=0; var d6=0; var d7=0; 
+                var d8=0; var d9=0; var d10=0; var d11=0; var d12=0; var d13=0; var d14=0; 
+                var d15=0; var d16=0; var d17=0; var d18=0; 
+    var idx = 0;
+    this.value = 0;
+
+    this.decimate = function(v) {
+        d0=d1; d1=d2; d2=d3; d3=d4; d4=d5; d5=d6; d6=d7; d7=d8; d8=d9; d9=d10; 
+                d10=d11; d11=d12; d12=d13; d13=d14; d14=d15; d15=d16; d16=d17; d17=d18; 
+                d18=v;
+        if (++idx >= 17) {
+            idx = 0;
+            this.value = d1*0.00529 + d2*0.01419 + d3*0.02449 + d4*0.03995 + 
+                d5*0.05826 + d6*0.07665 + d7*0.09228 + d8*0.10275 + d9*0.10643 + 
+                d10*0.10275 + d11*0.09228 + d12*0.07665 + d13*0.05826 + 
+                d14*0.03995 + d15*0.02449 + d16*0.01419 + d17*0.00529;
+            return true;
+        } else {
+            return false;
+        }
+    };
+
+    this.decimatex = function(v) {
+        d0=d1; d1=d2; d2=d3; d3=d4; d4=d5; d5=d6; d6=d7; d7=d8; d8=d9; d9=d10; 
+                d10=d11; d11=d12; d12=d13; d13=d14; d14=d15; d15=d16; d16=d17; d17=d18; 
+                d18=v;
+        if (++idx >= 17) {
+            idx = 0;
+            var r = d1.r*0.00529 + d2.r*0.01419 + d3.r*0.02449 + d4.r*0.03995 + 
+                d5.r*0.05826 + d6.r*0.07665 + d7.r*0.09228 + d8.r*0.10275 + 
+                d9.r*0.10643 + d10.r*0.10275 + d11.r*0.09228 + d12.r*0.07665 + 
+                d13.r*0.05826 + d14.r*0.03995 + d15.r*0.02449 + d16.r*0.01419 + 
+                d17.r*0.00529;
+            var i = d1.i*0.00529 + d2.i*0.01419 + d3.i*0.02449 + d4.i*0.03995 + 
+                d5.i*0.05826 + d6.i*0.07665 + d7.i*0.09228 + d8.i*0.10275 + 
+                d9.i*0.10643 + d10.i*0.10275 + d11.i*0.09228 + d12.i*0.07665 + 
+                d13.i*0.05826 + d14.i*0.03995 + d15.i*0.02449 + d16.i*0.01419 + 
+                d17.i*0.00529;
+            this.value = { r:r, i:i };
+            return true;
+        } else {
+            return false;
+        }
+    };
+
+    this.interpolate = function(v, buf) {
+        d0 = d1; d1 = d2; d2 = v;
+        buf[0] = d1 * 0.00526 + d2 * -0.00434;
+        buf[1] = d0 * 0.00003 + d1 * 0.01838 + d2 * -0.01028;
+        buf[2] = d0 * 0.00016 + d1 * 0.03431 + d2 * -0.01285;
+        buf[3] = d0 * 0.00046 + d1 * 0.05193 + d2 * -0.01271;
+        buf[4] = d0 * 0.00088 + d1 * 0.06970 + d2 * -0.01071;
+        buf[5] = d0 * 0.00128 + d1 * 0.08592 + d2 * -0.00775;
+        buf[6] = d0 * 0.00143 + d1 * 0.09895 + d2 * -0.00463;
+        buf[7] = d0 * 0.00109 + d1 * 0.10738 + d2 * -0.00193;
+        buf[8] = d1 * 0.11030;
+        buf[9] = d0 * -0.00193 + d1 * 0.10738 + d2 * 0.00109;
+        buf[10] = d0 * -0.00463 + d1 * 0.09895 + d2 * 0.00143;
+        buf[11] = d0 * -0.00775 + d1 * 0.08592 + d2 * 0.00128;
+        buf[12] = d0 * -0.01071 + d1 * 0.06970 + d2 * 0.00088;
+        buf[13] = d0 * -0.01271 + d1 * 0.05193 + d2 * 0.00046;
+        buf[14] = d0 * -0.01285 + d1 * 0.03431 + d2 * 0.00016;
+        buf[15] = d0 * -0.01028 + d1 * 0.01838 + d2 * 0.00003;
+        buf[16] = d0 * -0.00434 + d1 * 0.00526;
+    };
+
+    this.interpolatex = function(v, buf) {
+        d0 = d1; d1 = d2; d2 = v;
+        buf[0] = {
+            r: d1.r * 0.00526 + d2.r * -0.00434,
+            i: d1.r * 0.00526 + d2.r * -0.00434
+        };
+        buf[1] = {
+            r: d0.r * 0.00003 + d1.r * 0.01838 + d2.r * -0.01028,
+            i: d0.r * 0.00003 + d1.r * 0.01838 + d2.r * -0.01028
+        };
+        buf[2] = {
+            r: d0.r * 0.00016 + d1.r * 0.03431 + d2.r * -0.01285,
+            i: d0.r * 0.00016 + d1.r * 0.03431 + d2.r * -0.01285
+        };
+        buf[3] = {
+            r: d0.r * 0.00046 + d1.r * 0.05193 + d2.r * -0.01271,
+            i: d0.r * 0.00046 + d1.r * 0.05193 + d2.r * -0.01271
+        };
+        buf[4] = {
+            r: d0.r * 0.00088 + d1.r * 0.06970 + d2.r * -0.01071,
+            i: d0.r * 0.00088 + d1.r * 0.06970 + d2.r * -0.01071
+        };
+        buf[5] = {
+            r: d0.r * 0.00128 + d1.r * 0.08592 + d2.r * -0.00775,
+            i: d0.r * 0.00128 + d1.r * 0.08592 + d2.r * -0.00775
+        };
+        buf[6] = {
+            r: d0.r * 0.00143 + d1.r * 0.09895 + d2.r * -0.00463,
+            i: d0.r * 0.00143 + d1.r * 0.09895 + d2.r * -0.00463
+        };
+        buf[7] = {
+            r: d0.r * 0.00109 + d1.r * 0.10738 + d2.r * -0.00193,
+            i: d0.r * 0.00109 + d1.r * 0.10738 + d2.r * -0.00193
+        };
+        buf[8] = {
+            r: d1.r * 0.11030,
+            i: d1.r * 0.11030
+        };
+        buf[9] = {
+            r: d0.r * -0.00193 + d1.r * 0.10738 + d2.r * 0.00109,
+            i: d0.r * -0.00193 + d1.r * 0.10738 + d2.r * 0.00109
+        };
+        buf[10] = {
+            r: d0.r * -0.00463 + d1.r * 0.09895 + d2.r * 0.00143,
+            i: d0.r * -0.00463 + d1.r * 0.09895 + d2.r * 0.00143
+        };
+        buf[11] = {
+            r: d0.r * -0.00775 + d1.r * 0.08592 + d2.r * 0.00128,
+            i: d0.r * -0.00775 + d1.r * 0.08592 + d2.r * 0.00128
+        };
+        buf[12] = {
+            r: d0.r * -0.01071 + d1.r * 0.06970 + d2.r * 0.00088,
+            i: d0.r * -0.01071 + d1.r * 0.06970 + d2.r * 0.00088
+        };
+        buf[13] = {
+            r: d0.r * -0.01271 + d1.r * 0.05193 + d2.r * 0.00046,
+            i: d0.r * -0.01271 + d1.r * 0.05193 + d2.r * 0.00046
+        };
+        buf[14] = {
+            r: d0.r * -0.01285 + d1.r * 0.03431 + d2.r * 0.00016,
+            i: d0.r * -0.01285 + d1.r * 0.03431 + d2.r * 0.00016
+        };
+        buf[15] = {
+            r: d0.r * -0.01028 + d1.r * 0.01838 + d2.r * 0.00003,
+            i: d0.r * -0.01028 + d1.r * 0.01838 + d2.r * 0.00003
+        };
+        buf[16] = {
+            r: d0.r * -0.00434 + d1.r * 0.00526,
+            i: d0.r * -0.00434 + d1.r * 0.00526
+        };
+    };
+
+}
+
+/**
+ * ### decimation : 19
+ */
+function Resampler19() {
+    var d0=0; var d1=0; var d2=0; var d3=0; var d4=0; var d5=0; var d6=0; var d7=0; 
+                var d8=0; var d9=0; var d10=0; var d11=0; var d12=0; var d13=0; var d14=0; 
+                var d15=0; var d16=0; var d17=0; var d18=0; var d19=0; var d20=0; 
+    var idx = 0;
+    this.value = 0;
+
+    this.decimate = function(v) {
+        d0=d1; d1=d2; d2=d3; d3=d4; d4=d5; d5=d6; d6=d7; d7=d8; d8=d9; d9=d10; 
+                d10=d11; d11=d12; d12=d13; d13=d14; d14=d15; d15=d16; d16=d17; d17=d18; 
+                d18=d19; d19=d20; d20=v;
+        if (++idx >= 19) {
+            idx = 0;
+            this.value = d1*0.00420 + d2*0.01100 + d3*0.01849 + d4*0.03001 + 
+                d5*0.04420 + d6*0.05937 + d7*0.07366 + d8*0.08535 + d9*0.09300 + 
+                d10*0.09565 + d11*0.09300 + d12*0.08535 + d13*0.07366 + 
+                d14*0.05937 + d15*0.04420 + d16*0.03001 + d17*0.01849 + 
+                d18*0.01100 + d19*0.00420;
+            return true;
+        } else {
+            return false;
+        }
+    };
+
+    this.decimatex = function(v) {
+        d0=d1; d1=d2; d2=d3; d3=d4; d4=d5; d5=d6; d6=d7; d7=d8; d8=d9; d9=d10; 
+                d10=d11; d11=d12; d12=d13; d13=d14; d14=d15; d15=d16; d16=d17; d17=d18; 
+                d18=d19; d19=d20; d20=v;
+        if (++idx >= 19) {
+            idx = 0;
+            var r = d1.r*0.00420 + d2.r*0.01100 + d3.r*0.01849 + d4.r*0.03001 + 
+                d5.r*0.04420 + d6.r*0.05937 + d7.r*0.07366 + d8.r*0.08535 + 
+                d9.r*0.09300 + d10.r*0.09565 + d11.r*0.09300 + d12.r*0.08535 + 
+                d13.r*0.07366 + d14.r*0.05937 + d15.r*0.04420 + d16.r*0.03001 + 
+                d17.r*0.01849 + d18.r*0.01100 + d19.r*0.00420;
+            var i = d1.i*0.00420 + d2.i*0.01100 + d3.i*0.01849 + d4.i*0.03001 + 
+                d5.i*0.04420 + d6.i*0.05937 + d7.i*0.07366 + d8.i*0.08535 + 
+                d9.i*0.09300 + d10.i*0.09565 + d11.i*0.09300 + d12.i*0.08535 + 
+                d13.i*0.07366 + d14.i*0.05937 + d15.i*0.04420 + d16.i*0.03001 + 
+                d17.i*0.01849 + d18.i*0.01100 + d19.i*0.00420;
+            this.value = { r:r, i:i };
+            return true;
+        } else {
+            return false;
+        }
+    };
+
+    this.interpolate = function(v, buf) {
+        d0 = d1; d1 = d2; d2 = v;
+        buf[0] = d1 * 0.00418 + d2 * -0.00352;
+        buf[1] = d0 * 0.00002 + d1 * 0.01441 + d2 * -0.00859;
+        buf[2] = d0 * 0.00011 + d1 * 0.02678 + d2 * -0.01119;
+        buf[3] = d0 * 0.00031 + d1 * 0.04058 + d2 * -0.01169;
+        buf[4] = d0 * 0.00061 + d1 * 0.05493 + d2 * -0.01062;
+        buf[5] = d0 * 0.00096 + d1 * 0.06875 + d2 * -0.00856;
+        buf[6] = d0 * 0.00124 + d1 * 0.08095 + d2 * -0.00607;
+        buf[7] = d0 * 0.00128 + d1 * 0.09051 + d2 * -0.00361;
+        buf[8] = d0 * 0.00091 + d1 * 0.09661 + d2 * -0.00152;
+        buf[9] = d1 * 0.09870;
+        buf[10] = d0 * -0.00152 + d1 * 0.09661 + d2 * 0.00091;
+        buf[11] = d0 * -0.00361 + d1 * 0.09051 + d2 * 0.00128;
+        buf[12] = d0 * -0.00607 + d1 * 0.08095 + d2 * 0.00124;
+        buf[13] = d0 * -0.00856 + d1 * 0.06875 + d2 * 0.00096;
+        buf[14] = d0 * -0.01062 + d1 * 0.05493 + d2 * 0.00061;
+        buf[15] = d0 * -0.01169 + d1 * 0.04058 + d2 * 0.00031;
+        buf[16] = d0 * -0.01119 + d1 * 0.02678 + d2 * 0.00011;
+        buf[17] = d0 * -0.00859 + d1 * 0.01441 + d2 * 0.00002;
+        buf[18] = d0 * -0.00352 + d1 * 0.00418;
+    };
+
+    this.interpolatex = function(v, buf) {
+        d0 = d1; d1 = d2; d2 = v;
+        buf[0] = {
+            r: d1.r * 0.00418 + d2.r * -0.00352,
+            i: d1.r * 0.00418 + d2.r * -0.00352
+        };
+        buf[1] = {
+            r: d0.r * 0.00002 + d1.r * 0.01441 + d2.r * -0.00859,
+            i: d0.r * 0.00002 + d1.r * 0.01441 + d2.r * -0.00859
+        };
+        buf[2] = {
+            r: d0.r * 0.00011 + d1.r * 0.02678 + d2.r * -0.01119,
+            i: d0.r * 0.00011 + d1.r * 0.02678 + d2.r * -0.01119
+        };
+        buf[3] = {
+            r: d0.r * 0.00031 + d1.r * 0.04058 + d2.r * -0.01169,
+            i: d0.r * 0.00031 + d1.r * 0.04058 + d2.r * -0.01169
+        };
+        buf[4] = {
+            r: d0.r * 0.00061 + d1.r * 0.05493 + d2.r * -0.01062,
+            i: d0.r * 0.00061 + d1.r * 0.05493 + d2.r * -0.01062
+        };
+        buf[5] = {
+            r: d0.r * 0.00096 + d1.r * 0.06875 + d2.r * -0.00856,
+            i: d0.r * 0.00096 + d1.r * 0.06875 + d2.r * -0.00856
+        };
+        buf[6] = {
+            r: d0.r * 0.00124 + d1.r * 0.08095 + d2.r * -0.00607,
+            i: d0.r * 0.00124 + d1.r * 0.08095 + d2.r * -0.00607
+        };
+        buf[7] = {
+            r: d0.r * 0.00128 + d1.r * 0.09051 + d2.r * -0.00361,
+            i: d0.r * 0.00128 + d1.r * 0.09051 + d2.r * -0.00361
+        };
+        buf[8] = {
+            r: d0.r * 0.00091 + d1.r * 0.09661 + d2.r * -0.00152,
+            i: d0.r * 0.00091 + d1.r * 0.09661 + d2.r * -0.00152
+        };
+        buf[9] = {
+            r: d1.r * 0.09870,
+            i: d1.r * 0.09870
+        };
+        buf[10] = {
+            r: d0.r * -0.00152 + d1.r * 0.09661 + d2.r * 0.00091,
+            i: d0.r * -0.00152 + d1.r * 0.09661 + d2.r * 0.00091
+        };
+        buf[11] = {
+            r: d0.r * -0.00361 + d1.r * 0.09051 + d2.r * 0.00128,
+            i: d0.r * -0.00361 + d1.r * 0.09051 + d2.r * 0.00128
+        };
+        buf[12] = {
+            r: d0.r * -0.00607 + d1.r * 0.08095 + d2.r * 0.00124,
+            i: d0.r * -0.00607 + d1.r * 0.08095 + d2.r * 0.00124
+        };
+        buf[13] = {
+            r: d0.r * -0.00856 + d1.r * 0.06875 + d2.r * 0.00096,
+            i: d0.r * -0.00856 + d1.r * 0.06875 + d2.r * 0.00096
+        };
+        buf[14] = {
+            r: d0.r * -0.01062 + d1.r * 0.05493 + d2.r * 0.00061,
+            i: d0.r * -0.01062 + d1.r * 0.05493 + d2.r * 0.00061
+        };
+        buf[15] = {
+            r: d0.r * -0.01169 + d1.r * 0.04058 + d2.r * 0.00031,
+            i: d0.r * -0.01169 + d1.r * 0.04058 + d2.r * 0.00031
+        };
+        buf[16] = {
+            r: d0.r * -0.01119 + d1.r * 0.02678 + d2.r * 0.00011,
+            i: d0.r * -0.01119 + d1.r * 0.02678 + d2.r * 0.00011
+        };
+        buf[17] = {
+            r: d0.r * -0.00859 + d1.r * 0.01441 + d2.r * 0.00002,
+            i: d0.r * -0.00859 + d1.r * 0.01441 + d2.r * 0.00002
+        };
+        buf[18] = {
+            r: d0.r * -0.00352 + d1.r * 0.00418,
+            i: d0.r * -0.00352 + d1.r * 0.00418
+        };
+    };
+
+}
+
+//######################################
+//## END GENERATED
+//######################################
+
+
+
+/**
+ * Exported factory for resamplers
+ */
+var Resampler = {
+  
+    
+   create :  function(decimation) {
+
+        function BadDecimationSpecException(message) {
+            this.message = message;
+            this.name = "BadDecimationSpecException";
+        }
+
+
+        switch (decimation) {
+            case 1 : return new Resampler1();
+            case 2 : return new Resampler2();
+            case 3 : return new Resampler3();
+            case 4 : return new Resampler4();
+            case 5 : return new Resampler5();
+            case 6 : return new Resampler6();
+            case 7 : return new Resampler7();
+            default:  throw new BadDecimationSpecException("Decimation " +
+                 decimation + " not supported");
+        }
+    }
+    
+};
+
+export {Resampler};
 
 
 

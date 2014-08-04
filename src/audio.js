@@ -64,7 +64,7 @@ function AudioInput(par) {
 
         /**/
         var bufferSize = 8192;
-        var decimator = new Resampler(decimation);
+        var decimator = Resampler.create(decimation);
         var inputNode = keep(actx.createScriptProcessor(4096, 1, 1));
         enabled = true;
         inputNode.onaudioprocess = function(e) {
@@ -75,7 +75,9 @@ function AudioInput(par) {
             var len = input.length;
             var d = decimator;
             for (var i=0 ; i < len ; i++) {
-                d.decimate(input[i], par.receive);
+                if (d.decimate(input[i])) {
+                    par.receive(d.value);
+                }
             }
         };
     
@@ -146,7 +148,7 @@ function AudioOutput(par) {
         var decimation = 7;
         var ibuf = new Float32Array(decimation);
         var iptr = decimation;
-        var resampler = new Resampler(decimation);
+        var resampler = Resampler.create(decimation);
         var outputNode = keep(actx.createScriptProcessor(bufferSize, 0, 1));
         outputNode.onaudioprocess = function(e) {
             if (!enabled) {
