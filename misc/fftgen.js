@@ -181,14 +181,14 @@ function FftGen(N) {
         nl();
         nl();
         
-        p("public void read(double b[]) {"); nl();
+        p("public final void read(double b[]) {"); nl();
         javaLoadReal();
         p("}"); nl();
         nl();
         nl();
         
-        p("public void f0() {"); nl();
-        fMethodCount++;
+        p("private final void f0() {"); nl();
+        jcMethodCount++;
         javaCompute();
         p("}"); nl();
                 
