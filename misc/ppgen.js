@@ -100,10 +100,10 @@ function PpGen(columns) {
         javaDecShift("i", decimation, "i");
         p("        if (++idx >= " + decimation + ") {"); nl();
         p("            idx = 0;"); nl();
-        p("            r = ");
+        p("            this.r = ");
         javaDecCalc("r", coeffs, "");
         p(";"); nl();
-        p("            i = ");
+        p("            this.i = ");
         javaDecCalc("i", coeffs, "");
         p(";"); nl();
         p("            return true;"); nl();
