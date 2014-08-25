@@ -206,9 +206,9 @@ function FftGen(N) {
         nl();
         nl();
         
-        p("public void ps(double a[], double b[]) {"); nl();
+        p("public void powerSpectrum(double a[], double b[]) {"); nl();
         p("read(a);"); nl();
-        for (var idx=0 ; idx<N ; idx++) {
+        for (var idx=0 ; idx<N2 ; idx++) {
             var i = bitReversedIndices[idx];
             p("b[" + idx + "]=r" + i + "*r" + i + "+i" + i + "*i" + i + ";"); nl();
         }
@@ -396,7 +396,7 @@ function FftGen(N) {
         
         p("function ps(a, b) {"); nl();
         p("read(a);"); nl();
-        for (var idx=0 ; idx<N ; idx++) {
+        for (var idx=0 ; idx<N2 ; idx++) {
             var i = bitReversedIndices[idx];
             p("b[" + idx + "]=r" + i + "*r" + i + "+i" + i + "*i" + i + ";"); nl();
         }

@@ -188,18 +188,16 @@ function FFTSR(N) {
 
     var stages = generateStageData(power);
     var W = Window.hann(N);
-    var xr = new Array(N);
-    var xi = new Array(N);
+    var xr = new Float32Array(N);
+    var xi = new Float32Array(N);
     
 
     /**
      * Real samples
      */
     function apply(input) {
-        for (var idx=0 ; idx<N ; idx++) {
-            xr[idx] = input[idx]; // * W[idx];
-            xi[idx] = 0;
-        }
+        xr = new Float32Array(input);
+        xi = new Float32Array(N);
         compute();
     }
     
