@@ -126,10 +126,10 @@ function Mode(par, props, sampleRateHint) {
 
 
     this.receiveData = function(v) {
-        var cx = nco.mixNext(v);
-        if (decimator.decimatex(cx)) {
-            var dv = decimator.value;
-            self.receive(dv);
+        var cs = nco.next();
+        var v = decimator.decimatex(v*cs.cos, -v*cs.sin);
+        if (v !== false) {
+            self.receive(v);
         }
     };
 

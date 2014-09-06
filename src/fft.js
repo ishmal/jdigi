@@ -190,14 +190,15 @@ function FFTSR(N) {
     var W = Window.hann(N);
     var xr = new Float32Array(N);
     var xi = new Float32Array(N);
+    var ZEROES = new Float32Array(N);
     
 
     /**
      * Real samples
      */
     function apply(input) {
-        xr = new Float32Array(input);
-        xi = new Float32Array(N);
+        xr.set(input);
+        xi.set(ZEROES);
         compute();
     }
     
@@ -222,7 +223,7 @@ function FFTSR(N) {
 
         var stageidx = 0;
 
-        n2 = N;// == n>>(k-1) == n, n/2, n/4, ..., 4
+        n2 = N;  // == n>>(k-1) == n, n/2, n/4, ..., 4
         n4 = n2>>2; // == n/4, n/8, ..., 1
         for (k=1; k<power; k++, n2>>=1, n4>>=1) {
 

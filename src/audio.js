@@ -75,8 +75,9 @@ function AudioInput(par) {
             var len = input.length;
             var d = decimator;
             for (var i=0 ; i < len ; i++) {
-                if (d.decimate(input[i])) {
-                    par.receive(d.value);
+                var v = d.decimate(input[i]);
+                if (v !== false) {
+                    par.receive(v);
                 }
             }
         };
