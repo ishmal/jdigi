@@ -127,9 +127,9 @@ function Mode(par, props, sampleRateHint) {
 
     this.receiveData = function(v) {
         var cs = nco.next();
-        var v = decimator.decimatex(v*cs.cos, -v*cs.sin);
-        if (v !== false) {
-            self.receive(v);
+        var cv = decimator.decimatex(v*cs.cos, -v*cs.sin);
+        if (cv !== false) {
+            self.receive(cv);
         }
     };
 
