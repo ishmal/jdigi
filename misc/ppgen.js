@@ -35,7 +35,7 @@ function PpGen(lang, columns) {
 			for (var i=0 ; i<len ; i++) {
 				var c = coeffs[i];
 				//p("c:" + c + ""); nl();
-				if (Math.abs(c) > 0.000001) {
+				if (Math.abs(c) > 0.0001) {
 					p(sep);
 					p(pfx + i + suffix + "*" + c.toFixed(5));
 					sep = PLUS;
@@ -47,7 +47,7 @@ function PpGen(lang, columns) {
 			var sep = "";
 			var len = row.length;
 			for (var col=0 ; col<len ; col++) {
-				var c = row[col];
+				var c = row[len -1 - col];
 				if (Math.abs(c) > 0.00001) {
 					p(sep);
 					p(pfx + col + suffix + " * " + c.toFixed(5));
@@ -112,7 +112,7 @@ function PpGen(lang, columns) {
 			p("        } else {"); nl();
 			p("            return false;"); nl();
 			p("        }"); nl();
-			p("    };"); nl();
+			p("    }"); nl();
 			nl();
 		
 			/**
@@ -121,16 +121,16 @@ function PpGen(lang, columns) {
 			p("    public void interpolate(double v, double buf[]) {"); nl();
 			p("        r0 = r1; r1 = r2; r2 = v;"); nl();
 			for (var row = 0 ; row < decimation ; row++) {
-				var rowarr = table[row];
+				var rowarr = scaled(table[row], decimation);
 				p("        buf[" + row + "] = ");
-				if (Math.abs(arrsum(rowarr)) < 0.0001) {
+				if (arrabs(rowarr) < 0.0001) {
 					p("0");
 				} else {
 					intCalc("r", rowarr, "");
 				}
 				p(";"); nl();
 			}
-			p("    };"); nl();
+			p("    }"); nl();
 			nl();
 		
 		   /**
@@ -140,23 +140,23 @@ function PpGen(lang, columns) {
 			p("        r0 = r1; r1 = r2; r2 = r;"); nl();
 			p("        i0 = i1; i1 = i2; i2 = i;"); nl();
 			for (row = 0 ; row < decimation ; row++) {
-				var rowarr2 = table[row];
+				var rowarr2 = scaled(table[row], decimation);
 				p("        rbuf[" + row + "] = ");
-				if (Math.abs(arrsum(rowarr2)) < 0.0001) {
+				if (arrabs(rowarr2) < 0.0001) {
 					p("0.0;"); nl();
 				} else {
 					intCalc("r", rowarr2, "");
 					p(";"); nl();
 				}
 				p("        ibuf[" + row + "] = ");
-				if (Math.abs(arrsum(rowarr2)) < 0.0001) {
+				if (arrabs(rowarr2) < 0.0001) {
 					p("0.0;"); nl();
 				} else {
 					intCalc("i", rowarr2, "");
 					p(";"); nl();
 				}
 			}
-			p("    };"); nl();
+			p("    }"); nl();
 			nl();
 		
 			//# END
@@ -316,7 +316,7 @@ function PpGen(lang, columns) {
 			for (var row = 0 ; row < decimation ; row++) {
 				var rowarr = table[row];
 				p("        buf[" + row + "] = ");
-				if (Math.abs(arrsum(rowarr)) < 0.0001) {
+				if (arrabs(rowarr) < 0.0001) {
 					p("0");
 				} else {
 					intCalc(rowarr, "r");
@@ -334,7 +334,7 @@ function PpGen(lang, columns) {
 			for (row = 0 ; row < decimation ; row++) {
 				var rowarr2 = table[row];
 				p("        buf[" + row + "] = ");
-				if (Math.abs(arrsum(rowarr2)) < 0.0001) {
+				if (arrabs(rowarr2) < 0.0001) {
 					p("{r:0,i:0};"); nl();
 				} else {
 					p("{"); nl();
@@ -438,17 +438,37 @@ function PpGen(lang, columns) {
         return coeffs;
    }
    
-    function arrsum(arr) {
+    function arrabs(arr) {
         var sum = 0;
         for (var i=0 ; i<arr.length ; i++) {
-            sum += arr[i];
+            sum += Math.abs(arr[i]);
         }
         return sum;
     }
+    
+    function scaled(arr, scale) {
+        var len = arr.length;
+        var norm = new Array(len);
+        var sum = 0;
+        for (var i=0 ; i<len; i++) {
+            sum += arr[i];
+        }
+        for (i=0 ; i<len; i++) {
+            norm[i] = arr[i] / sum;
+        }
+        return norm;
+    
+    }
+    
+    
     function generate(decimation) {
         
-        // generate the normal FIR coefficients for the decimation
-        var omega = Math.PI * 2.0 / decimation;
+        /**
+         * generate the normal FIR coefficients for the decimation
+         * Omega is  the portion of the circle where the cutoff lies: Math.PI * 2.0 / fraction
+         * Since we want to cut off at half decimation (nyquist),  it's half of decimation
+         */
+        var omega = Math.PI / decimation;
         var size = columns * decimation;
         var half = size>>1;
         var w = makeWindow(size);
@@ -461,10 +481,6 @@ function PpGen(lang, columns) {
             coeffs[idx] = coeff * w[idx];
         }
         
-        //Normalize gain
-        for (var ii=0 ; ii<size ; ii++) {
-            coeffs[ii] /= sum;
-        }
         
         /**
          * Now arrange into rows&columns for polyphase.
@@ -484,6 +500,7 @@ function PpGen(lang, columns) {
                 table[row][col] = coeffs[cptr++];
             }
         }
+        
         spec.output(decimation, size, table);   
     }
     
@@ -512,5 +529,5 @@ function PpGen(lang, columns) {
 
 }
 
-var ppg = new PpGen("js", 3);
+var ppg = new PpGen("java", 3);
 ppg.doIt();
