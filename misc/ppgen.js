@@ -15,7 +15,7 @@ function PpGen(lang, columns) {
     
 		function decl(pfx, decimation) {
 			var sep = "";
-			for (var i=0 ; i<decimation+2 ; i++) {
+			for (var i=0 ; i<decimation*decimation - 2 ; i++) {
 				p(sep + pfx + i + "=0.0");
 				sep = COMMA;
 			}
@@ -48,7 +48,11 @@ function PpGen(lang, columns) {
 			var len = row.length;
 			for (var col=0 ; col<len ; col++) {
 				var c = row[len -1 - col];
-				if (Math.abs(c) > 0.00001) {
+				if (Math.abs(1.0-c) < 0.0001) {
+				    p(sep);
+				    p(pfx + col + suffix);
+				    sep = PLUS;
+				} else if (Math.abs(c) > 0.0001) {
 					p(sep);
 					p(pfx + col + suffix + " * " + c.toFixed(5));
 					sep = PLUS;
@@ -121,7 +125,7 @@ function PpGen(lang, columns) {
 			p("    public void interpolate(double v, double buf[]) {"); nl();
 			p("        r0 = r1; r1 = r2; r2 = v;"); nl();
 			for (var row = 0 ; row < decimation ; row++) {
-				var rowarr = scaled(table[row], decimation);
+				var rowarr = normalized(table[row]);
 				p("        buf[" + row + "] = ");
 				if (arrabs(rowarr) < 0.0001) {
 					p("0");
@@ -140,7 +144,7 @@ function PpGen(lang, columns) {
 			p("        r0 = r1; r1 = r2; r2 = r;"); nl();
 			p("        i0 = i1; i1 = i2; i2 = i;"); nl();
 			for (row = 0 ; row < decimation ; row++) {
-				var rowarr2 = scaled(table[row], decimation);
+				var rowarr2 = normalized(table[row]);
 				p("        rbuf[" + row + "] = ");
 				if (arrabs(rowarr2) < 0.0001) {
 					p("0.0;"); nl();
@@ -421,6 +425,21 @@ function PpGen(lang, columns) {
     
     }
     
+    function normalized(arr) {
+        var len = arr.length;
+        var norm = new Array(len);
+        var sum = 0;
+        for (var i=0 ; i<len; i++) {
+        	var v = arr[i];
+            sum += v;
+        }
+        var scale = 1 / sum;
+        for (i=0 ; i<len; i++) {
+            norm[i] = arr[i] * scale;
+        }
+        return norm;
+    }
+    
     function decimationCoefficients(table) {
         var size = columns + table.length;
         var coeffs = new Array(size);
@@ -435,6 +454,7 @@ function PpGen(lang, columns) {
                 coeffs[idx] += v;
             }
          }
+        coeffs = normalized(coeffs);
         return coeffs;
    }
    
@@ -444,20 +464,6 @@ function PpGen(lang, columns) {
             sum += Math.abs(arr[i]);
         }
         return sum;
-    }
-    
-    function scaled(arr, scale) {
-        var len = arr.length;
-        var norm = new Array(len);
-        var sum = 0;
-        for (var i=0 ; i<len; i++) {
-            sum += arr[i];
-        }
-        for (i=0 ; i<len; i++) {
-            norm[i] = arr[i] / sum;
-        }
-        return norm;
-    
     }
     
     
@@ -529,5 +535,5 @@ function PpGen(lang, columns) {
 
 }
 
-var ppg = new PpGen("java", 3);
+var ppg = new PpGen("java", 9);
 ppg.doIt();
