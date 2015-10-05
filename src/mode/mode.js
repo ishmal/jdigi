@@ -23,94 +23,84 @@ import {Constants} from "../constants";
 import {Biquad} from "../filter";
 
 
-function Mode(par, props, sampleRateHint) {
-    var self = this;
+class Mode {
 
-    this.properties = props;
-    
-    var frequency = 1000;
+    constructor(par, props, sampleRateHint) {
+        this.par = par;
+        this.properties = props;
+        this._frequency = 1000;
+        this.decimation = Math.floor(par.getSampleRate() / sampleRateHint);
+        this.sampleRate = par.getSampleRate() / this._decimation;
+        this.afcFilter = Biquad.lowPass(1.0, 100.0);
+        this.loBin = 0;
+        this.freqBin = 0;
+        this.hiBin = 0;
+        this.adjustAfc();
+        this.afcFilter = Biquad.lowPass(1.0, 100.0);
+        this.useAfc = false;
+        this._rate = 31.25;
+        this.decimator = Resampler.create(this.decimation);
+        this.interpolator = Resampler.create(this.decimation);
+        this.nco = new Nco(this._frequency, par.getSampleRate());
+    }
 
-    this.setFrequency = function(freq) {
-        frequency = freq;
-        nco.setFrequency(freq);
-        adjustAfc();
-    };
-    this.getFrequency = function() {
-        return frequency;
-    };
 
-    this.getBandwidth = function() {
+    set frequency(freq) {
+        this._frequency = freq;
+        this.nco.setFrequency(freq);
+        this.adjustAfc();
+    }
+
+    get frequency() {
+        return this._frequency;
+    }
+
+    get bandwidth() {
         return 0;
-    };
+    }
 
-    
-    var loBin, freqBin, hiBin;
-    
-    function adjustAfc() {
-       var freq = frequency;
-       var fs = par.getSampleRate();
-       var bw = self.getBandwidth();
-       var binWidth = fs * 0.5 / Constants.BINS;
-       loBin = ((freq-bw*0.707) / binWidth) | 0;
-       freqBin = (freq / binWidth) | 0;
-       hiBin = ((freq+bw*0.707) / binWidth) | 0;
+    adjustAfc() {
+       let freq = this._frequency;
+       let fs = par.getSampleRate();
+       let bw = this.bandwidth;
+       let binWidth = fs * 0.5 / Constants.BINS;
+       this.loBin = ((freq-bw*0.707) / binWidth) | 0;
+       this.freqBin = (freq / binWidth) | 0;
+       this.hiBin = ((freq+bw*0.707) / binWidth) | 0;
        //console.log("afc: " + loBin + "," + freqBin + "," + hiBin);
     }
-    adjustAfc();
     
-    var afcFilter = Biquad.lowPass(1.0, 100.0);
 
-    function computeAfc(ps) {
-       var sum = 0;
-       for (var i=loBin, j=hiBin ; i < freqBin ; i++, j--) {
+     computeAfc(ps) {
+       let sum = 0;
+       for (let i=loBin, j=hiBin ; i < freqBin ; i++, j--) {
             if (ps[j] > ps[i]) sum++;
             else if (ps[i] > ps[j]) sum--;
        }
-       var filtered = afcFilter.update(sum);
-       nco.setError(filtered);
+       let filtered = this.afcFilter.update(sum);
+       this.nco.setError(filtered);
     }
 
-    this.status = function(msg) {
-        par.status(self.properties.name + " : " + msg);
-    };
+    status(msg) {
+        this.par.status(self.properties.name + " : " + msg);
+    }
 
-    var decimation = Math.floor(par.getSampleRate() / sampleRateHint);
-
-    var sampleRate = par.getSampleRate() / decimation;
-    this.getSampleRate = function() {
-        return sampleRate;
-    };
-    
-
-    var rate = 31.25;
-    this.setRate = function(v) {
-        rate = v;
-        adjustAfc();
-        self.status("Fs: " + self.getSampleRate() + " rate: " + v +
-             " sps: " + self.getSamplesPerSymbol());
+    set rate(v) {
+        this._rate = v;
+        this.adjustAfc();
+        this.status("Fs: " + this.sampleRate + " rate: " + v +
+             " sps: " + this.samplesPerSymbol);
 
     };
-    this.getRate = function() {
-        return rate;
-    };
+    get rate() {
+        return this._rate;
+    }
 
 
-    this.getSamplesPerSymbol = function() {
-        return self.getSampleRate() / rate;
-    };
-    
-    var useAfc = false;
-    this.getUseAfc = function() {
-        return useAfc;
-    };
-    this.setUseAfc = function(v) {
-        useAfc = v;
-    };
+    get samplesPerSymbol() {
+        return this.sampleRate / this._rate;
+    }
 
-    var decimator    = Resampler.create(decimation);
-    var interpolator = Resampler.create(decimation);
-
-    var nco = new Nco(this.getFrequency(), par.getSampleRate());
 
 
 
@@ -118,28 +108,28 @@ function Mode(par, props, sampleRateHint) {
     //# R E C E I V E
     //#######################
     
-    this.receiveFft = function(ps) {
+    receiveFft(ps) {
         if (useAfc) {
-            computeAfc(ps);
+            this.computeAfc(ps);
         }
-    };
+    }
 
 
-    this.receiveData = function(v) {
-        var cs = nco.next();
-        var cv = decimator.decimatex(v*cs.cos, -v*cs.sin);
+    receiveData(v) {
+        var cs = this.nco.next();
+        var cv = this.decimator.decimatex(v*cs.cos, -v*cs.sin);
         if (cv !== false) {
-            self.receive(cv);
+            this.receive(cv);
         }
-    };
+    }
 
 
     /**
      * Overload this for each mode.  The parameter is either float or complex,
      * depending on downmix()
      */
-    this.receive = function(v) {
-    };
+    receive(v) {
+    }
 
     
     //#######################
@@ -152,7 +142,7 @@ function Mode(par, props, sampleRateHint) {
     var ilen;
     var iptr = 0;
     
-    this.getTransmitData = function() {
+    getTransmitData() {
     
         //output buffer empty?
         if (optr >= decimation) {
@@ -173,8 +163,7 @@ function Mode(par, props, sampleRateHint) {
         var cx = obuf[optr];
         var upmixed = nco.mixNext(cx);
         return upmixed.abs();
-    };
-    
+    }
 
 }
 

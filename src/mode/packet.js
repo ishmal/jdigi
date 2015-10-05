@@ -24,7 +24,7 @@ import {Biquad,FIR} from "../filter";
  * CRC-CCITT-16 calculator, that handles both big and little-endian byte
  * streams
  */
-var CrcTables = {
+const CrcTables = {
 
     crcTable : [
         0x0000, 0x1021, 0x2042, 0x3063, 0x4084, 0x50a5, 0x60c6, 0x70e7,
@@ -98,172 +98,167 @@ var CrcTables = {
 };
 
 
-function Crc() {
+class Crc {
 
-    var crc;
+    constructor() {
+        this.reset();
+    }
     
-    this.update = function(c) {
-        var table = CrcTables.crcTable;
-        var j = (c ^ (crc >> 8)) & 0xff;
-        crc = table[j] ^ (crc << 8);
-    };
+    update(c) {
+        let table = CrcTables.crcTable;
+        let crc = this.crc;
+        let j = (c ^ (crc >> 8)) & 0xff;
+        this.crc = table[j] ^ (crc << 8);
+    }
         
-    this.value = function() {
-        return (crc ^ 0) & 0xffff;
-    };
+    value() {
+        return (this.crc ^ 0) & 0xffff;
+    }
             
-    this.updateLE = function(c) {
-        var table = CrcTables.crcTableLE;
-        crc = ((crc >> 8) ^ table[(crc ^ c) & 0xff]) & 0xffff;
-    };
+    updateLE(c) {
+        let table = CrcTables.crcTableLE;
+        let crc = this.crc;
+        this.crc = ((crc >> 8) ^ table[(crc ^ c) & 0xff]) & 0xffff;
+    }
         
-    this.valueLE = function() {
-        return crc;
-    };
+    valueLE() {
+        return this.crc;
+    }
 
-    this.reset = function() {
-        crc = 0xffff;
-    };
-
-    this.reset();
+    reset() {
+        this.crc = 0xffff;
+    }
 }
 
 
 
-function PacketAddr(call, ssid) {
+class PacketAddr {
 
-    var add;
+    constructor(call, ssid) {
+        this.call = call;
+        this.ssid = ssid;
+        this.add = null;
+    }
     
-    this.encoded = function() {
-        if (typeof add === "undefined") {
+    encoded() {
+        let add = this.add;
+        if (add === null) {
+            let call = this.call;
             add = new Array(7);
-            for (var i=0 ; i < 7 ; i++) {
-                if (i < call.size)
+            let len = call.length;
+            for (let i=0 ; i < 7 ; i++) {
+                if (i < len)
                     add[i] = ((call[i].toInt) << 1);
                 else if (i==6)
-                    add[i] = (0x60 | (ssid << 1));
+                    add[i] = (0x60 | (this.ssid << 1));
                 else
                     add[i] = 0x40;   // shifted space
              }
+            this.add = add;
         }
         return add;
-    };
+    }
 
-    this.toString = function() {
-        return (ssid >= 0) ?  call + "-" + ssid  : call;
-    };
+    static fromData(arr, offset) {
+        let buf = "";
+        let bytes = arr.slice(offset, offset+6).map(function(v) { return v >> 1; });
+        let call = String.fromCharCode.apply(null, bytes).trim();
+        let ssid = (arr[offset+6] >> 1) & 0xf;
+        return new PacketAddr(call, ssid);
+    }
+
+
+    toString() {
+        return (this.ssid >= 0) ?  this.call + "-" + this.ssid  : this.call;
+    }
   
 }
 
 
-function Packet(dest, src, rpts, ctrl, pid, info) {
-    this.dest = dest;
-    this.src  = src;
-    this.rpts = rpts;
-    this.ctrl = ctrl;
-    this.pid  = pid;
-    this.info = info;
-}
 
-Packet.prototype.toOctets = function() {
-    var buf = [];
-    buf[buf.length] = 0x7e; // flag
-    buf = buf.concat(this.dest.encoded());
-    buf = buf.concat(this.src.encoded());
-    for (var ridx=0 ; ridx < this.rpts.length ; ridx++) {
-        buf = buf.concat(this.rpts[ridx].encoded());
+
+class Packet {
+
+    const Types = {
+        PID_X25: 0x01,  // ISO 8208/CCITT X.25 PLP
+        PID_TCPIP_COMP: 0x06,  // Compressed TCP/IP packet. Van Jacobson (RFC 1144)
+        PID_TCPIP_UNCOMP: 0x07,  // Uncompressed TCP/IP packet. Van Jacobson (RFC 1144)
+        PID_FRAG: 0x08,  // Segmentation fragment
+        PID_AX25_FLAG1: 0x10,  // AX.25 layer 3 implemented.
+        PID_AX25_FLAG2: 0x20,  // AX.25 layer 3 implemented.
+        PID_AX25_MASK: 0x30,  // AX.25 layer 3 implemented.
+        PID_TEXNET: 0xc3,  // TEXNET datagram protocol
+        PID_LQP: 0xc4,  // Link Quality Protocol
+        PID_APPLETALK: 0xca,  // Appletalk
+        PID_APPLETALK_ARP: 0xcb,  // Appletalk ARP
+        PID_ARPA_IP: 0xcc,  // ARPA Internet Protocol
+        PID_ARPA_ARP: 0xcd,  // ARPA Address Resolution
+        PID_FLEXNET: 0xce,  // FlexNet
+        PID_NETROM: 0xcf,  // NET/ROM
+        PID_NO_3: 0xf0,  // No layer 3 protocol implemented.
+        PID_ESCAPE: 0xff,  // Escape character. Next octet contains more Level 3 protocol information.
+
+        /**
+         * Frame identifiers
+         */
+        FID_NONE: 0,  // Not an ID
+        FID_C: 1,  // Layer 2 Connect Request
+        FID_SABM: 2,  // Layer 2 Connect Request
+        FID_D: 3,  // Layer 2 Disconnect Request
+        FID_DISC: 4,  // Layer 2 Disconnect Request
+        FID_I: 5,  // Information frame
+        FID_RR: 6,  // Receive Ready. System Ready To Receive
+        FID_RNR: 7,  // Receive Not Ready. TNC Buffer Full
+        FID_NR: 8,  // Receive Not Ready. TNC Buffer Full
+        FID_RJ: 9,  // Reject Frame. Out of Sequence or Duplicate
+        FID_REJ: 10,  // Reject Frame. Out of Sequence or Duplicate
+        FID_FRMR: 11,  // Frame Reject. Fatal Error
+        FID_UI: 12,  // Unnumbered Information Frame. "Unproto"
+        FID_DM: 13,  // Disconnect Mode. System Busy or Disconnected.
+
+        IFRAME: 0,
+        SFRAME: 1,
+        UFRAME: 2
+    };
+
+
+    constructor(dest, src, rpts, ctrl, pid, info) {
+        this.dest = dest;
+        this.src = src;
+        this.rpts = rpts;
+        this.ctrl = ctrl;
+        this.pid = pid;
+        this.info = info;
     }
-    buf[buf.length] = this.ctrl;
-    buf[buf.length] = this.pid;
-    var ilen = info.length;
-    for (iidx=0 ; iidx < ilen ; iidx++) {
-        buf[buf.length] = info[iidx];
-    }
-    var crc = new Crc();
-    for (var bidx=0 ; bidx < buf.length ; bidx++) {
-        crc.update(buf[bidx]);
-    }
-    var crcv = crc.value();
-    var fcslo = (crcv & 0xff) ^ 0xff;
-    var fcshi = (crcv >>   8) ^ 0xff;
-    buf[buf.length] = fcslo;
-    buf[buf.length] = fcshi;
-    buf[buf.length] = 0x7e; // flag
-    return buf;
-};
 
-Packet.prototype.toString = function() {
-    var buf = src.toString() + "=>" + dest.toString();
-
-    for (var ridx=0 ; ridx < rpts.length ; ridx++) {
-        buf += ":";
-        buf += r.toString();
-    }
-    buf += " [" + pid.toString() + "]: ";
-    if (pid !== 0) {
-        buf += String.fromCharCode.apply(null, info);
-    } else {
-        //for (v <- info)
-        //    buf.append(",").append(v.toString)
-        buf += "{" + info(0) + "," + info.size + "}";
-        buf += String.fromCharCode.apply(null, info);
-    }
-
-    return buf;
-};
-
-
-var Packets = {
-    PID_X25           : 0x01,  // ISO 8208/CCITT X.25 PLP
-    PID_TCPIP_COMP    : 0x06,  // Compressed TCP/IP packet. Van Jacobson (RFC 1144)
-    PID_TCPIP_UNCOMP  : 0x07,  // Uncompressed TCP/IP packet. Van Jacobson (RFC 1144)
-    PID_FRAG          : 0x08,  // Segmentation fragment
-    PID_AX25_FLAG1    : 0x10,  // AX.25 layer 3 implemented.
-    PID_AX25_FLAG2    : 0x20,  // AX.25 layer 3 implemented.
-    PID_AX25_MASK     : 0x30,  // AX.25 layer 3 implemented.
-    PID_TEXNET        : 0xc3,  // TEXNET datagram protocol
-    PID_LQP           : 0xc4,  // Link Quality Protocol
-    PID_APPLETALK     : 0xca,  // Appletalk
-    PID_APPLETALK_ARP : 0xcb,  // Appletalk ARP
-    PID_ARPA_IP       : 0xcc,  // ARPA Internet Protocol
-    PID_ARPA_ARP      : 0xcd,  // ARPA Address Resolution
-    PID_FLEXNET       : 0xce,  // FlexNet
-    PID_NETROM        : 0xcf,  // NET/ROM
-    PID_NO_3          : 0xf0,  // No layer 3 protocol implemented.
-    PID_ESCAPE        : 0xff,  // Escape character. Next octet contains more Level 3 protocol information.
-    
-    /**
-     * Frame identifiers
-     */
-    FID_NONE     :  0,  // Not an ID
-    FID_C        :  1,  // Layer 2 Connect Request
-    FID_SABM     :  2,  // Layer 2 Connect Request
-    FID_D        :  3,  // Layer 2 Disconnect Request
-    FID_DISC     :  4,  // Layer 2 Disconnect Request
-    FID_I        :  5,  // Information frame
-    FID_RR       :  6,  // Receive Ready. System Ready To Receive
-    FID_RNR      :  7,  // Receive Not Ready. TNC Buffer Full
-    FID_NR       :  8,  // Receive Not Ready. TNC Buffer Full
-    FID_RJ       :  9,  // Reject Frame. Out of Sequence or Duplicate
-    FID_REJ      : 10,  // Reject Frame. Out of Sequence or Duplicate
-    FID_FRMR     : 11,  // Frame Reject. Fatal Error
-    FID_UI       : 12,  // Unnumbered Information Frame. "Unproto"
-    FID_DM       : 13,  // Disconnect Mode. System Busy or Disconnected.
-
-    IFRAME       : 0,
-    SFRAME       : 1,
-    UFRAME       : 2,
-
-    create : function(data) {
-
-        function getAddr(arr, offset) {
-            var buf = "";
-            var bytes = arr.slice(offset, offset+6).map(function(v) { return v >> 1; });
-            var call = String.fromCharCode.apply(null, bytes).trim();
-            var ssid = (arr[offset+6] >> 1) & 0xf;
-            return new PacketAddr(call, ssid);
+    toOctets() {
+        let buf = [];
+        buf[buf.length] = 0x7e; // flag
+        buf = buf.concat(this.dest.encoded());
+        buf = buf.concat(this.src.encoded());
+        for (let ridx = 0; ridx < this.rpts.length; ridx++) {
+            buf = buf.concat(this.rpts[ridx].encoded());
         }
+        buf[buf.length] = this.ctrl;
+        buf[buf.length] = this.pid;
+        let ilen = info.length;
+        for (let iidx = 0; iidx < ilen; iidx++) {
+            buf[buf.length] = info[iidx];
+        }
+        let crc = new Crc();
+        for (let bidx = 0; bidx < buf.length; bidx++) {
+            crc.update(buf[bidx]);
+        }
+        let crcv = crc.value();
+        let fcslo = (crcv & 0xff) ^ 0xff;
+        let fcshi = (crcv >> 8) ^ 0xff;
+        buf[buf.length] = fcslo;
+        buf[buf.length] = fcshi;
+        buf[buf.length] = 0x7e; // flag
+        return buf;
+    }
 
+     static create() {
         var pos = 0;
         var dest = getAddr(data, pos);
         pos += 7;
@@ -288,10 +283,27 @@ var Packets = {
         return new Packet(dest, src, rpts, 0, 0, info);
     }
 
-};
+    toString() {
+        let buf = src.toString() + "=>" + dest.toString();
 
+         let len = rpts.length;
+        for (let ridx = 0; ridx < len; ridx++) {
+            buf += ":";
+            buf += r.toString();
+        }
+        buf += " [" + pid.toString() + "]: ";
+        if (pid !== 0) {
+            buf += String.fromCharCode.apply(null, info);
+        } else {
+            //for (v <- info)
+            //    buf.append(",").append(v.toString)
+            buf += "{" + info(0) + "," + info.size + "}";
+            buf += String.fromCharCode.apply(null, info);
+        }
+        return buf;
+    }
 
-
+}
 
 
 
@@ -303,8 +315,12 @@ var Packets = {
  *  
  * @see http://www.tapr.org/pub_ax25.html
  */    
-function PacketMode(par) {
-    var self = this;
+class PacketMode {
+
+    constructor(par) {
+        this.par = par;
+    }
+
     
     var props = {
         name : "packet",

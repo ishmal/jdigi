@@ -25,65 +25,60 @@ import {Biquad,FIR} from "../filter";
  * This is a base class for all two-tone FSK modes.
  * @see http://en.wikipedia.org/wiki/Asynchronous_serial_communication
  */
-function FskBase(par, props, sampleRateHint) {
-    Mode.call(this, par, props, sampleRateHint);
-    var self = this;
+class FskBase extends Mode {
 
-    var shiftval = 170.0;
 
-    this.getShift = function() {
-        return shiftval;
-    };
+    constructor(par, props, sampleRateHint) {
+        super(par, props, sampleRateHint);
+        this._shift = 170.0;
+        this.inverted = false;
+        this.rate = 45.0;
+        this.samplesSinceChange = 0;
+        this.lastbit = false;
+        
+        //receive
+        this.loHys = -1.0;
+        this.hiHys =  1.0;
+        this.bit = false;
+        this.lastr = 0;
+        this.lasti = 0;
+        this.bitsum = 0;
 
-    this.setShift = function(v) {
-        shiftval = v;
-        adjust();
-    };
-    
-    var inverted = false;
-    this.setInverted = function(v) {
-        inverted = v;
-    };
-    
-    this.getInverted = function() {
-        return inverted;
-    };
 
-    this.getBandwidth = function() { return shiftval; };
-
-    var twopi = Math.PI * 2.0;
-    var symbollen, halfsym; 
-    var sf, mf; //mark and space filter
-    var dataFilter;
-
-    //var avgFilter = Iir2.lowpass(rate / 100, this.sampleRate);
-
-    var super_setRate = this.setRate;
-    this.setRate = function(rate) {
-        super_setRate(rate);
-        adjust();
-    };
-
-    this.setRate(45.0); //makes all rate/shift dependent vars initialize
-
-    function adjust() {
-        sf = FIR.bandpass(13, -0.75 * shiftval, -0.25 * shiftval, self.getSampleRate());
-        mf = FIR.bandpass(13,  0.25 * shiftval,  0.75 * shiftval, self.getSampleRate());
-        //dataFilter = FIR.boxcar((self.getSamplesPerSymbol() * 0.7)|0 );
-        dataFilter = FIR.raisedcosine(13, 0.5, self.getRate(), self.getSampleRate());
-        //dataFilter = FIR.lowpass(13, self.getRate() * 0.5, self.getSampleRate());
-        //dataFilter = Biquad.lowPass(self.getRate() * 0.5, self.getSampleRate());
-        symbollen = Math.round(self.getSamplesPerSymbol());
-        halfsym = symbollen >> 1;
+        //scope
+        this.scopedata = new Array(this.SSIZE);
+        this.scnt = 0;
+        this.sx = -1;
     }
 
+    get shift() {
+        return this._shift;
+    }
 
-    var loHys = -1.0;
-    var hiHys =  1.0;
-    var bit = false;
-    var lastr = 0;
-    var lasti = 0;
-    var bitsum = 0;
+    set shift(v) {
+        this._shift = v;
+        this.adjust();
+    }
+    
+    get bandwidth() {
+        return shiftval;
+    }
+
+    set rate(v) {
+        super.rate = v;
+        this.adjust();
+    }
+
+    adjust() {
+        this.sf = FIR.bandpass(13, -0.75 * this.shift, -0.25 * this.shift, this.sampleRate);
+        this.mf = FIR.bandpass(13,  0.25 * this.shift,  0.75 * this.shift, this.sampleRate);
+        //dataFilter = FIR.boxcar((self.getSamplesPerSymbol() * 0.7)|0 );
+        this.dataFilter = FIR.raisedcosine(13, 0.5, self.getRate(), this.sampleRate);
+        //dataFilter = FIR.lowpass(13, self.getRate() * 0.5, this.sampleRate);
+        //dataFilter = Biquad.lowPass(self.getRate() * 0.5, this.sampleRate);
+        this.symbollen = Math.round(this.samplesPerSymbol);
+        this.halfsym = symbollen >> 1;
+    }
 
     /**
      * note: multiplying one complex sample of an
@@ -91,67 +86,69 @@ function FskBase(par, props, sampleRateHint) {
      * value gives the instantaneous frequency change of
      * the signal.  This is called a polar discrminator.
      */
-    this.receive = function(isample) {
-        var space = sf.updatex(isample);
-        var mark  = mf.updatex(isample);
-        var r     = space.r + mark.r;
-        var i     = space.i + mark.i;
-        var x     = r*lastr - i*lasti;
-        var y     = r*lasti + i*lastr;
-        lastr     = r; //save the conjugate
-        lasti     = -i;
-        var angle = Math.atan2(y, x);  //arg
-        var comp  = (angle>0) ? -10.0 : 10.0;
-        var sig   = dataFilter.update(comp);
+    receive(isample) {
+        let lastr = this.lastr;
+        let lasti = this.lasti;
+        
+        let space = this.sf.updatex(isample);
+        let mark  = this.mf.updatex(isample);
+        let r     = space.r + mark.r;
+        let i     = space.i + mark.i;
+        let x     = r*lastr - i*lasti;
+        let y     = r*lasti + i*lastr;
+        this.lastr     = r; //save the conjugate
+        this.lasti     = -i;
+        let angle = Math.atan2(y, x);  //arg
+        let comp  = (angle>0) ? -10.0 : 10.0;
+        let sig   = this.dataFilter.update(comp);
         //console.log("sig:" + sig + "  comp:" + comp)
 
-        scopeOut(sig);
+        this.scopeOut(sig);
+        
+        let bit = this.bit;
 
         //trace("sig:" + sig)
-        if (sig > hiHys) {
+        if (sig > this.hiHys) {
             bit = false;
         } else if (sig < loHys) {
             bit = true;
         }
         
-        bit = bit ^ inverted; //user-settable
+        bit = bit ^ this.inverted; //user-settable
         
-        self.processBit(bit);
-    };
+        this.processBit(bit);
+        this.bit = bit;
+    }
 
     
-    this.processBit = function(bit, parms) {
-    };
+    processBit(bit, parms) {
+    }
     
     
-    var samplesSinceChange = 0;
-    var lastbit = false;
     
     /**
      * Used for modes without start/stop. Test if the current bit is the middle
      * of where a symbol is expected to be.
      */
-    this.isMiddleBit = function(bit) {
-        samplesSinceChange = (bit===lastbit) ? samplesSinceChange+1 : 0;
-        lastbit = bit;
-        var middleBit = (samplesSinceChange%symbollen === halfsym);
+    isMiddleBit(bit) {
+        this.samplesSinceChange = (bit===this.lastbit) ? this.samplesSinceChange+1 : 0;
+        this.lastbit = bit;
+        let middleBit = (this.samplesSinceChange%this.symbollen === this.halfsym);
         return middleBit;
-    };
+    }
 
-    var SSIZE = 200;
-    var scopedata = new Array(SSIZE);
-    var scnt = 0;
-    var sx = -1;
-    function scopeOut(v) {
-        var sign = (v>0) ? 1 : -1;
-        var scalar = Math.log(Math.abs(v) + 1)*0.25;
-        scopedata[scnt++] = [sx, sign * scalar];
-        sx += 0.01;
-        if (scnt >= SSIZE) {
-            scnt = 0;
-            sx = -1;
-            par.showScope(scopedata);
-            scopedata = new Array(SSIZE);
+    const SSIZE = 200;
+    
+    scopeOut(v) {
+        let sign = (v>0) ? 1 : -1;
+        let scalar = Math.log(Math.abs(v) + 1)*0.25;
+        this.scopedata[this.scnt++] = [this.sx, sign * scalar];
+        this.sx += 0.01;
+        if (this.scnt >= this.SSIZE) {
+            this.scnt = 0;
+            this.sx = -1;
+            this.par.showScope(this.scopedata);
+            this.scopedata = new Array(this.SSIZE);
         }
     }
 
