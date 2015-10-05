@@ -1,6 +1,14 @@
 .DS_Store
 node_modules
+builds
 dist
 tmp
+
+.idea
+*.iml
+*.bak
+gulp-debug.bat
+
+
 
 
