@@ -26,7 +26,7 @@ import {FIR} from "../filter";
  * These are the ITU codes for 5-bit Baudot code and 7-bit SITOR
  * in the same table
  */
-var Baudot = {
+const Baudot = {
 
     t : [
         [  0,    0], // 0x00 NUL
@@ -74,12 +74,17 @@ var Baudot = {
 /**
  * Enumerations for parity types
  */
-var ParityNone = 0;
-var ParityOne  = 1;
-var ParityZero = 2;
-var ParityOdd  = 3;
-var ParityEven = 4;
+const ParityNone = 0;
+const ParityOne  = 1;
+const ParityZero = 2;
+const ParityOdd  = 3;
+const ParityEven = 4;
 
+const RxIdle   = 0;
+const RxStart  = 1;
+const RxData   = 2;
+const RxStop   = 3;
+const RxParity = 4;
 
 
 /**
@@ -92,10 +97,9 @@ var ParityEven = 4;
  * @see http://en.wikipedia.org/wiki/Asynchronous_serial_communication
  *
  */
-function RttyMode(par) {
-    var self = this;
+class RttyMode extends FskBase {
 
-    var props = {
+    const props = {
         name: "rtty",
         tooltip: "radio teletype",
         controls : [
@@ -139,35 +143,32 @@ function RttyMode(par) {
             }
         ]
     };
-    FskBase.call(this, par, props, 1000.0);
 
-    var unshiftOnSpace = false;
-    this.getUnshiftOnSpace = function() {
-        return unshiftOnSpace;
-    };
-    this.setUnshiftOnSpace = function(v) {
-        unshiftOnSpace = v;
-    };
-    
-    var symbollen, halfsym, symarray, symptr=0;
-    
-    var super_setRate = this.setRate;
-    this.setRate = function(rate) {
-        super_setRate(rate);
-        symbollen = Math.round(self.getSamplesPerSymbol());
-        halfsym = symbollen>>1;
-        symarray = new Array(symbollen);
-        for (var pp=0 ; pp<symbollen ; pp++) {
-            symarray[pp] = false;
+    constructor(par) {
+        super(par, this.props, 1000.0);
+        this.unshiftOnSpace = false;
+        this.symbollen = 0;
+        this.halfsym = 0;
+        this.symarray = 0;
+        this.symptr=0;
+        this.rate = 45.45;
+        this.parityType = ParityNone;
+    }
+
+
+    setRate(v) {
+        super.rate = v;
+        this.symbollen = Math.round(this.samplesPerSymbol);
+        this.halfsym = this.symbollen >> 1;
+        this.symarray = new Array(this.symbollen);
+        for (let pp=0 ; pp < this.symbollen ; pp++) {
+            this.symarray[pp] = false;
         }
     };
 
-    this.setRate(45.45); //makes all rate/shift dependent vars initialize
 
-    var parityType = ParityNone;
-
-    function countbits(n) {
-        var c = 0;
+    static countbits(n) {
+        let c = 0;
         while (n) {
             n &= n-1;
             c++;
@@ -175,8 +176,8 @@ function RttyMode(par) {
         return c;
     }
 
-    function parityOf(c) {
-        switch (parityType) {
+    parityOf(c) {
+        switch (this.parityType) {
             case ParityOdd  : return (countbits(c) & 1) !== 0;
             case ParityEven : return (countbits(c) & 1) === 0;
             case ParityZero : return false;
@@ -186,11 +187,6 @@ function RttyMode(par) {
     }
     
     
-    var RxIdle   = 0;
-    var RxStart  = 1;
-    var RxData   = 2;
-    var RxStop   = 3;
-    var RxParity = 4;
 
     var state     = RxIdle;
     var bitcount  = 0;
@@ -226,7 +222,7 @@ function RttyMode(par) {
      * -|                  |-
      *
      */
-    this.processBit = function(bit) {
+    processBit(bit) {
     
         symarray[symptr++] = bit;
         symptr %= symbollen;
@@ -298,15 +294,15 @@ function RttyMode(par) {
                 }
                 break;
             }
-    }; // processBit
+    } // processBit
     
     
 
     var shifted = false;
 
-    function reverse(v, size) {
-        var a = v;
-        var b = 0;
+    reverse(v, size) {
+        let a = v;
+        let b = 0;
         while (size--) {
             b += a & 1;
             b <<= 1;
@@ -325,29 +321,29 @@ function RttyMode(par) {
     
     var table = Baudot.t;
 
-    function outCode(rawcode) {
+    outCode(rawcode) {
         //println("raw:" + rawcode)
         //rawcode = reverse(rawcode, 5);
         var code = rawcode & 0x1f;
         if (code === NUL) {
         } else if (code === FIGS) {
-            shifted = true;
+            this.shifted = true;
         } else if (code === LTRS) {
-            shifted = false;
+            this.shifted = false;
         } else if (code === SPACE) {
-            par.puttext(" ");
-            if (self.unshiftOnSpace)
-                shifted = false;
+            this.par.puttext(" ");
+            if (this.unshiftOnSpace)
+                this.shifted = false;
         } else if (code === CR || code === LF) {
-            par.puttext("\n");
-            if (self.unshiftOnSpace)
-                shifted = false;
+            this.par.puttext("\n");
+            if (this.unshiftOnSpace)
+                this.shifted = false;
         } else {
             var v = table[code];
             if (v) {
-                var c = (shifted) ? v[1] : v[0];
+                var c = (this.shifted) ? v[1] : v[0];
                 if (c !== 0)
-                    par.puttext(c);
+                    this.par.puttext(c);
             }
         }
     }

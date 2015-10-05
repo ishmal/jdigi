@@ -306,6 +306,18 @@ class Packet {
 }
 
 
+function trace(msg) {
+    console.log(msg);
+}
+
+
+const RxStart = 0;  //the initial state
+const RxTxd   = 1;  //after the first flag, wait until no more flags
+const RxData  = 2;  //after the flag.  all octets until another flag
+const RxFlag1 = 3;  //Test whether we have a flag or a stuffed bit
+const RxFlag2 = 4;  //It was a flag.  grab the last bit
+const FLAG = 0x7e;   // 01111110 , the start/stop flag
+const RXLEN= 4096;
 
 
 /**
@@ -315,14 +327,9 @@ class Packet {
  *  
  * @see http://www.tapr.org/pub_ax25.html
  */    
-class PacketMode {
-
-    constructor(par) {
-        this.par = par;
-    }
-
+class PacketMode extends Mode {
     
-    var props = {
+    const props = {
         name : "packet",
         tooltip: "AX.25 and APRS",
         controls : [
@@ -350,38 +357,22 @@ class PacketMode {
             }
         ]
     };
-    FskBase.call(this, par, props, 4800.0); //inherit
-    
-    
-     
-    this.setShift(200.0);
-    this.setRate(300.0);
-    
-    
-    function trace(msg) {
-        console.log(msg);
+
+    constructor(par) {
+        super(par, this.props, 4800.0);
+        this.setShift(200.0);
+        this.setRate(300.0);
+        this.state = RxStart;
+        this.bitcount = 0;
+        this.octet    = 0;
+        this.ones     = 0;
+        this.bufPtr   = 0;
+        this.rxbuf    = new Array(RXLEN);
+        this.lastBit = false;
     }
-    
 
-    var RxStart = 0;  //the initial state
-    var RxTxd   = 1;  //after the first flag, wait until no more flags
-    var RxData  = 2;  //after the flag.  all octets until another flag
-    var RxFlag1 = 3;  //Test whether we have a flag or a stuffed bit
-    var RxFlag2 = 4;  //It was a flag.  grab the last bit
     
-    var state = RxStart;
-   
-    var FLAG = 0x7e;   // 01111110 , the start/stop flag
     
-    var bitcount = 0;
-    var octet    = 0;
-    var ones     = 0;
-
-    var bufPtr   = 0;
-    var RXLEN    = 4096;
-    var rxbuf    = new Array(RXLEN);
-    
-    var lastBit = false;
 
     /**
      * Attempt to decode a packet.  It will be in NRZI form, so when
@@ -391,57 +382,58 @@ class PacketMode {
      * 01111110 76543210 76543210 76543210 01234567 01234567 01111110
      *   flag    octet     octet   octet    fcs_hi   fcs_lo    flag
      */
-    this.processBit = function(inBit) {
+    processBit(inBit) {
     
-        if (!self.isMiddleBit(inBit)) {
+        if (!this.isMiddleBit(inBit)) {
             return;
         }
 
         //shift right for the next bit, since ax.25 is lsb-first
-        octet = (octet >> 1) & 0x7f;  //0xff? we dont want the msb
-        var bit = (inBit === lastBit); //google "nrzi"
-        lastBit = inBit;
+        let octet = (this.octet >> 1) & 0x7f;  //0xff? we dont want the msb
+        this.octet = octet;
+        let bit = (inBit === this.lastBit); //google "nrzi"
+        this.lastBit = inBit;
         if (bit) 
-            { ones += 1 ; octet |= 128; }
+            { this.ones += 1 ; octet |= 128; }
         else
-            ones = 0;
+            this.ones = 0;
 
-        switch (state) {
+        switch (this.state) {
 
             case RxStart :
                 //trace("RxStart");
                 //trace("st octet: %02x".format(octet));
                 if (octet === FLAG) {
-                    state    = RxTxd;
-                    bitcount = 0;
+                    this.state    = RxTxd;
+                    this.bitcount = 0;
                 }
                 break;
 
             case RxTxd :
                 //trace("RxTxd");
-                if (++bitcount >= 8) {
+                if (++this.bitcount >= 8) {
                     //trace("txd octet: %02x".format(octet));
-                    bitcount = 0;
+                    this.bitcount = 0;
                     if (octet !== FLAG) {
-                        state    = RxData;
-                        rxbuf[0] = octet & 0xff;
-                        bufPtr   = 1;
+                        this.state    = RxData;
+                        this.rxbuf[0] = octet & 0xff;
+                        this.bufPtr   = 1;
                     }
                 }
                 break;
 
             case RxData :
                 //trace("RxData");
-                if (ones === 5) { // 111110nn, next bit will determine
-                    state = RxFlag1;
+                if (this.ones === 5) { // 111110nn, next bit will determine
+                    this.state = RxFlag1;
                 } else {
-                    if (++bitcount >= 8) {
-                        bitcount = 0;
-                        if (bufPtr >= RXLEN) {
+                    if (++this.bitcount >= 8) {
+                        this.bitcount = 0;
+                        if (this.bufPtr >= RXLEN) {
                             //trace("drop")
-                            state = RxStart;
+                            this.state = RxStart;
                         } else {
-                            rxbuf[bufPtr++] = octet & 0xff;
+                            this.rxbuf[this.bufPtr++] = octet & 0xff;
                         }
                     }
                 }
@@ -450,57 +442,55 @@ class PacketMode {
             case RxFlag1 :
                 //trace("RxFlag");
                 if (bit) { //was really a 6th bit. 
-                    state = RxFlag2;
+                    this.state = RxFlag2;
                 } else { //was a zero.  drop it and continue
                     octet = (octet << 1) & 0xfe;
-                    state = RxData;
+                    this.state = RxData;
                 }
                 break;
 
             case RxFlag2 :
                 //we simply wanted that last bit
-                processPacket(rxbuf, bufPtr);
-                for (var rdx=0 ; rdx < RXLEN ; rdx++)
-                    rxbuf[rdx] = 0;
-                state = RxStart;
+                this.processPacket(this.rxbuf, this.bufPtr);
+                for (let rdx=0 ; rdx < RXLEN ; rdx++)
+                    this.rxbuf[rdx] = 0;
+                this.state = RxStart;
                 break;
             
             default :
                 //dont know
                    
         }//switch
-    };
+    }
     
 
-    var crc = new Crc();
-    
-    function rawPacket(ibytes, offset, len) {
-        var str = "";
-        for (var i=0 ; i<len ; i++) {
-            var b = (ibytes[offset + i]); // >> 1;
+    rawPacket(ibytes, offset, len) {
+        let str = "";
+        for (let i=0 ; i<len ; i++) {
+            let b = (ibytes[offset + i]); // >> 1;
             str += String.fromCharCode(b);
         }
         return str;
     }        
     
-    function processPacket(data, len) {
+    processPacket(data, len) {
 
         //trace("raw:" + len)
         if (len < 14)
             return true;
-        var str = rawPacket(data, 14, len-2);
+        let str = this.rawPacket(data, 14, len-2);
         trace("txt: " + str);
-        crc.reset();
-        for (var i=0 ; i < len ; i++) {
+        let crc = new Crc();
+        for (let i=0 ; i < len ; i++) {
             crc.updateLE(data[i]);
         }
-        var v = crc.valueLE();
+        let v = crc.valueLE();
         trace("crc: " + v.toString(16));
         //theory is, if you calculate the CRC of the data, -including- the crc field,
         //a correct result will always be 0xf0b8
         if (v === 0xf0b8) {
-            var p = Packets.create(data);
-            par.puttext(p.toString() + "\n");
+            let p = Packets.create(data);
+            this.par.puttext(p.toString() + "\n");
         }
         return true;
     }

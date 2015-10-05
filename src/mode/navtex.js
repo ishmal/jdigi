@@ -20,9 +20,9 @@
 
 import {FskBase} from "./fsk";
 
-var CCIR = (function() {
+const CCIR = (function() {
 
-    var t = [];
+    let t = [];
     t[0x3a] = ['Q',  '1'];  /*0111010*/
     t[0x72] = ['W',  '2'];  /*1110010*/
     t[0x35] = ['E',  '3'];  /*0110101*/
@@ -53,7 +53,7 @@ var CCIR = (function() {
     t[0x0f] = ['\n', '\n']; //actually \r
     t[0x1b] = ['\n', '\n'];
 
-    var cls = {
+    let cls = {
         NUL    : 0x2b,
         SPACE  : 0x1d,
         CR     : 0x0f,
@@ -71,16 +71,19 @@ var CCIR = (function() {
 })();
 
 
+const RxSync1  = 0;
+const RxSync2  = 1;
+const RxData   = 2;
+
 
 /**
  *
  * @see http://en.wikipedia.org/wiki/Asynchronous_serial_communication
  *
  */
-function NavtexMode(par) {
-    var self = this;
+class NavtexMode extends FskBase {
 
-    var props = {
+    const props = {
         name : "navtex",
         tooltip: "international naval teleprinter",
         controls : [
@@ -98,79 +101,70 @@ function NavtexMode(par) {
             }
         ]
     };
-    FskBase.call(this, par, props, 1000.0);
-
-    var unshiftOnSpace = false;
-    this.getUnshiftOnSpace = function() {
-        return unshiftOnSpace;
-    };
-    this.setUnshiftOnSpace = function(v) {
-        unshiftOnSpace = v;
-    };
-
-    this.setShift(170.0);
     
-    this.setRate(100.0); //makes all rate/shift dependent vars initialize
+    constructor(par) {
+        super(par, this.props, 1000.0);
+        this.unshiftOnSpace = false;
+        this.shift = 170.0;
+        this.rate = 100.0;
+        this.state     = RxSync1;
+        this.bitcount  = 0;
+        this.code      = 0;
+        this.parityBit = false;
+        this.bitMask   = 0;
 
+        /**
+         * Since there is no start or stop bit, we must sync ourselves.
+         * But syncing is very simple.  We shift the bits through four 7-bit
+         * shift registers.  When all four have valid characters, we consider
+         * it to be synced.
+         */
+        this.errs  = 0;
+        this.sync1 = 0;
+        this.sync2 = 0;
+        this.sync3 = 0;
+        this.sync4 = 0;
+    }
 
-    var RxSync1  = 0;
-    var RxSync2  = 1;
-    var RxData   = 2;
-    var state     = RxSync1;
-    var bitcount  = 0;
-    var code      = 0;
-    var parityBit = false;
-    var bitMask   = 0;
     
-    /**
-     * Since there is no start or stop bit, we must sync ourselves.
-     * But syncing is very simple.  We shift the bits through four 7-bit
-     * shift registers.  When all four have valid characters, we consider
-     * it to be synced.
-     */
-    var errs  = 0;
-    var sync1 = 0;
-    var sync2 = 0;
-    var sync3 = 0;
-    var sync4 = 0;
     
-    function shift7(bit) {
-        var a = (bit) ? 1 : 0;
-        var b = (sync1 >> 6) & 1;
-        sync1 = ((sync1 << 1) + a) & 0x7f;
+    shift7(bit) {
+        let a = (bit) ? 1 : 0;
+        let b = (this.sync1 >> 6) & 1;
+        this.sync1 = ((this.sync1 << 1) + a) & 0x7f;
         a = b;
-        b = (sync2 >> 6) & 1;
-        sync2 = ((sync2 << 1) + a) & 0x7f;
+        b = (this.sync2 >> 6) & 1;
+        this.sync2 = ((this.sync2 << 1) + a) & 0x7f;
         a = b;
-        b = (sync3 >> 6) & 1;
-        sync3 = ((sync3 << 1) + a) & 0x7f;
+        b = (this.sync3 >> 6) & 1;
+        this.sync3 = ((this.sync3 << 1) + a) & 0x7f;
         a = b;
-        sync4 = ((sync4 << 1) + a) & 0x7f;
+        this.sync4 = ((this.sync4 << 1) + a) & 0x7f;
     }
     
 
    
-    this.processBit = function(bit) {
+    processBit(bit) {
     
-        if (!self.isMiddleBit(bit)) {
+        if (!this.isMiddleBit(bit)) {
             return;
         }
 
-        switch(state) {
+        switch(this.state) {
             case RxSync1 :
                 //trace("RxSync1")
-                state    = RxSync2;
-                bitcount = 0;
-                code     = 0;
-                errs     = 0;
-                sync1    = 0;
-                sync2    = 0;
-                sync3    = 0;
-                sync4    = 0;
+                this.state    = RxSync2;
+                this.bitcount = 0;
+                this.code     = 0;
+                this.errs     = 0;
+                this.sync1    = 0;
+                this.sync2    = 0;
+                this.sync3    = 0;
+                this.sync4    = 0;
                 break;
             case RxSync2 :
                 //trace("RxSync2")
-                shift7(bit);
+                this.shift7(bit);
                 //trace(sync1.toHexString + ", "+  sync2.toHexString + ", " +
                 //     sync3.toHexString + ", " + sync4.toHexString);
                 //trace("bit: " + bit);
