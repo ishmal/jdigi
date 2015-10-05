@@ -16,7 +16,8 @@
  *    You should have received a copy of the GNU General Public License
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-
+/* jslint node: true */
+"use strict";
 
 import {FskBase} from "./fsk";
 
@@ -63,7 +64,17 @@ const CCIR = (function() {
         ALPHA  : 0x78,
         BETA   : 0x66,
         SYNC   : 0x00,
-        REPEAT : 0x33
+        REPEAT : 0x33,
+        isValid : function(code) {
+        return (table[code] !== undefined) ||
+            code === NUL ||
+            code === LTRS ||
+            code === FIGS ||
+            code === ALPHA ||
+            code === BETA ||
+            code === SYNC ||
+            code === REPEAT;
+        }
     };
     cls.t = t;
 
@@ -75,6 +86,22 @@ const RxSync1  = 0;
 const RxSync2  = 1;
 const RxData   = 2;
 
+const ResultOk   = 0;
+const ResultSoft = 1;
+const ResultFail = 2;
+const ResultEom  = 3;
+
+function reverse(v, len) {
+    let a = v;
+    let b = 0;
+    for (let i=0 ; i < len ; i++) {
+        b = (b<<1) + (a&1);
+        a >>= 1;
+    }
+    return b;
+}
+
+
 
 /**
  *
@@ -83,27 +110,37 @@ const RxData   = 2;
  */
 class NavtexMode extends FskBase {
 
-    const props = {
-        name : "navtex",
-        tooltip: "international naval teleprinter",
-        controls : [
-            {
-            name: "inv",
-            type: "boolean",
-            get value() { return self.getInverted(); },
-            set value(v) { self.setInverted(v); }
-            },
-            {
-            name: "UoS",
-            type: "boolean",
-            get value() { return self.getUnshiftOnSpace(); },
-            set value(v) { self.setUnshiftOnSpace(v); }
-            }
-        ]
-    };
+    static props() {
+        return {
+            name: "navtex",
+            tooltip: "international naval teleprinter",
+            controls: [
+                {
+                    name: "inv",
+                    type: "boolean",
+                    get value() {
+                        return self.getInverted();
+                    },
+                    set value(v) {
+                        self.setInverted(v);
+                    }
+                },
+                {
+                    name: "UoS",
+                    type: "boolean",
+                    get value() {
+                        return self.getUnshiftOnSpace();
+                    },
+                    set value(v) {
+                        self.setUnshiftOnSpace(v);
+                    }
+                }
+            ]
+        };
+    }
     
     constructor(par) {
-        super(par, this.props, 1000.0);
+        super(par, props(), 1000.0);
         this.unshiftOnSpace = false;
         this.shift = 170.0;
         this.rate = 100.0;
@@ -124,6 +161,11 @@ class NavtexMode extends FskBase {
         this.sync2 = 0;
         this.sync3 = 0;
         this.sync4 = 0;
+
+        this.shifted = false;
+        //Sitor-B is in either DX (data) or RX (repeat) mode
+        this.dxMode = true;
+
     }
 
     
@@ -162,65 +204,45 @@ class NavtexMode extends FskBase {
                 this.sync3    = 0;
                 this.sync4    = 0;
                 break;
-            case RxSync2 :
-                //trace("RxSync2")
+            case Rxthis.sync2 :
+                //trace("Rxthis.sync2")
                 this.shift7(bit);
-                //trace(sync1.toHexString + ", "+  sync2.toHexString + ", " +
-                //     sync3.toHexString + ", " + sync4.toHexString);
+                //trace(this.sync1.toHexString + ", "+  this.sync2.toHexString + ", " +
+                //     this.sync3.toHexString + ", " + this.sync4.toHexString);
                 //trace("bit: " + bit);
-                if (isValid(sync1) && isValid(sync2) &&
-                    isValid(sync3) && isValid(sync4)) {
-                    processCode(sync1);
-                    processCode(sync2);
-                    processCode(sync3);
-                    processCode(sync4);
-                    state = RxData;
+                if (isValid(this.sync1) && isValid(this.sync2) &&
+                    isValid(this.sync3) && isValid(this.sync4)) {
+                    processCode(this.sync1);
+                    processCode(this.sync2);
+                    processCode(this.sync3);
+                    processCode(this.sync4);
+                    this.state = RxData;
                 }
                 break;
             case RxData :
                 //trace("RxData");
-                code = ((code<<1) + ((bit) ? 1 : 0)) & 0x7f;
+                this.code = ((this.code<<1) + ((bit) ? 1 : 0)) & 0x7f;
                 //trace("code: " + code);
-                if (++bitcount >= 7) {
+                if (++this.bitcount >= 7) {
                     if (processCode(code) != ResultFail) { //we want Ok or Soft
                         //stay in RxData.  ready for next code
-                        code     = 0;
-                        bitcount = 0;
+                        this.code     = 0;
+                        this.bitcount = 0;
                     } else {
-                        code     = 0;
-                        bitcount = 0;
-                        errs++;
-                        if (errs > 3) {
-                            state = RxSync1;
+                        this.code     = 0;
+                        this.bitcount = 0;
+                        this.errs++;
+                        if (this.errs > 3) {
+                            this.state = RxSync1;
                             //trace("return to sync")
                         }
                     }
                 }
                 break;
             default:
-                
             }//switch
-    };
-    
-    var shifted = false;
-        
-    function reverse(v, len) {
-        var a = v;
-        var b = 0;
-        for (var i=0 ; i < len ; i++) {
-            b = (b<<1) + (a&1);
-            a >>= 1;
-        }
-        return b;
     }
-
-    var ResultOk   = 0;
-    var ResultSoft = 1;
-    var ResultFail = 2;
-    var ResultEom  = 3;
-
-    //Sitor-B is in either DX (data) or RX (repeat) mode
-    var dxMode = true;
+    
 
     var q3 = 0;
     var q2 = 0;
@@ -241,47 +263,36 @@ class NavtexMode extends FskBase {
     var SYNC   = CCIR.SYNC;
     var REPEAT = CCIR.REPEAT;
     
-    function isValid(code) {
-        return (table[code] !== undefined) ||
-            code === NUL ||
-            code === LTRS ||
-            code === FIGS ||
-            code === ALPHA ||
-            code === BETA ||
-            code === SYNC ||
-            code === REPEAT;
-    }
-
-    function processCode(code) {
+    processCode(code) {
         //trace("code: " + code.toHexString + " mode: " + dxMode)
         var res = ResultOk;
         if (code === REPEAT) {
             qadd(code);
-            shifted = false;
-            dxMode = false;
+            this.shifted = false;
+            this.dxMode = false;
         } else if (code === ALPHA) {
-            shifted = false;
-            dxMode = true;
+            this.shifted = false;
+            this.dxMode = true;
         } else {
-            if (dxMode) {
+            if (this.dxMode) {
                 if (!isValid(code))
                     res = ResultSoft;
-                qadd(code); //dont think.  just queue it
-                dxMode = false; //for next time
+                this.qadd(code); //dont think.  just queue it
+                this.dxMode = false; //for next time
             } else { //symbol
-                if (isValid(code)) {
-                    processCode2(code);
+                if (CCIR.isValid(code)) {
+                    this.processCode2(code);
                 } else {
-                    if (isValid(q3)) {
+                    if (CCIR.isValid(q3)) {
                         var c = processCode2(q3);
-                        par.status("FEC replaced :" + c);
+                        this.par.status("FEC replaced :" + c);
                         res = ResultSoft;
                     } else {
-                        processCode2(-1);
+                        this.processCode2(-1);
                         res = ResultFail;
                     }
                 }
-                dxMode = true; // next time
+                this.dxMode = true; // next time
             }//rxmode
         }//symbol
         return res;
@@ -290,8 +301,8 @@ class NavtexMode extends FskBase {
     var lastChar = '@';
     
 
-    function processCode2(code) {
-        var res = '@';
+    processCode2(code) {
+        let res = '@';
         if (code === 0) {
             //shouldnt happen
         } else if (code < 0) {
@@ -300,18 +311,18 @@ class NavtexMode extends FskBase {
         } else if (code === ALPHA || code === REPEAT) {
             //shouldnt be here
         } else if (code === LTRS) {
-            shifted = false;
+            this.shifted = false;
         } else if (code === FIGS) {
-            shifted = true;
+            this.shifted = true;
         } else {
-            var v = table[code];
+            let v = table[code];
             if (v !== undefined) {
-                var c = (shifted) ? v[1] : v[0];
-                par.puttext(c);
+                var c = (this.shifted) ? v[1] : v[0];
+                this.par.puttext(c);
                 res = c;
             }
         }
-        lastChar = res;
+        this.lastChar = res;
         return res;
     }
 

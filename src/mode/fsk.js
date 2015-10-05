@@ -16,10 +16,12 @@
  *    You should have received a copy of the GNU General Public License
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+/* jslint node: true */
 
 import {Mode} from "./mode";
 import {Biquad,FIR} from "../filter";
 
+const SSIZE = 200;
 
 /**
  * This is a base class for all two-tone FSK modes.
@@ -67,6 +69,10 @@ class FskBase extends Mode {
     set rate(v) {
         super.rate = v;
         this.adjust();
+    }
+
+    get rate() {
+        return super.rate;
     }
 
     adjust() {
@@ -137,8 +143,7 @@ class FskBase extends Mode {
         return middleBit;
     }
 
-    const SSIZE = 200;
-    
+
     scopeOut(v) {
         let sign = (v>0) ? 1 : -1;
         let scalar = Math.log(Math.abs(v) + 1)*0.25;

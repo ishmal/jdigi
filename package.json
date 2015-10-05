@@ -1,6 +1,6 @@
 {
   "name": "jdigi",
-  "version": "0.9.1",
+  "version": "0.10.0",
   "repository": {
     "type": "svn",
     "url": "http://v8.googlecode.com/svn/trunk/"
@@ -9,17 +9,17 @@
     "dat-gui": "~0.5.0"
   },
   "devDependencies": {
-    "angularjs": "0.0.1",
-    "gulp": "^3.8.5",
-    "gulp-browserify": "^0.5.0",
-    "gulp-concat": "^2.2.0",
-    "gulp-jshint": "^1.6.4",
-    "gulp-mocha": "^0.4.1",
-    "gulp-rename": "^1.2.0",
+    "angular": "1.4.7",
+    "gulp": "^3.9.0",
+    "gulp-browserify": "^0.5.1",
+    "gulp-concat": "^2.6.0",
+    "gulp-jshint": "^1.11.2",
+    "gulp-mocha": "^2.1.3",
+    "gulp-rename": "^1.2.2",
     "gulp-requirejs": "^0.1.3",
-    "gulp-rimraf": "^0.1.0",
-    "gulp-traceur": "^0.8.0",
-    "gulp-uglify": "^0.3.1",
-    "gulp-util": "^2.2.19"
+    "gulp-rimraf": "^0.2.0",
+    "gulp-traceur": "^0.17.1",
+    "gulp-uglify": "^1.4.1",
+    "gulp-util": "^3.0.6"
   }
 }

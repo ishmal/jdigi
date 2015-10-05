@@ -16,6 +16,7 @@
  *    You should have received a copy of the GNU General Public License
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+/* jslint node: true */
 
 import {Resampler} from "../resample";
 import {Nco} from "../nco";
@@ -42,6 +43,14 @@ class Mode {
         this.decimator = Resampler.create(this.decimation);
         this.interpolator = Resampler.create(this.decimation);
         this.nco = new Nco(this._frequency, par.getSampleRate());
+
+        //transmit
+        this.obuf = new Float32Array(decimation);
+        this.optr = 0;
+        this.ibuf = [];
+        this.ilen = 0;
+        this.iptr = 0;
+
     }
 
 
@@ -90,8 +99,8 @@ class Mode {
         this.adjustAfc();
         this.status("Fs: " + this.sampleRate + " rate: " + v +
              " sps: " + this.samplesPerSymbol);
+    }
 
-    };
     get rate() {
         return this._rate;
     }
@@ -136,32 +145,27 @@ class Mode {
     //# T R A N S M I T
     //#######################
     
-    var obuf = new Float32Array(decimation);
-    var optr = 0;
-    var ibuf = [];
-    var ilen;
-    var iptr = 0;
-    
+
     getTransmitData() {
     
         //output buffer empty?
-        if (optr >= decimation) {
+        if (this.optr >= this.decimation) {
             //input buffer empty?
-            if (iptr >= ilen) {
-                ibuf = this.getBasebandData();
-                ilen = ibuf.length;
-                if (ilen === 0) {
-                    ilen=1;
-                    ibuf = [0];
+            if (this.iptr >= this.ilen) {
+                this.ibuf = this.getBasebandData();
+                this.ilen = this.ibuf.length;
+                if (this.ilen === 0) {
+                    this.ilen=1;
+                    this.ibuf = [0];
                 }
-                iptr = 0;
+                this.iptr = 0;
             }
-            var v = ibuf[iptr++];
-            interpolator.interpolatex(v, interpbuf);
-            optr = 0;
+            var v = this.ibuf[this.iptr++];
+            this.interpolator.interpolatex(v, this.interpbuf);
+            this.optr = 0;
         }
-        var cx = obuf[optr];
-        var upmixed = nco.mixNext(cx);
+        var cx = this.obuf[this.optr];
+        var upmixed = this.nco.mixNext(cx);
         return upmixed.abs();
     }
 

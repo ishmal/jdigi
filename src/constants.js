@@ -17,7 +17,7 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-var Constants = {
+const Constants = {
     FFT_SIZE : 2048,
     BINS     : 1024
 };
