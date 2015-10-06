@@ -327,9 +327,9 @@ const RXLEN = 4096;
  *
  * @see http://www.tapr.org/pub_ax25.html
  */
-class PacketMode extends Mode {
+class PacketMode extends FskBase {
 
-    static props(tgt) {
+    static props(self) {
         return {
             name: "packet",
             tooltip: "AX.25 and APRS",
@@ -339,10 +339,10 @@ class PacketMode extends Mode {
                     type: "choice",
                     tooltip: "packet data rate",
                     get value() {
-                        return tgt.getRate();
+                        return self.rate;
                     },
                     set value(v) {
-                        tgt.setRate(parseFloat(v));
+                        self.rate = parseFloat(v);
                     },
                     values: [
                         {name: "300", value: 300.0},
@@ -354,10 +354,10 @@ class PacketMode extends Mode {
                     type: "choice",
                     tooltip: "frequency distance between mark and space",
                     get value() {
-                        return tgt.getShift();
+                        return self.shift;
                     },
                     set value(v) {
-                        tgt.setShift(parseFloat(v));
+                        self.shift = parseFloat(v);
                     },
                     values: [
                         {name: "200", value: 200.0},
@@ -370,8 +370,8 @@ class PacketMode extends Mode {
 
     constructor(par) {
         super(par, PacketMode.props, 4800.0);
-        this.setShift(200.0);
-        this.setRate(300.0);
+        this.shift = 200.0;
+        this.rate = 300.0;
         this.state = RxStart;
         this.bitcount = 0;
         this.octet = 0;

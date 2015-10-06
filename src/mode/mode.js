@@ -31,7 +31,7 @@ class Mode {
         this.properties = props(this);
         this._frequency = 1000;
         this.decimation = Math.floor(par.getSampleRate() / sampleRateHint);
-        this.sampleRate = par.getSampleRate() / this._decimation;
+        this.sampleRate = par.getSampleRate() / this.decimation;
         this.afcFilter = Biquad.lowPass(1.0, 100.0);
         this.loBin = 0;
         this.freqBin = 0;
@@ -45,7 +45,7 @@ class Mode {
         this.nco = new Nco(this._frequency, par.getSampleRate());
 
         //transmit
-        this.obuf = new Float32Array(decimation);
+        this.obuf = new Float32Array(this.decimation);
         this.optr = 0;
         this.ibuf = [];
         this.ilen = 0;
@@ -70,7 +70,7 @@ class Mode {
 
     adjustAfc() {
         let freq = this._frequency;
-        let fs = par.getSampleRate();
+        let fs = this.par.getSampleRate();
         let bw = this.bandwidth;
         let binWidth = fs * 0.5 / Constants.BINS;
         this.loBin = ((freq - bw * 0.707) / binWidth) | 0;
@@ -91,7 +91,7 @@ class Mode {
     }
 
     status(msg) {
-        this.par.status(self.properties.name + " : " + msg);
+        this.par.status(this.properties.name + " : " + msg);
     }
 
     set rate(v) {

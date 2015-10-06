@@ -69,6 +69,7 @@ const Baudot = {
     FIGS: 0x1b
 };
 
+const NRBITS = 5;
 
 /**
  * Enumerations for parity types
@@ -108,10 +109,10 @@ class RttyMode extends FskBase {
                     type: "choice",
                     tooltip: "rtty baud rate",
                     get value() {
-                        return self.getRate();
+                        return self.rate;
                     },
                     set value(v) {
-                        self.setRate(parseFloat(v));
+                        self.rate = parseFloat(v);
                     },
                     values: [
                         {name: "45", value: 45.45},
@@ -125,10 +126,10 @@ class RttyMode extends FskBase {
                     type: "choice",
                     tooltip: "frequency distance between mark and space",
                     get value() {
-                        return self.getShift();
+                        return self.shift;
                     },
                     set value(v) {
-                        self.setShift(parseFloat(v));
+                        self.shift = parseFloat(v);
                     },
                     values: [
                         {name: "85", value: 85.0},
@@ -141,20 +142,20 @@ class RttyMode extends FskBase {
                     name: "inv",
                     type: "boolean",
                     get value() {
-                        return self.getInverted();
+                        return self.inverted;
                     },
                     set value(v) {
-                        self.setInverted(v);
+                        self.inverted = v;
                     }
                 },
                 {
                     name: "UoS",
                     type: "boolean",
                     get value() {
-                        return self.getUnshiftOnSpace();
+                        return self.unshiftOnSpace;
                     },
                     set value(v) {
-                        self.setUnshiftOnSpace(v);
+                        self.unshiftOnSpace = v;
                     }
                 }
             ]
@@ -175,7 +176,6 @@ class RttyMode extends FskBase {
         this.code = 0;
         this.parityBit = false;
         this.counter = 0;
-        this.NRBITS = 5;//todo: make this selectable
         this.msbit = 1 << (NRBITS - 1);
         this.shifted = false;
     }

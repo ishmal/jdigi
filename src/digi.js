@@ -95,10 +95,10 @@ export function Digi() {
     };
 
     this.getUseAfc = function () {
-        return mode.getUseAfc();
+        return mode.useAfc;
     };
     this.setUseAfc = function (v) {
-        mode.setUseAfc(v);
+        mode.useAfc = v;
     };
 
     this.getUseQrz = function () {

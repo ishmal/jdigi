@@ -146,7 +146,7 @@ function reverse(v, len) {
  */
 class NavtexMode extends FskBase {
 
-    static props(tgt) {
+    static props(self) {
         return {
             name: "navtex",
             tooltip: "international naval teleprinter",
@@ -155,20 +155,20 @@ class NavtexMode extends FskBase {
                     name: "inv",
                     type: "boolean",
                     get value() {
-                        return tgt.getInverted();
+                        return self.inverted;
                     },
                     set value(v) {
-                        tgt.setInverted(v);
+                        self.inverted = v;
                     }
                 },
                 {
                     name: "UoS",
                     type: "boolean",
                     get value() {
-                        return tgt.getUnshiftOnSpace();
+                        return self.unshiftOnSpace;
                     },
                     set value(v) {
-                        tgt.setUnshiftOnSpace(v);
+                        self.unshiftOnSpace = v;
                     }
                 }
             ]

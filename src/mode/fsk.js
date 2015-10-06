@@ -63,7 +63,7 @@ class FskBase extends Mode {
     }
 
     get bandwidth() {
-        return shiftval;
+        return this._shift;
     }
 
     set rate(v) {
@@ -78,12 +78,12 @@ class FskBase extends Mode {
     adjust() {
         this.sf = FIR.bandpass(13, -0.75 * this.shift, -0.25 * this.shift, this.sampleRate);
         this.mf = FIR.bandpass(13, 0.25 * this.shift, 0.75 * this.shift, this.sampleRate);
-        //dataFilter = FIR.boxcar((self.getSamplesPerSymbol() * 0.7)|0 );
-        this.dataFilter = FIR.raisedcosine(13, 0.5, self.getRate(), this.sampleRate);
-        //dataFilter = FIR.lowpass(13, self.getRate() * 0.5, this.sampleRate);
-        //dataFilter = Biquad.lowPass(self.getRate() * 0.5, this.sampleRate);
+        //dataFilter = FIR.boxcar((self.samplesPerSymbol * 0.7)|0 );
+        this.dataFilter = FIR.raisedcosine(13, 0.5, this.rate, this.sampleRate);
+        //dataFilter = FIR.lowpass(13, this.rate * 0.5, this.sampleRate);
+        //dataFilter = Biquad.lowPass(this.rate * 0.5, this.sampleRate);
         this.symbollen = Math.round(this.samplesPerSymbol);
-        this.halfsym = symbollen >> 1;
+        this.halfsym = this.symbollen >> 1;
     }
 
     /**
