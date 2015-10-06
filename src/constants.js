@@ -18,8 +18,8 @@
  */
 
 const Constants = {
-    FFT_SIZE : 2048,
-    BINS     : 1024
+    FFT_SIZE: 2048,
+    BINS: 1024
 };
 
 export {Constants};

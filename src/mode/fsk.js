@@ -37,10 +37,10 @@ class FskBase extends Mode {
         this.rate = 45.0;
         this.samplesSinceChange = 0;
         this.lastbit = false;
-        
+
         //receive
         this.loHys = -1.0;
-        this.hiHys =  1.0;
+        this.hiHys = 1.0;
         this.bit = false;
         this.lastr = 0;
         this.lasti = 0;
@@ -61,7 +61,7 @@ class FskBase extends Mode {
         this._shift = v;
         this.adjust();
     }
-    
+
     get bandwidth() {
         return shiftval;
     }
@@ -77,7 +77,7 @@ class FskBase extends Mode {
 
     adjust() {
         this.sf = FIR.bandpass(13, -0.75 * this.shift, -0.25 * this.shift, this.sampleRate);
-        this.mf = FIR.bandpass(13,  0.25 * this.shift,  0.75 * this.shift, this.sampleRate);
+        this.mf = FIR.bandpass(13, 0.25 * this.shift, 0.75 * this.shift, this.sampleRate);
         //dataFilter = FIR.boxcar((self.getSamplesPerSymbol() * 0.7)|0 );
         this.dataFilter = FIR.raisedcosine(13, 0.5, self.getRate(), this.sampleRate);
         //dataFilter = FIR.lowpass(13, self.getRate() * 0.5, this.sampleRate);
@@ -95,22 +95,22 @@ class FskBase extends Mode {
     receive(isample) {
         let lastr = this.lastr;
         let lasti = this.lasti;
-        
+
         let space = this.sf.updatex(isample);
-        let mark  = this.mf.updatex(isample);
-        let r     = space.r + mark.r;
-        let i     = space.i + mark.i;
-        let x     = r*lastr - i*lasti;
-        let y     = r*lasti + i*lastr;
-        this.lastr     = r; //save the conjugate
-        this.lasti     = -i;
+        let mark = this.mf.updatex(isample);
+        let r = space.r + mark.r;
+        let i = space.i + mark.i;
+        let x = r * lastr - i * lasti;
+        let y = r * lasti + i * lastr;
+        this.lastr = r; //save the conjugate
+        this.lasti = -i;
         let angle = Math.atan2(y, x);  //arg
-        let comp  = (angle>0) ? -10.0 : 10.0;
-        let sig   = this.dataFilter.update(comp);
+        let comp = (angle > 0) ? -10.0 : 10.0;
+        let sig = this.dataFilter.update(comp);
         //console.log("sig:" + sig + "  comp:" + comp)
 
         this.scopeOut(sig);
-        
+
         let bit = this.bit;
 
         //trace("sig:" + sig)
@@ -119,34 +119,33 @@ class FskBase extends Mode {
         } else if (sig < loHys) {
             bit = true;
         }
-        
+
         bit = bit ^ this.inverted; //user-settable
-        
+
         this.processBit(bit);
         this.bit = bit;
     }
 
-    
+
     processBit(bit, parms) {
     }
-    
-    
-    
+
+
     /**
      * Used for modes without start/stop. Test if the current bit is the middle
      * of where a symbol is expected to be.
      */
     isMiddleBit(bit) {
-        this.samplesSinceChange = (bit===this.lastbit) ? this.samplesSinceChange+1 : 0;
+        this.samplesSinceChange = (bit === this.lastbit) ? this.samplesSinceChange + 1 : 0;
         this.lastbit = bit;
-        let middleBit = (this.samplesSinceChange%this.symbollen === this.halfsym);
+        let middleBit = (this.samplesSinceChange % this.symbollen === this.halfsym);
         return middleBit;
     }
 
 
     scopeOut(v) {
-        let sign = (v>0) ? 1 : -1;
-        let scalar = Math.log(Math.abs(v) + 1)*0.25;
+        let sign = (v > 0) ? 1 : -1;
+        let scalar = Math.log(Math.abs(v) + 1) * 0.25;
         this.scopedata[this.scnt++] = [this.sx, sign * scalar];
         this.sx += 0.01;
         if (this.scnt >= this.SSIZE) {

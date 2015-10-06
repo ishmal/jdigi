@@ -30,31 +30,31 @@ function Watcher(par) {
     //var spot2 = "\\s+(" + call + ")\\s+[Kk]\\s";
     //var spot3 = "\\s+(" + call + ")\\s+[Cc][Qq]";
     //var spot = spot1 + "|" + spot2 + "|" + spot3;
-    
+
     var buf = "";
     var calls = {};
 
     var useQrz = false;
-    this.setUseQrz = function(v) {
+    this.setUseQrz = function (v) {
         useQrz = v;
     };
-    this.getUseQrz = function() {
+    this.getUseQrz = function () {
         return useQrz;
     };
-    
+
     function showQrz(call) {
         if (useQrz)
             window.open("http://qrz.com/db/" + call,
                 "qrzquery", "menubar=true,toolbar=true");
     }
-    
+
     function announce(call) {
         var msg = call.ts.toUTCString() + " : " + call.call + " : " +
             call.freq + " : " + call.mode + "/" + call.rate;
         par.status(msg);
         showQrz(call.call);
     }
-    
+
     function check(call) {
         var csn = call.call;
         if (csn in calls) {
@@ -68,39 +68,39 @@ function Watcher(par) {
             calls[csn] = call;
             announce(call);
         }
-    
+
     }
-    
+
     function searchBuffer(str) {
         var rgx = new RegExp(spot, "ig");
         var calls = {};
-        for (var res=rgx.exec(str) ; res !== null ; res=rgx.exec(str)) {
+        for (var res = rgx.exec(str); res !== null; res = rgx.exec(str)) {
             var mode = par.getMode();
             var name = mode.properties.name;
             var rate = mode.getRate();
             var call = {
-                call   : res[1].toLowerCase(),
-                prefix : res[2].toLowerCase(),
-                digit  : res[3],
-                suffix : res[4].toLowerCase(),
-                freq   : par.getFrequency(),
-                mode   : name,
-                rate   : rate,
-                ts     : new Date() //timestamp
+                call: res[1].toLowerCase(),
+                prefix: res[2].toLowerCase(),
+                digit: res[3],
+                suffix: res[4].toLowerCase(),
+                freq: par.getFrequency(),
+                mode: name,
+                rate: rate,
+                ts: new Date() //timestamp
             };
             check(call);
         }
         return calls;
     }
-    
-    this.update = function(str) {
+
+    this.update = function (str) {
         buf += str;
         searchBuffer(buf);
         var len = buf.length;
         if (len > 30) {
-           buf = buf.substring(20, len);
+            buf = buf.substring(20, len);
         }
-    
+
     };
 }
 

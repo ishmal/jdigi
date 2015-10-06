@@ -27,7 +27,7 @@ import {Biquad,FIR} from "../filter";
  */
 const CrcTables = {
 
-    crcTable : [
+    crcTable: [
         0x0000, 0x1021, 0x2042, 0x3063, 0x4084, 0x50a5, 0x60c6, 0x70e7,
         0x8108, 0x9129, 0xa14a, 0xb16b, 0xc18c, 0xd1ad, 0xe1ce, 0xf1ef,
         0x1231, 0x0210, 0x3273, 0x2252, 0x52b5, 0x4294, 0x72f7, 0x62d6,
@@ -62,7 +62,7 @@ const CrcTables = {
         0x6e17, 0x7e36, 0x4e55, 0x5e74, 0x2e93, 0x3eb2, 0x0ed1, 0x1ef0
     ],
 
-    crcTableLE : [
+    crcTableLE: [
         0x0000, 0x1189, 0x2312, 0x329b, 0x4624, 0x57ad, 0x6536, 0x74bf,
         0x8c48, 0x9dc1, 0xaf5a, 0xbed3, 0xca6c, 0xdbe5, 0xe97e, 0xf8f7,
         0x1081, 0x0108, 0x3393, 0x221a, 0x56a5, 0x472c, 0x75b7, 0x643e,
@@ -132,7 +132,6 @@ class Crc {
 }
 
 
-
 class PacketAddr {
 
     constructor(call, ssid) {
@@ -147,14 +146,14 @@ class PacketAddr {
             let call = this.call;
             add = new Array(7);
             let len = call.length;
-            for (let i=0 ; i < 7 ; i++) {
+            for (let i = 0; i < 7; i++) {
                 if (i < len)
                     add[i] = ((call[i].toInt) << 1);
-                else if (i==6)
+                else if (i == 6)
                     add[i] = (0x60 | (this.ssid << 1));
                 else
                     add[i] = 0x40;   // shifted space
-             }
+            }
             this.add = add;
         }
         return add;
@@ -162,15 +161,17 @@ class PacketAddr {
 
     static fromData(arr, offset) {
         let buf = "";
-        let bytes = arr.slice(offset, offset+6).map(function(v) { return v >> 1; });
+        let bytes = arr.slice(offset, offset + 6).map(function (v) {
+            return v >> 1;
+        });
         let call = String.fromCharCode.apply(null, bytes).trim();
-        let ssid = (arr[offset+6] >> 1) & 0xf;
+        let ssid = (arr[offset + 6] >> 1) & 0xf;
         return new PacketAddr(call, ssid);
     }
 
 
     toString() {
-        return (this.ssid >= 0) ?  this.call + "-" + this.ssid  : this.call;
+        return (this.ssid >= 0) ? this.call + "-" + this.ssid : this.call;
     }
 
 }
@@ -257,15 +258,15 @@ class Packet {
         return buf;
     }
 
-     static create() {
+    static create() {
         var pos = 0;
         var dest = getAddr(data, pos);
         pos += 7;
-        var src  = getAddr(data, pos);
+        var src = getAddr(data, pos);
         pos += 7;
         var rpts = [];
         //println("lastbyte:"+data(pos-1))
-        while (rpts.length < 8 && pos < data.length-7 && ((data[pos - 1] & 128) !== 0) ) {
+        while (rpts.length < 8 && pos < data.length - 7 && ((data[pos - 1] & 128) !== 0)) {
             rpts[rpts.length] = getAddr(data, pos);
             pos += 7;
         }
@@ -285,7 +286,7 @@ class Packet {
     toString() {
         let buf = src.toString() + "=>" + dest.toString();
 
-         let len = rpts.length;
+        let len = rpts.length;
         for (let ridx = 0; ridx < len; ridx++) {
             buf += ":";
             buf += r.toString();
@@ -311,12 +312,12 @@ function trace(msg) {
 
 
 const RxStart = 0;  //the initial state
-const RxTxd   = 1;  //after the first flag, wait until no more flags
-const RxData  = 2;  //after the flag.  all octets until another flag
+const RxTxd = 1;  //after the first flag, wait until no more flags
+const RxData = 2;  //after the flag.  all octets until another flag
 const RxFlag1 = 3;  //Test whether we have a flag or a stuffed bit
 const RxFlag2 = 4;  //It was a flag.  grab the last bit
 const FLAG = 0x7e;   // 01111110 , the start/stop flag
-const RXLEN= 4096;
+const RXLEN = 4096;
 
 
 /**
@@ -330,32 +331,40 @@ class PacketMode extends Mode {
 
     static props(tgt) {
         return {
-          name : "packet",
-          tooltip: "AX.25 and APRS",
-          controls : [
-              {
-              name: "rate",
-              type: "choice",
-              tooltip: "packet data rate",
-              get value() { return tgt.getRate(); },
-              set value(v) { tgt.setRate(parseFloat(v)); },
-              values : [
-                  { name :  "300", value :  300.0 },
-                  { name : "1200", value : 1200.0 }
-                  ]
-              },
-              {
-              name: "shift",
-              type: "choice",
-              tooltip: "frequency distance between mark and space",
-              get value() { return tgt.getShift(); },
-              set value(v) { tgt.setShift(parseFloat(v)); },
-              values : [
-                  { name :  "200", value :  200.0 },
-                  { name : "1000", value : 1000.0 }
-                  ]
-              }
-          ]
+            name: "packet",
+            tooltip: "AX.25 and APRS",
+            controls: [
+                {
+                    name: "rate",
+                    type: "choice",
+                    tooltip: "packet data rate",
+                    get value() {
+                        return tgt.getRate();
+                    },
+                    set value(v) {
+                        tgt.setRate(parseFloat(v));
+                    },
+                    values: [
+                        {name: "300", value: 300.0},
+                        {name: "1200", value: 1200.0}
+                    ]
+                },
+                {
+                    name: "shift",
+                    type: "choice",
+                    tooltip: "frequency distance between mark and space",
+                    get value() {
+                        return tgt.getShift();
+                    },
+                    set value(v) {
+                        tgt.setShift(parseFloat(v));
+                    },
+                    values: [
+                        {name: "200", value: 200.0},
+                        {name: "1000", value: 1000.0}
+                    ]
+                }
+            ]
         };
     }
 
@@ -365,14 +374,12 @@ class PacketMode extends Mode {
         this.setRate(300.0);
         this.state = RxStart;
         this.bitcount = 0;
-        this.octet    = 0;
-        this.ones     = 0;
-        this.bufPtr   = 0;
-        this.rxbuf    = new Array(RXLEN);
+        this.octet = 0;
+        this.ones = 0;
+        this.bufPtr = 0;
+        this.rxbuf = new Array(RXLEN);
         this.lastBit = false;
     }
-
-
 
 
     /**
@@ -394,8 +401,10 @@ class PacketMode extends Mode {
         this.octet = octet;
         let bit = (inBit === this.lastBit); //google "nrzi"
         this.lastBit = inBit;
-        if (bit)
-            { this.ones += 1 ; octet |= 128; }
+        if (bit) {
+            this.ones += 1;
+            octet |= 128;
+        }
         else
             this.ones = 0;
 
@@ -405,7 +414,7 @@ class PacketMode extends Mode {
                 //trace("RxStart");
                 //trace("st octet: %02x".format(octet));
                 if (octet === FLAG) {
-                    this.state    = RxTxd;
+                    this.state = RxTxd;
                     this.bitcount = 0;
                 }
                 break;
@@ -416,9 +425,9 @@ class PacketMode extends Mode {
                     //trace("txd octet: %02x".format(octet));
                     this.bitcount = 0;
                     if (octet !== FLAG) {
-                        this.state    = RxData;
+                        this.state = RxData;
                         this.rxbuf[0] = octet & 0xff;
-                        this.bufPtr   = 1;
+                        this.bufPtr = 1;
                     }
                 }
                 break;
@@ -453,13 +462,13 @@ class PacketMode extends Mode {
             case RxFlag2 :
                 //we simply wanted that last bit
                 this.processPacket(this.rxbuf, this.bufPtr);
-                for (let rdx=0 ; rdx < RXLEN ; rdx++)
+                for (let rdx = 0; rdx < RXLEN; rdx++)
                     this.rxbuf[rdx] = 0;
                 this.state = RxStart;
                 break;
 
             default :
-                //dont know
+            //dont know
 
         }//switch
     }
@@ -467,7 +476,7 @@ class PacketMode extends Mode {
 
     rawPacket(ibytes, offset, len) {
         let str = "";
-        for (let i=0 ; i<len ; i++) {
+        for (let i = 0; i < len; i++) {
             let b = (ibytes[offset + i]); // >> 1;
             str += String.fromCharCode(b);
         }
@@ -479,10 +488,10 @@ class PacketMode extends Mode {
         //trace("raw:" + len)
         if (len < 14)
             return true;
-        let str = this.rawPacket(data, 14, len-2);
+        let str = this.rawPacket(data, 14, len - 2);
         trace("txt: " + str);
         let crc = new Crc();
-        for (let i=0 ; i < len ; i++) {
+        for (let i = 0; i < len; i++) {
             crc.updateLE(data[i]);
         }
         let v = crc.valueLE();
@@ -497,97 +506,97 @@ class PacketMode extends Mode {
     }
 
     /*
-    //################################################
-    //# T R A N S M I T
-    //################################################
-    private var txShifted = false
-    def txencode(str: String) : Seq[Int] =
-        {
-        var buf = scala.collection.mutable.ListBuffer[Int]()
-        for (c <- str)
-            {
-            if (c == ' ')
-                buf += Baudot.BAUD_SPACE
-            else if (c == '\n')
-                buf += Baudot.BAUD_LF
-            else if (c == '\r')
-                buf += Baudot.BAUD_CR
-            else
-                {
-                var uc = c.toUpper
-                var code = Baudot.baudLtrsToCode.get(uc)
-                if (code.isDefined)
-                    {
-                    if (txShifted)
-                        {
-                        txShifted = false
-                        buf += Baudot.BAUD_LTRS
-                        }
-                    buf += code.get
-                    }
-                else
-                    {
-                    code = Baudot.baudFigsToCode.get(uc)
-                    if (code.isDefined)
-                        {
-                        if (!txShifted)
-                            {
-                            txShifted = true
-                            buf += Baudot.BAUD_FIGS
-                            }
-                        buf += code.get
-                        }
-                    }
-                }
-            }
-        buf.toSeq
-        }
+     //################################################
+     //# T R A N S M I T
+     //################################################
+     private var txShifted = false
+     def txencode(str: String) : Seq[Int] =
+     {
+     var buf = scala.collection.mutable.ListBuffer[Int]()
+     for (c <- str)
+     {
+     if (c == ' ')
+     buf += Baudot.BAUD_SPACE
+     else if (c == '\n')
+     buf += Baudot.BAUD_LF
+     else if (c == '\r')
+     buf += Baudot.BAUD_CR
+     else
+     {
+     var uc = c.toUpper
+     var code = Baudot.baudLtrsToCode.get(uc)
+     if (code.isDefined)
+     {
+     if (txShifted)
+     {
+     txShifted = false
+     buf += Baudot.BAUD_LTRS
+     }
+     buf += code.get
+     }
+     else
+     {
+     code = Baudot.baudFigsToCode.get(uc)
+     if (code.isDefined)
+     {
+     if (!txShifted)
+     {
+     txShifted = true
+     buf += Baudot.BAUD_FIGS
+     }
+     buf += code.get
+     }
+     }
+     }
+     }
+     buf.toSeq
+     }
 
-    def txnext : Seq[Int] =
-        {
-        //var str = "the quick brown fox 1a2b3c4d"
-        var str = par.gettext
-        var codes = txencode(str)
-        codes
-        }
+     def txnext : Seq[Int] =
+     {
+     //var str = "the quick brown fox 1a2b3c4d"
+     var str = par.gettext
+     var codes = txencode(str)
+     codes
+     }
 
 
-    private var desiredOutput = 4096;
+     private var desiredOutput = 4096;
 
-    /o*
+     /o*
      * Overridden from Mode.  This method is called by
      * the audio interface when it needs a fresh buffer
      * of sampled audio data at its sample rate.  If the
      * mode has no current data, then it should send padding
      * in the form of what is considered to be an "idle" signal
      o/
-    override def transmit : Option[Array[Complex]] =
-        {
-        var symbollen = samplesPerSymbol.toInt
-        var buf = scala.collection.mutable.ListBuffer[Complex]()
-        var codes = txnext
-        for (code <- codes)
-            {
-            for (i <- 0 until symbollen) buf += spaceFreq
-            var mask = 1
-            for (i <- 0 until 5)
-                {
-                var bit = (code & mask) == 0
-                var f = if (bit) spaceFreq else markFreq
-                for (j <- 0 until symbollen) buf += f
-                mask <<= 1
-                }
-            for (i <- 0 until symbollen) buf += spaceFreq
-            }
+     override def transmit : Option[Array[Complex]] =
+     {
+     var symbollen = samplesPerSymbol.toInt
+     var buf = scala.collection.mutable.ListBuffer[Complex]()
+     var codes = txnext
+     for (code <- codes)
+     {
+     for (i <- 0 until symbollen) buf += spaceFreq
+     var mask = 1
+     for (i <- 0 until 5)
+     {
+     var bit = (code & mask) == 0
+     var f = if (bit) spaceFreq else markFreq
+     for (j <- 0 until symbollen) buf += f
+     mask <<= 1
+     }
+     for (i <- 0 until symbollen) buf += spaceFreq
+     }
 
-        var pad = desiredOutput - buf.size
-        for (i <- 0 until pad)
-            buf += spaceFreq
-        //var res = buf.toArray.map(txFilter.update)
-        None
-    }
+     var pad = desiredOutput - buf.size
+     for (i <- 0 until pad)
+     buf += spaceFreq
+     //var res = buf.toArray.map(txFilter.update)
+     None
+     }
 
-    */
+     */
 
 }
 

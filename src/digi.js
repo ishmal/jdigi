@@ -16,7 +16,7 @@
  *    You should have received a copy of the GNU General Public License
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 import {Constants} from "./constants";
 import {FFT,FFTSR} from "./fft";
 import {AudioInput,AudioOutput} from "./audio";
@@ -26,7 +26,6 @@ import {RttyMode} from "./mode/rtty";
 import {PacketMode} from "./mode/packet";
 import {NavtexMode} from "./mode/navtex";
 import {Watcher} from "./watch";
-
 
 
 /**
@@ -40,24 +39,27 @@ export function Digi() {
         if (typeof console !== "undefined")
             console.log("Digi: " + msg);
     }
+
     this.trace = trace;
 
     function error(msg) {
         if (typeof console !== "undefined")
             console.log("Digi error: " + msg);
     }
+
     this.error = error;
 
     function status(str) {
         if (typeof console !== "undefined")
             console.log("status: " + str);
     }
+
     this.status = status;
 
     var audioInput = new AudioInput(this);
     var audioOutput = new AudioOutput(this);
 
-    this.getSampleRate = function() {
+    this.getSampleRate = function () {
         return audioInput.sampleRate;
     };
 
@@ -71,46 +73,46 @@ export function Digi() {
     var navtexMode = new NavtexMode(this);
     var mode = pskMode;
     this.modes = [pskMode, rttyMode, packetMode, navtexMode];
-    this.setMode = function(v) {
+    this.setMode = function (v) {
         mode = v;
         //this.status("mode switched");
     };
-    this.getMode = function() {
+    this.getMode = function () {
         return mode;
     };
 
 
-    this.getBandwidth = function() {
+    this.getBandwidth = function () {
         return mode.getBandwidth();
     };
 
-    this.setFrequency = function(freq, setTuner) {
+    this.setFrequency = function (freq, setTuner) {
         mode.setFrequency(freq);
     };
 
-    this.getFrequency = function() {
+    this.getFrequency = function () {
         return mode.getFrequency();
     };
-    
-    this.getUseAfc = function() {
+
+    this.getUseAfc = function () {
         return mode.getUseAfc();
     };
-    this.setUseAfc = function(v) {
+    this.setUseAfc = function (v) {
         mode.setUseAfc(v);
     };
 
-    this.getUseQrz = function() {
+    this.getUseQrz = function () {
         return watcher.getUseQrz();
     };
-    this.setUseQrz = function(v) {
+    this.setUseQrz = function (v) {
         watcher.setUseQrz(v);
     };
 
     var txmode = false;
-    this.getTxMode = function() {
+    this.getTxMode = function () {
         return txmode;
     };
-    this.setTxMode = function(v) {
+    this.setTxMode = function (v) {
         txmode = v;
         if (v) {
             audioInput.setEnabled(false);
@@ -121,35 +123,40 @@ export function Digi() {
         }
     };
 
-	this.tuner = {
-	    setFrequency : function(freq) {},
-        showScope    : function(data) {},
-        update       : function(data) {}
+    this.tuner = {
+        setFrequency: function (freq) {
+        },
+        showScope: function (data) {
+        },
+        update: function (data) {
+        }
     };
 
     /**
      * Override this in the GUI
      */
-    this.showScope  = function(data) {
-	    this.tuner.showScope(data);
-	  };
+    this.showScope = function (data) {
+        this.tuner.showScope(data);
+    };
 
     /**
      * Make this an interface, so we can add things later.
      * Let the GUI override this.
      */
-	this.outtext = {
-	      clear : function(str) {},
-	      puttext : function(str) {}
-	};
-    
+    this.outtext = {
+        clear: function (str) {
+        },
+        puttext: function (str) {
+        }
+    };
+
     var watcher = new Watcher(this);
 
     /**
      * Output text to the gui
      */
-    this.puttext = function(str) {
-	    this.outtext.puttext(str);
+    this.puttext = function (str) {
+        this.outtext.puttext(str);
         watcher.update(str);
     };
 
@@ -157,34 +164,37 @@ export function Digi() {
      * Make this an interface, so we can add things later.
      * Let the GUI override this.
      */
-	this.intext = {
-	    clear : function(str) {},
-	    gettext : function(str) { return "";}
-	};
+    this.intext = {
+        clear: function (str) {
+        },
+        gettext: function (str) {
+            return "";
+        }
+    };
 
     /**
      * Output text to the gui
      */
-    this.gettext = function() {
-	    return this.intext.gettext();
+    this.gettext = function () {
+        return this.intext.gettext();
     };
 
-    this.clear = function() {
+    this.clear = function () {
         this.outtext.clear();
         this.intext.clear();
     };
-    
 
-    var FFT_MASK   = Constants.FFT_SIZE - 1;
+
+    var FFT_MASK = Constants.FFT_SIZE - 1;
     //var fft        = new FFT(Constants.FFT_SIZE);
-    var fft        = new FFTSR(Constants.FFT_SIZE);
-    var ibuf       = new Float32Array(Constants.FFT_SIZE);
-    var iptr       = 0;
-    var icnt       = 0;
-    var psbuf      = new Float32Array(Constants.BINS);
+    var fft = new FFTSR(Constants.FFT_SIZE);
+    var ibuf = new Float32Array(Constants.FFT_SIZE);
+    var iptr = 0;
+    var icnt = 0;
+    var psbuf = new Float32Array(Constants.BINS);
     var FFT_WINDOW = 700;
 
-    this.receive = function(data) {
+    this.receive = function (data) {
         self.getMode().receiveData(data);
         ibuf[iptr++] = data;
         iptr &= FFT_MASK;
@@ -198,22 +208,23 @@ export function Digi() {
     };
 
 
-    this.transmit = function(data) {
-		return self.getMode().getTransmitData();
+    this.transmit = function (data) {
+        return self.getMode().getTransmitData();
     };
-    
 
 
     function start() {
         audioInput.start();
         audioOutput.start();
     }
+
     this.start = start;
 
     function stop() {
         audioInput.stop();
         audioOutput.stop();
     }
+
     this.stop = stop;
 
 } //Digi

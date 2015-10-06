@@ -51,6 +51,7 @@ function Tuner(par, canvas) {
         if (typeof console !== "undefined")
             console.log("Tuner: " + msg);
     }
+
     function error(msg) {
         if (typeof console !== "undefined")
             console.log("Tuner error : " + msg);
@@ -59,7 +60,7 @@ function Tuner(par, canvas) {
     function createIndices(targetsize, sourcesize) {
         var xs = new Array(targetsize);
         var ratio = sourcesize / targetsize;
-        for (var i=0 ; i < targetsize ; i++) {
+        for (var i = 0; i < targetsize; i++) {
             xs[i] = Math.floor(i * ratio);
         }
         return xs;
@@ -68,14 +69,14 @@ function Tuner(par, canvas) {
     var indices, width, height, ctx, imgData, imglen, buf8, rowsize, lastRow;
 
     function resize() {
-        width   = canvas.width;
-        height  = canvas.height;
+        width = canvas.width;
+        height = canvas.height;
         indices = createIndices(width, BINS);
-        ctx     = canvas.getContext('2d');
+        ctx = canvas.getContext('2d');
         imgData = ctx.createImageData(width, height);
-        imglen  = imgData.data.length;
-        buf8    = new Uint8ClampedArray(imglen);
-        for (var i=0 ; i < imglen ; ) {
+        imglen = imgData.data.length;
+        buf8 = new Uint8ClampedArray(imglen);
+        for (var i = 0; i < imglen;) {
             buf8[i++] = 0;
             buf8[i++] = 0;
             buf8[i++] = 0;
@@ -83,8 +84,8 @@ function Tuner(par, canvas) {
         }
         imgData.data.set(buf8);
         ctx.putImageData(imgData, 0, 0);
-        rowsize  = imglen / height;
-        lastRow  = imglen - rowsize;
+        rowsize = imglen / height;
+        lastRow = imglen - rowsize;
     }
 
     resize();
@@ -95,12 +96,20 @@ function Tuner(par, canvas) {
     //#   MOUSE and KEY EVENTS
     //####################################################################
 
-    var dragging        = false;
-    canvas.onclick      = function(event) { mouseFreq(event); };
-    canvas.onmousedown  = function(event) { dragging=true; };
-    canvas.onmouseup    = function(event) { dragging=false; };
-    canvas.onmousemove  = function(event) { if (dragging) mouseFreq(event); };
-    canvas.onkeydown    = handleKey;
+    var dragging = false;
+    canvas.onclick = function (event) {
+        mouseFreq(event);
+    };
+    canvas.onmousedown = function (event) {
+        dragging = true;
+    };
+    canvas.onmouseup = function (event) {
+        dragging = false;
+    };
+    canvas.onmousemove = function (event) {
+        if (dragging) mouseFreq(event);
+    };
+    canvas.onkeydown = handleKey;
     canvas.onmousewheel = handleWheel;
     canvas.addEventListener("DOMMouseScroll", handleWheel, false);
 
@@ -125,9 +134,9 @@ function Tuner(par, canvas) {
     //fine tuning, + or - one hertz
     function handleKey(evt) {
         var key = evt.which;
-        if (key===37 || key===40) {
+        if (key === 37 || key === 40) {
             setFrequency(frequency - 1);
-        } else if (key===38 || key===39) {
+        } else if (key === 38 || key === 39) {
             setFrequency(frequency + 1);
         }
         evt.preventDefault();
@@ -145,11 +154,11 @@ function Tuner(par, canvas) {
      */
     function makePalette() {
         var xs = new Array(256);
-        for (var i = 0 ; i < 256 ; i++) {
-            var r = (i < 170) ? 0 : (i-170) * 3;
-            var g = (i <  85) ? 0 : (i < 170) ? (i-85) * 3 : 255;
-            var b = (i <  85) ? i * 3 : 255;
-            var col = [ r, g, b, 255 ];
+        for (var i = 0; i < 256; i++) {
+            var r = (i < 170) ? 0 : (i - 170) * 3;
+            var g = (i < 85) ? 0 : (i < 170) ? (i - 85) * 3 : 255;
+            var b = (i < 85) ? i * 3 : 255;
+            var col = [r, g, b, 255];
             xs[i] = col;
         }
         return xs;
@@ -165,23 +174,23 @@ function Tuner(par, canvas) {
         ctx.fillStyle = 'rgba(255, 255, 255, 0.50)';
         //ctx.lineWidth = 1;
         ctx.beginPath();
-        var base = height>>1; //move this around
+        var base = height >> 1; //move this around
         ctx.moveTo(0, base);
         var log = Math.log;
-        for (x=0; x<width ; x++) {
+        for (x = 0; x < width; x++) {
             v = log(1.0 + data[indices[x]]) * 12.0;
             y = base - v;
             //trace("x:" + x + " y:" + y);
             ctx.lineTo(x, y);
         }
-        ctx.lineTo(width-1,base);
-        for (x=width-1; x>=0 ; x--) {
+        ctx.lineTo(width - 1, base);
+        for (x = width - 1; x >= 0; x--) {
             v = log(1.0 + data[indices[x]]) * 12.0;
             y = base + v;
             //trace("x:" + x + " y:" + y);
             ctx.lineTo(x, y);
         }
-        ctx.lineTo(0,base);
+        ctx.lineTo(0, base);
         ctx.closePath();
         //var bbox = ctx.getBBox();
         ctx.fill();
@@ -193,7 +202,7 @@ function Tuner(par, canvas) {
         //trace("data:" + data[50]);
 
         var idx = lastRow;
-        for (var x=0; x<width ; x++) {
+        for (var x = 0; x < width; x++) {
             var v = data[indices[x]];
             var pix = palette[v & 255];
             //if (x==50)trace("p:" + p + "  pix:" + pix.toString(16));
@@ -212,7 +221,7 @@ function Tuner(par, canvas) {
         var idx = lastRow;
         var abs = Math.abs;
         var log = Math.log;
-        for (var x=0; x<width ; x++) {
+        for (var x = 0; x < width; x++) {
             var v = abs(data[indices[x]]);
             //if (x==50) trace("v:" + v);
             var p = log(1.0 + v) * 30;
@@ -232,9 +241,9 @@ function Tuner(par, canvas) {
     function drawTuner() {
         var pixPerHz = 1 / MAX_FREQ * width;
 
-        var x    = frequency * pixPerHz;
-        var bw   = par.getBandwidth();
-        var bww  = bw * pixPerHz;
+        var x = frequency * pixPerHz;
+        var bw = par.getBandwidth();
+        var bww = bw * pixPerHz;
         var bwlo = (frequency - bw * 0.5) * pixPerHz;
 
         ctx.fillStyle = "rgba(255,255,255,0.25)";
@@ -245,9 +254,9 @@ function Tuner(par, canvas) {
         ctx.lineTo(x, height);
         ctx.stroke();
 
-        var top = height-15;
+        var top = height - 15;
 
-        for (var hz=0 ; hz < MAX_FREQ ; hz+=100) {
+        for (var hz = 0; hz < MAX_FREQ; hz += 100) {
             if ((hz % 1000) === 0) {
                 ctx.strokeStyle = "red";
                 ctx.beginPath();
@@ -259,16 +268,16 @@ function Tuner(par, canvas) {
                 ctx.strokeStyle = "white";
                 ctx.beginPath();
                 x = hz * pixPerHz;
-                ctx.moveTo(x, top+10);
+                ctx.moveTo(x, top + 10);
                 ctx.lineTo(x, height);
                 ctx.stroke();
             }
         }
 
         ctx.fillStyle = "gray";
-        for (hz=0 ; hz < MAX_FREQ ; hz+=500) {
+        for (hz = 0; hz < MAX_FREQ; hz += 500) {
             x = hz * pixPerHz - 10;
-            ctx.fillText(hz.toString(),x,top+14);
+            ctx.fillText(hz.toString(), x, top + 14);
         }
     }
 
@@ -282,14 +291,14 @@ function Tuner(par, canvas) {
      */
     function drawScope() {
         var len = _scopeData.length;
-        if (len<1)
+        if (len < 1)
             return;
-        var boxW   = 100;
-        var boxH   = 100;
-        var boxX   = width - boxW;
-        var boxY   = 0;
-        var centerX = boxX + (boxW>>1) ;
-        var centerY = boxY + (boxH>>1) ;
+        var boxW = 100;
+        var boxH = 100;
+        var boxX = width - boxW;
+        var boxY = 0;
+        var centerX = boxX + (boxW >> 1);
+        var centerY = boxY + (boxH >> 1);
 
         ctx.save();
         ctx.beginPath();
@@ -313,13 +322,13 @@ function Tuner(par, canvas) {
         var pt = _scopeData[0];
         var x = centerX + pt[0] * 50.0;
         var y = centerY + pt[1] * 50.0;
-        ctx.moveTo(x,y);
-        for (var i=1 ; i<len ; i++) {
+        ctx.moveTo(x, y);
+        for (var i = 1; i < len; i++) {
             pt = _scopeData[i];
             x = centerX + pt[0] * 50.0;
             y = centerY + pt[1] * 50.0;
             //console.log("pt:" + x + ":" + y);
-            ctx.lineTo(x,y);
+            ctx.lineTo(x, y);
         }
         ctx.stroke();
 
@@ -339,16 +348,18 @@ function Tuner(par, canvas) {
     //# P U B L I C    M E T H O D S
     //####################################################################
 
-    this.setFrequency = function(freq) {
+    this.setFrequency = function (freq) {
         frequency = freq;
     };
 
-   this.showScope = function(data) {
+    this.showScope = function (data) {
         _scopeData = data;
     };
 
-    this.update = function(data) {
-        requestAnimationFrame(function() { update(data); } );
+    this.update = function (data) {
+        requestAnimationFrame(function () {
+            update(data);
+        });
     };
 
 } //Tuner

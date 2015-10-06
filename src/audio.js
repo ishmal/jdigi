@@ -26,12 +26,11 @@
 import {Resampler} from "./resample";
 
 
-
 const AudioContext = window.AudioContext || window.webkitAudioContext;
 navigator.getUserMedia = navigator.getUserMedia ||
-                         navigator.webkitGetUserMedia ||
-                         navigator.mozGetUserMedia ||
-                         navigator.msGetUserMedia;
+    navigator.webkitGetUserMedia ||
+    navigator.mozGetUserMedia ||
+    navigator.msGetUserMedia;
 
 //Chrome workaround.  Keep a ref to a scriptprocessor node to prevent gc.
 let scriptNodes = {};
@@ -51,7 +50,7 @@ class AudioInput {
     constructor(par) {
         this.par = par;
         this.actx = new AudioContext();
-        this.decimation  = 7;
+        this.decimation = 7;
         this.sampleRate = this.actx.sampleRate / this.decimation;
         this.source = null;
         this.stream = null;
@@ -60,9 +59,9 @@ class AudioInput {
     }
 
     startStream(newstream) {
-    
+
         this.stream = newstream;
-    
+
         //workaround for a Firefox bug.  Keep a global ref to source to prevent gc.
         //http://goo.gl/LjEjUF2
         //var source = actx.createMediaStreamSource(stream);
@@ -73,47 +72,45 @@ class AudioInput {
         let decimator = Resampler.create(this.decimation);
         let inputNode = keep(this.actx.createScriptProcessor(4096, 1, 1));
         this.enabled = true;
-        inputNode.onaudioprocess = function(e) {
+        inputNode.onaudioprocess = function (e) {
             if (!this.enabled) {
                 return;
             }
-            let input  = e.inputBuffer.getChannelData(0);
+            let input = e.inputBuffer.getChannelData(0);
             let len = input.length;
             let d = decimator;
-            for (let i=0 ; i < len ; i++) {
+            for (let i = 0; i < len; i++) {
                 let v = d.decimate(input[i]);
                 if (v !== false) {
                     this.par.receive(v);
                 }
             }
         };
-    
+
         this.source.connect(inputNode);
         inputNode.connect(this.actx.destination);
 
 
     }
-    
+
     start() {
         navigator.getUserMedia(
-                { audio : true },
-                newStream => {
-                    this.startStream(newStream);
-                },
-                userMediaError => {
-                    this.par.error(userMediaError.name + " : " + userMediaError.message);
-                }
+            {audio: true},
+            newStream => {
+                this.startStream(newStream);
+            },
+            userMediaError => {
+                this.par.error(userMediaError.name + " : " + userMediaError.message);
+            }
         );
     }
 
     stop() {
         if (this.stream) this.stream.stop();
     }
-    
-       
+
+
 } //AudioInput
-
-
 
 
 /**
@@ -138,13 +135,13 @@ class AudioOutput {
         let iptr = decimation;
         let resampler = Resampler.create(decimation);
         let outputNode = keep(this.actx.createScriptProcessor(bufferSize, 0, 1));
-        outputNode.onaudioprocess = function(e) {
+        outputNode.onaudioprocess = function (e) {
             if (!this.enabled) {
                 return;
             }
-            let output  = e.outputBuffer.getChannelData(0);
+            let output = e.outputBuffer.getChannelData(0);
             let len = output.length;
-            for (let i=0 ; i < len ; i++) {
+            for (let i = 0; i < len; i++) {
                 if (iptr >= decimation) {
                     let v = this.par.transmit();
                     resampler.interpolate(v, ibuf);
@@ -153,7 +150,7 @@ class AudioOutput {
                 output[i] = ibuf[iptr++];
             }
         };
-    
+
         outputNode.connect(this.actx.destination);
         this.isRunning = true;
     }
@@ -163,8 +160,8 @@ class AudioOutput {
         this.source.close();
         this.isRunning = false;
     }
-    
-       
+
+
 } //AudioOutput
 
 export {AudioInput, AudioOutput};

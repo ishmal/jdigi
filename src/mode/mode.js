@@ -69,25 +69,25 @@ class Mode {
     }
 
     adjustAfc() {
-       let freq = this._frequency;
-       let fs = par.getSampleRate();
-       let bw = this.bandwidth;
-       let binWidth = fs * 0.5 / Constants.BINS;
-       this.loBin = ((freq-bw*0.707) / binWidth) | 0;
-       this.freqBin = (freq / binWidth) | 0;
-       this.hiBin = ((freq+bw*0.707) / binWidth) | 0;
-       //console.log("afc: " + loBin + "," + freqBin + "," + hiBin);
+        let freq = this._frequency;
+        let fs = par.getSampleRate();
+        let bw = this.bandwidth;
+        let binWidth = fs * 0.5 / Constants.BINS;
+        this.loBin = ((freq - bw * 0.707) / binWidth) | 0;
+        this.freqBin = (freq / binWidth) | 0;
+        this.hiBin = ((freq + bw * 0.707) / binWidth) | 0;
+        //console.log("afc: " + loBin + "," + freqBin + "," + hiBin);
     }
 
 
-     computeAfc(ps) {
-       let sum = 0;
-       for (let i=loBin, j=hiBin ; i < freqBin ; i++, j--) {
+    computeAfc(ps) {
+        let sum = 0;
+        for (let i = loBin, j = hiBin; i < freqBin; i++, j--) {
             if (ps[j] > ps[i]) sum++;
             else if (ps[i] > ps[j]) sum--;
-       }
-       let filtered = this.afcFilter.update(sum);
-       this.nco.setError(filtered);
+        }
+        let filtered = this.afcFilter.update(sum);
+        this.nco.setError(filtered);
     }
 
     status(msg) {
@@ -98,7 +98,7 @@ class Mode {
         this._rate = v;
         this.adjustAfc();
         this.status("Fs: " + this.sampleRate + " rate: " + v +
-             " sps: " + this.samplesPerSymbol);
+            " sps: " + this.samplesPerSymbol);
     }
 
     get rate() {
@@ -109,8 +109,6 @@ class Mode {
     get samplesPerSymbol() {
         return this.sampleRate / this._rate;
     }
-
-
 
 
     //#######################
@@ -126,7 +124,7 @@ class Mode {
 
     receiveData(v) {
         var cs = this.nco.next();
-        var cv = this.decimator.decimatex(v*cs.cos, -v*cs.sin);
+        var cv = this.decimator.decimatex(v * cs.cos, -v * cs.sin);
         if (cv !== false) {
             this.receive(cv);
         }
@@ -155,7 +153,7 @@ class Mode {
                 this.ibuf = this.getBasebandData();
                 this.ilen = this.ibuf.length;
                 if (this.ilen === 0) {
-                    this.ilen=1;
+                    this.ilen = 1;
                     this.ibuf = [0];
                 }
                 this.iptr = 0;

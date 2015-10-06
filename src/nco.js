@@ -18,19 +18,19 @@
  */
 
 
-var ncoTable = (function() {
+var ncoTable = (function () {
 
     var twopi = Math.PI * 2.0;
     var two16 = 65536;
     var delta = twopi / two16;
-    
+
     var xs = new Array(two16);
-    
-    for (var idx = 0 ; idx < two16 ; idx++) {
+
+    for (var idx = 0; idx < two16; idx++) {
         var angle = delta * idx;
-        xs[idx] = { cos: Math.cos(angle), sin: Math.sin(angle) }; 
+        xs[idx] = {cos: Math.cos(angle), sin: Math.sin(angle)};
     }
-    return xs;  
+    return xs;
 })();
 
 /**
@@ -40,41 +40,44 @@ var ncoTable = (function() {
 function Nco(frequency, sampleRate) {
     "use strict";
     var hzToInt = 0x7fffffff / sampleRate;
-    var freq = 0|0;
+    var freq = 0 | 0;
+
     function setFrequency(frequency) {
-        freq  = (frequency * hzToInt)|0;
+        freq = (frequency * hzToInt) | 0;
     }
+
     this.setFrequency = setFrequency;
     setFrequency(frequency);
 
     var err = 0;
-    var maxErr =  (50 * hzToInt)|0;  //in hertz
+    var maxErr = (50 * hzToInt) | 0;  //in hertz
     console.log("maxErr: " + maxErr);
-    var minErr = -(50 * hzToInt)|0;  //in hertz
-    
+    var minErr = -(50 * hzToInt) | 0;  //in hertz
+
     function setError(v) {
-        err = (err * 0.9 + v * 100000.0)|0;
+        err = (err * 0.9 + v * 100000.0) | 0;
         //console.log("err:" + err + "  v:" + v);
-        if (err > maxErr) 
+        if (err > maxErr)
             err = maxErr;
         else if (err < minErr)
             err = minErr;
     }
+
     this.setError = setError;
-    
-    var phase = 0|0;
+
+    var phase = 0 | 0;
     var table = ncoTable;
-    
-    this.next = function() {
+
+    this.next = function () {
         phase = (phase + (freq + err)) & 0x7fffffff;
         return table[(phase >> 16) & 0xffff];
     };
-            
+
     this.mixNext = function (v) {
         phase = (phase + (freq + err)) & 0x7fffffff;
         var cs = table[(phase >> 16) & 0xffff];
-        return {r:v*cs.cos, i:-v*cs.sin};
-    };   
+        return {r: v * cs.cos, i: -v * cs.sin};
+    };
 }
 
 export {Nco};

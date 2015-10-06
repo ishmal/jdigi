@@ -27,7 +27,7 @@ import {FIR, Biquad} from "../filter";
  *
  * A "from" and a "to" table are also provided.
  */
-var Varicode = (function() {
+var Varicode = (function () {
 
     var description = [
         "1010101011",  //  0  00  NUL Null character
@@ -166,32 +166,34 @@ var Varicode = (function() {
         /**
          * this is a table of index->bit seqs.  Ex: 116('t') is Seq(true, false, true)
          */
-        encodeTable : description.map(function(s) {
+        encodeTable: description.map(function (s) {
             var chars = s.split("");
-            var bools = chars.map(function(c) { return (c==='1'); });
+            var bools = chars.map(function (c) {
+                return (c === '1');
+            });
             return bools;
         }),
 
 
-        decodeTable : (function() {
+        decodeTable: (function () {
             var dec = {};
-            for (var i = 0 ; i < description.length ; i++) {
+            for (var i = 0; i < description.length; i++) {
                 var key = parseInt(description[i], 2);
                 dec[key] = i;
             }
             return dec;
         })(),
 
-        printTables : function() {
+        printTables: function () {
 
             console.log("Encode Table =================");
-            for (var i=0 ; i<encodeTable.length ; i++) {
-                console.log(""+ i + " : " + encodeTable[i].join(","));
+            for (var i = 0; i < encodeTable.length; i++) {
+                console.log("" + i + " : " + encodeTable[i].join(","));
             }
             console.log("Decode Table =================");
             for (var key in decodeTable) {
                 var asc = decodeTable[key];
-                console.log(key.toString(2) + " : "+ asc);
+                console.log(key.toString(2) + " : " + asc);
             }
 
         }
@@ -202,24 +204,22 @@ var Varicode = (function() {
 })(); // Varicode
 
 
-
-
 function EarlyLate(samplesPerSymbol) {
-    var size    = samplesPerSymbol | 0;
-    var half    = size >> 1;
-    var buf     = new Float32Array(size);
-    var bitclk  = 0.0;
+    var size = samplesPerSymbol | 0;
+    var half = size >> 1;
+    var buf = new Float32Array(size);
+    var bitclk = 0.0;
 
-    this.update = function(z, f) {
-        var idx    = bitclk | 0;
-        var sum    = 0.0;
+    this.update = function (z, f) {
+        var idx = bitclk | 0;
+        var sum = 0.0;
         var ampsum = 0.0;
-        var mag    = z.mag();
-        buf[idx]   = 0.8 * buf[idx] + 0.2 * mag;
+        var mag = z.mag();
+        buf[idx] = 0.8 * buf[idx] + 0.2 * mag;
 
-        for (var i = 0 ; i < half ; i++) {
-            sum    += (buf[i] - buf[i+half]);
-            ampsum += (buf[i] + buf[i+half]);
+        for (var i = 0; i < half; i++) {
+            sum += (buf[i] - buf[i + half]);
+            ampsum += (buf[i] + buf[i + half]);
         }
 
         var err = (ampsum === 0.0) ? 0.0 : sum / ampsum * 0.2;
@@ -227,18 +227,13 @@ function EarlyLate(samplesPerSymbol) {
         bitclk += (1.0 - err);
         if (bitclk < 0)
             bitclk += size;
-        else if (bitclk >= size)  {
+        else if (bitclk >= size) {
             bitclk -= size;
             f(z);
         }
 
     };
 }
-
-
-
-
-
 
 
 /**
@@ -248,45 +243,55 @@ function PskMode(par) {
     var self = this;
 
     var props = {
-        name : "psk",
+        name: "psk",
         tooltip: "phase shift keying",
-        controls : [
+        controls: [
             {
-            name: "rate",
-            type: "choice",
-            tooltip: "PSK data rate",
-			get value() { return self.getRate(); },
-			set value(v) { self.setRate(parseFloat(v)); },
-            values : [
-                { name :  "31", value :  31.25 },
-                { name :  "63", value :  62.50 },
-                { name : "125", value : 125.00 }
+                name: "rate",
+                type: "choice",
+                tooltip: "PSK data rate",
+                get value() {
+                    return self.getRate();
+                },
+                set value(v) {
+                    self.setRate(parseFloat(v));
+                },
+                values: [
+                    {name: "31", value: 31.25},
+                    {name: "63", value: 62.50},
+                    {name: "125", value: 125.00}
                 ]
             },
             {
-            name: "qpsk",
-            type: "boolean",
-            tooltip: "not yet implemented",
-			get value() { return self.getQpskMode(); },
-			set value(v) { self.setQpskMode(v); }
+                name: "qpsk",
+                type: "boolean",
+                tooltip: "not yet implemented",
+                get value() {
+                    return self.getQpskMode();
+                },
+                set value(v) {
+                    self.setQpskMode(v);
+                }
             }
         ]
     };
     Mode.call(this, par, props, 2000); //inherit
 
     var timer = new EarlyLate(this.getSamplesPerSymbol());
-    var bpf   = FIR.bandpass(13, -0.7*this.getRate(), 0.7*this.getRate(), this.getSampleRate());
+    var bpf = FIR.bandpass(13, -0.7 * this.getRate(), 0.7 * this.getRate(), this.getSampleRate());
 
     var super_setRate = this.setRate;
-    this.setRate = function(rate) {
+    this.setRate = function (rate) {
         super_setRate(rate);
         timer = new EarlyLate(this.getSamplesPerSymbol());
-        bpf   = FIR.bandpass(13, -0.7*this.getRate(), 0.7*this.getRate(), this.getSampleRate());
+        bpf = FIR.bandpass(13, -0.7 * this.getRate(), 0.7 * this.getRate(), this.getSampleRate());
     };
 
-    this.getBandwidth = function() { return this.getRate(); };
+    this.getBandwidth = function () {
+        return this.getRate();
+    };
 
-    this.receive = function(v) {
+    this.receive = function (v) {
         var z = bpf.updatex(v);
         scopeOut(z);
         timer.update(z, processSymbol);
@@ -296,6 +301,7 @@ function PskMode(par) {
     var scopedata = new Array(SSIZE);
     var sctr = 0;
     var log = Math.log;
+
     function scopeOut(z) {
         scopedata[sctr++] = [log(z.r + 1) * 30, log(z.i + 1) * 30];
         if (sctr >= SSIZE) {
@@ -309,16 +315,16 @@ function PskMode(par) {
     //var decoder = Viterbi.decoder(5, 0x17, 0x19)
 
     var qpskMode = false;
-	this.getQpskMode  = function() {
-	    return qpskMode;
-	};
-	this.setQpskMode = function(v) {
-	    qpskMode = v;
-	};
+    this.getQpskMode = function () {
+        return qpskMode;
+    };
+    this.setQpskMode = function (v) {
+        qpskMode = v;
+    };
 
 
     function angleDiff(a, b) {
-        var diff = a-b;
+        var diff = a - b;
         while (diff > Math.PI)
             diff -= twopi;
         while (diff < -Math.PI)
@@ -335,17 +341,17 @@ function PskMode(par) {
      * 0 radians to +- pi
      */
     function distance(v, from) {
-        var diff = Math.PI - Math.abs(Math.abs(v-from) - Math.PI);
+        var diff = Math.PI - Math.abs(Math.abs(v - from) - Math.PI);
         return Math.floor(diff * diffScale);
     }
 
-    var twopi  = Math.PI * 2.0;
+    var twopi = Math.PI * 2.0;
     var halfpi = Math.PI * 0.5;
 
-    var code      = 0;
-    var lastv     = 0.0;
-    var count     = 0;
-    var lastBit   = false;
+    var code = 0;
+    var lastv = 0.0;
+    var count = 0;
+    var lastBit = false;
 
 
     function processSymbol(v) {
@@ -354,26 +360,26 @@ function PskMode(par) {
 
         if (qpskMode) {
             /**/
-            vn  = v.arg();
-            dv  = angleDiff(vn,  lastv);
+            vn = v.arg();
+            dv = angleDiff(vn, lastv);
             d00 = distance(dv, Math.PI);
-            d01 = distance(dv,  halfpi);
+            d01 = distance(dv, halfpi);
             d10 = distance(dv, -halfpi);
-            d11 = distance(dv,     0.0);
+            d11 = distance(dv, 0.0);
             var bm = [d00, d01, d10, d11];
             //println("%6.3f %6.3f %6.3f  :  %3d %3d %3d %3d".format(lastv, vn, dv, d00, d01, d10, d11))
             var bits = decoder.decodeOne(bm);
             var len = bits.length;
-            for (var i=0 ; i < len ; i++)
+            for (var i = 0; i < len; i++)
                 processBit(bits[i]);
             lastv = vn;
             /**/
         } else { //bpsk
             /**/
-            vn  = v.arg();
-            dv  = angleDiff(vn,  lastv);
+            vn = v.arg();
+            dv = angleDiff(vn, lastv);
             d00 = distance(dv, Math.PI);
-            d11 = distance(dv,     0.0);
+            d11 = distance(dv, 0.0);
             //println("%6.3f %6.3f %6.3f  :  %3d %3d".format(lastv, vn, dv, d00, d11))
             var bit = d11 < d00;
             lastv = vn;
@@ -397,39 +403,38 @@ function PskMode(par) {
                     else
                         par.puttext(String.fromCharCode(chr));
                     code = 0;
-                    }
                 }
-            code = 0;
             }
-        else
-            {
+            code = 0;
+        }
+        else {
             code <<= 1;
             if (bit) code += 1;
-            }
-        lastBit = bit ;
         }
-        
+        lastBit = bit;
+    }
+
     //###################
     //# transmit
     //###################
-        
-    
+
+
     function getNextTransmitBuffer() {
         var ch = par.gettext();
-        if (tx<0) {
-        
+        if (tx < 0) {
+
         } else {
-        
-        
+
+
         }
-    
+
     }
-     
+
     var txBuf = [];
     var txPtr = 0;
-        
-    this.transmit = function() {
-    
+
+    this.transmit = function () {
+
         if (txPtr >= txBuf.length) {
             txBuf = getNextTransmitBuffer();
             txPtr = 0;
@@ -441,7 +446,6 @@ function PskMode(par) {
 }// PskMode
 
 
-
 /**
  * Phase Shift Keying mode.
  */
@@ -449,62 +453,72 @@ function PskMode2(par) {
     var self = this;
 
     var props = {
-        name : "psk",
+        name: "psk",
         tooltip: "phase shift keying",
-        controls : [
+        controls: [
             {
-            name: "rate",
-            type: "choice",
-			get value() { return self.getRate(); },
-			set value(v) { self.setRate(parseFloat(v)); },
-            values : [
-                { name :  "31", value :  31.25 },
-                { name :  "63", value :  62.50 },
-                { name : "125", value : 125.00 }
+                name: "rate",
+                type: "choice",
+                get value() {
+                    return self.getRate();
+                },
+                set value(v) {
+                    self.setRate(parseFloat(v));
+                },
+                values: [
+                    {name: "31", value: 31.25},
+                    {name: "63", value: 62.50},
+                    {name: "125", value: 125.00}
                 ]
             },
             {
-            name: "qpsk",
-            type: "boolean",
-			get value() { return self.getQpskMode(); },
-			set value(v) { self.setQpskMode(v); }
+                name: "qpsk",
+                type: "boolean",
+                get value() {
+                    return self.getQpskMode();
+                },
+                set value(v) {
+                    self.setQpskMode(v);
+                }
             }
         ]
     };
     Mode.call(this, par, props, 1000); //inherit
 
     //var bpf = FIR.bandpass(13, -0.7*this.getRate(), 0.7*this.getRate(), this.getSampleRate());
-    
-    this.getBandwidth = function() { return this.getRate(); };
-    
-    var ilp,qlp;
+
+    this.getBandwidth = function () {
+        return this.getRate();
+    };
+
+    var ilp, qlp;
     var symbollen, halfSym;
 
     var super_setRate = this.setRate;
-    this.setRate = function(rate) {
+    this.setRate = function (rate) {
         super_setRate(rate);
-        ilp = Biquad.lowPass(rate*0.5, self.getSampleRate());
-        qlp = Biquad.lowPass(rate*0.5, self.getSampleRate());
+        ilp = Biquad.lowPass(rate * 0.5, self.getSampleRate());
+        qlp = Biquad.lowPass(rate * 0.5, self.getSampleRate());
         //bpf = FIR.bandpass(13, -0.7*this.getRate(), 0.7*this.getRate(), this.getSampleRate());
-        symbollen = self.getSamplesPerSymbol()|0;
+        symbollen = self.getSamplesPerSymbol() | 0;
         halfSym = symbollen >> 1;
     };
     this.setRate(31.25);
-    
+
     var lastSign = -1;
     var samples = 0;
-    
-    this.receive = function(z) {
+
+    this.receive = function (z) {
         var i = ilp.update(z.r);
         var q = qlp.update(z.i);
         scopeOut(i, q);
         var sign = (i > 0) ? 1 : -1; //Math.sign() not on Chrome
         if (sign != lastSign) {
-            samples=0;
+            samples = 0;
         } else {
             samples++;
         }
-        if ((samples%symbollen) === halfSym) {
+        if ((samples % symbollen) === halfSym) {
             processSymbol(i, q);
             //processBit(sign>0);
         }
@@ -516,8 +530,9 @@ function PskMode2(par) {
     var sctr = 0;
     var log = Math.log;
     var ssctr = 0;
-    function scopeOut(i,q) {
-        if (! (++ssctr & 1)) return; //skip items
+
+    function scopeOut(i, q) {
+        if (!(++ssctr & 1)) return; //skip items
         scopedata[sctr++] = [log(i + 1) * 30.0, log(q + 1) * 30.0];
         if (sctr >= SSIZE) {
             par.showScope(scopedata);
@@ -529,16 +544,16 @@ function PskMode2(par) {
     //var decoder = Viterbi.decoder(5, 0x17, 0x19)
 
     var qpskMode = false;
-	this.getQpskMode  = function() {
-	    return qpskMode;
-	};
-	this.setQpskMode = function(v) {
-	    qpskMode = v;
-	};
+    this.getQpskMode = function () {
+        return qpskMode;
+    };
+    this.setQpskMode = function (v) {
+        qpskMode = v;
+    };
 
 
     function angleDiff(a, b) {
-        var diff = a-b;
+        var diff = a - b;
         while (diff > Math.PI)
             diff -= twopi;
         while (diff < -Math.PI)
@@ -555,45 +570,45 @@ function PskMode2(par) {
      * 0 radians to +- pi
      */
     function distance(v, from) {
-        var diff = Math.PI - Math.abs(Math.abs(v-from) - Math.PI);
+        var diff = Math.PI - Math.abs(Math.abs(v - from) - Math.PI);
         return Math.floor(diff * diffScale);
     }
 
-    var twopi  = Math.PI * 2.0;
+    var twopi = Math.PI * 2.0;
     var halfpi = Math.PI * 0.5;
 
-    var code      = 0;
-    var lastv     = 0.0;
-    var count     = 0;
-    var lastBit   = false;
+    var code = 0;
+    var lastv = 0.0;
+    var count = 0;
+    var lastBit = false;
 
 
-    function processSymbol(i,q) {
+    function processSymbol(i, q) {
 
         var dv, d00, d01, d10, d11;
-        
+
         var vn = Math.atan2(q, i);
 
         if (qpskMode) {
             /**/
-            dv  = angleDiff(vn,  lastv);
+            dv = angleDiff(vn, lastv);
             d00 = distance(dv, Math.PI);
-            d01 = distance(dv,  halfpi);
+            d01 = distance(dv, halfpi);
             d10 = distance(dv, -halfpi);
-            d11 = distance(dv,     0.0);
+            d11 = distance(dv, 0.0);
             var bm = [d00, d01, d10, d11];
             //println("%6.3f %6.3f %6.3f  :  %3d %3d %3d %3d".format(lastv, vn, dv, d00, d01, d10, d11))
             var bits = decoder.decodeOne(bm);
             var len = bits.length;
-            for (var idx=0 ; idx < len ; idx++)
+            for (var idx = 0; idx < len; idx++)
                 processBit(bits[idx]);
             lastv = vn;
             /**/
         } else { //bpsk
             /**/
-            dv  = angleDiff(vn,  lastv);
+            dv = angleDiff(vn, lastv);
             d00 = distance(dv, Math.PI);
-            d11 = distance(dv,     0.0);
+            d11 = distance(dv, 0.0);
             //println("%6.3f %6.3f %6.3f  :  %3d %3d".format(lastv, vn, dv, d00, d11))
             var bit = d11 < d00;
             lastv = vn;
@@ -617,39 +632,38 @@ function PskMode2(par) {
                     else
                         par.puttext(String.fromCharCode(chr));
                     code = 0;
-                    }
                 }
-            code = 0;
             }
-        else
-            {
+            code = 0;
+        }
+        else {
             code <<= 1;
             if (bit) code += 1;
-            }
-        lastBit = bit ;
         }
-        
+        lastBit = bit;
+    }
+
     //###################
     //# transmit
     //###################
-        
-    
+
+
     function getNextTransmitBuffer() {
         var ch = par.gettext();
-        if (tx<0) {
-        
+        if (tx < 0) {
+
         } else {
-        
-        
+
+
         }
-    
+
     }
-     
+
     var txBuf = [];
     var txPtr = 0;
-        
-    this.transmit = function() {
-    
+
+    this.transmit = function () {
+
         if (txPtr >= txBuf.length) {
             txBuf = getNextTransmitBuffer();
             txPtr = 0;
@@ -659,7 +673,6 @@ function PskMode2(par) {
     };
 
 }// PskMode2
-
 
 
 export {PskMode,PskMode2};
