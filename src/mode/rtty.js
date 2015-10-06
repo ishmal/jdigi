@@ -56,7 +56,7 @@ const Baudot = {
         ['O',  '9'], // 0x18
         ['B',  '?'], // 0x19
         ['G',  '&'], // 0x1a
-        [  0,    0], // 0x1b FIGS   
+        [  0,    0], // 0x1b FIGS
         ['M',  '.'], // 0x1c
         ['X',  '/'], // 0x1d
         ['V',  '='], // 0x1e
@@ -99,53 +99,55 @@ const RxParity = 4;
  */
 class RttyMode extends FskBase {
 
-    const props = {
-        name: "rtty",
-        tooltip: "radio teletype",
-        controls : [
-            {
-            name: "rate",
-            type: "choice",
-            tooltip: "rtty baud rate",
-            get value() { return self.getRate(); },
-            set value(v) { self.setRate(parseFloat(v)); },
-            values : [
-                { name :  "45", value :  45.45 },
-                { name :  "50", value :  50.00 },
-                { name :  "75", value :  75.00 },
-                { name : "100", value : 100.00 }
-                ]
-            },
-            {
-            name: "shift",
-            type: "choice",
-            tooltip: "frequency distance between mark and space",
-            get value() { return self.getShift(); },
-            set value(v) { self.setShift(parseFloat(v)); },
-            values : [
-                { name :  "85", value :  85.0 },
-                { name : "170", value : 170.0 },
-                { name : "450", value : 450.0 },
-                { name : "850", value : 850.0 }
-                ]
-             },
-            {
-            name: "inv",
-            type: "boolean",
-            get value() { return self.getInverted(); },
-            set value(v) { self.setInverted(v); }
-            },
-            {
-            name: "UoS",
-            type: "boolean",
-            get value() { return self.getUnshiftOnSpace(); },
-            set value(v) { self.setUnshiftOnSpace(v); }
-            }
-        ]
-    };
+    static props(self) {
+      return {
+          name: "rtty",
+          tooltip: "radio teletype",
+          controls : [
+              {
+              name: "rate",
+              type: "choice",
+              tooltip: "rtty baud rate",
+              get value() { return self.getRate(); },
+              set value(v) { self.setRate(parseFloat(v)); },
+              values : [
+                  { name :  "45", value :  45.45 },
+                  { name :  "50", value :  50.00 },
+                  { name :  "75", value :  75.00 },
+                  { name : "100", value : 100.00 }
+                  ]
+              },
+              {
+              name: "shift",
+              type: "choice",
+              tooltip: "frequency distance between mark and space",
+              get value() { return self.getShift(); },
+              set value(v) { self.setShift(parseFloat(v)); },
+              values : [
+                  { name :  "85", value :  85.0 },
+                  { name : "170", value : 170.0 },
+                  { name : "450", value : 450.0 },
+                  { name : "850", value : 850.0 }
+                  ]
+               },
+              {
+              name: "inv",
+              type: "boolean",
+              get value() { return self.getInverted(); },
+              set value(v) { self.setInverted(v); }
+              },
+              {
+              name: "UoS",
+              type: "boolean",
+              get value() { return self.getUnshiftOnSpace(); },
+              set value(v) { self.setUnshiftOnSpace(v); }
+              }
+          ]
+      };
+    }
 
     constructor(par) {
-        super(par, this.props, 1000.0);
+        super(par, RttyMode.props, 1000.0);
         this.unshiftOnSpace = false;
         this.symbollen = 0;
         this.halfsym = 0;
@@ -153,6 +155,14 @@ class RttyMode extends FskBase {
         this.symptr=0;
         this.rate = 45.45;
         this.parityType = ParityNone;
+        this.state     = RxIdle;
+        this.bitcount  = 0;
+        this.code      = 0;
+        this.parityBit = false;
+        this.counter   = 0;
+        this.NRBITS    = 5;//todo: make this selectable
+        this.msbit     = 1<<(NRBITS-1);
+        this.shifted = false;
     }
 
 
@@ -164,7 +174,7 @@ class RttyMode extends FskBase {
         for (let pp=0 ; pp < this.symbollen ; pp++) {
             this.symarray[pp] = false;
         }
-    };
+    }
 
 
     static countbits(n) {
@@ -185,16 +195,9 @@ class RttyMode extends FskBase {
             default         : return false;   //None or unknown
         }
     }
-    
-    
 
-    var state     = RxIdle;
-    var bitcount  = 0;
-    var code      = 0;
-    var parityBit = false;
-    var counter   = 0;
-    var NRBITS    = 5;//todo: make this selectable
-    var msbit     = 1<<(NRBITS-1);
+
+
 
     /**
      * We wish to sample data at the end of a symbol period, with
@@ -208,10 +211,10 @@ class RttyMode extends FskBase {
      * ----3----|
      *          |
      *          |-----3------
-     *          
+     *
      *          |<---corr-->|
      *
-     * 
+     *
      *
      * While reading bits, are most of the bits set? Then it's
      * a mark, else a space.
@@ -223,19 +226,19 @@ class RttyMode extends FskBase {
      *
      */
     processBit(bit) {
-    
+
         symarray[symptr++] = bit;
         symptr %= symbollen;
-        var last = symarray[symptr];
-        var isMarkToSpace = false;
-        var corr = 0;
-		var ptr = symptr;
-		var sum = 0;
-		for (var pp=0 ; pp<symbollen ; pp++) {
+        this.last = symarray[symptr];
+        this.isMarkToSpace = false;
+        this.corr = 0;
+		this.ptr = symptr;
+		this.sum = 0;
+		for (this.pp=0 ; pp<symbollen ; pp++) {
 			sum += symarray[ptr++];
 			ptr %= symbollen;
 		}
-		var isMark = (sum > halfsym);
+		this.isMark = (sum > halfsym);
         if (last && !bit) {
             if (Math.abs(halfsym-sum)<6) {
                 isMarkToSpace = true;
@@ -295,10 +298,8 @@ class RttyMode extends FskBase {
                 break;
             }
     } // processBit
-    
-    
 
-    var shifted = false;
+
 
     reverse(v, size) {
         let a = v;
@@ -311,37 +312,27 @@ class RttyMode extends FskBase {
         return b;
     }
 
-    //cache a copy of these here
-    var NUL   = Baudot.NUL;
-    var SPACE = Baudot.SPACE;
-    var CR    = Baudot.CR;
-    var LF    = Baudot.LF;
-    var LTRS  = Baudot.LTRS;
-    var FIGS  = Baudot.FIGS;
-    
-    var table = Baudot.t;
-
     outCode(rawcode) {
         //println("raw:" + rawcode)
         //rawcode = reverse(rawcode, 5);
-        var code = rawcode & 0x1f;
-        if (code === NUL) {
-        } else if (code === FIGS) {
+        this.code = rawcode & 0x1f;
+        if (code === Baudot.NUL) {
+        } else if (code === Baudot.FIGS) {
             this.shifted = true;
-        } else if (code === LTRS) {
+        } else if (code === Baudot.LTRS) {
             this.shifted = false;
-        } else if (code === SPACE) {
+        } else if (code === Baudot.SPACE) {
             this.par.puttext(" ");
             if (this.unshiftOnSpace)
                 this.shifted = false;
-        } else if (code === CR || code === LF) {
+        } else if (code === Baudot.CR || code === Baudot.LF) {
             this.par.puttext("\n");
             if (this.unshiftOnSpace)
                 this.shifted = false;
         } else {
-            var v = table[code];
+            this.v = Baudot.t[code];
             if (v) {
-                var c = (this.shifted) ? v[1] : v[0];
+                this.c = (this.shifted) ? v[1] : v[0];
                 if (c !== 0)
                     this.par.puttext(c);
             }
@@ -352,13 +343,13 @@ class RttyMode extends FskBase {
     //# T R A N S M I T
     //################################################
     /*
-    var txShifted = false;
+    this.txShifted = false;
     function txencode(str) {
-        var buf = [];
-        var chars = str.split("");
-        var len = chars.length;
-        for (var cn=0 ; cn<len ; cn++) {
-            var c = chars[cn];
+        this.buf = [];
+        this.chars = str.split("");
+        this.len = chars.length;
+        for (this.cn=0 ; cn<len ; cn++) {
+            this.c = chars[cn];
             if (c === ' ')
                 buf.push(SPACE);
             else if (c === '\n')
@@ -366,8 +357,8 @@ class RttyMode extends FskBase {
             else if (c === '\r')
                 buf.push(CR);
             else {
-                var uc = c.toUpper;
-                var code = Baudot.baudLtrsToCode[uc];
+                this.uc = c.toUpper;
+                this.code = Baudot.baudLtrsToCode[uc];
                 if (code) {
                     if (txShifted) {
                         txShifted = false;
@@ -390,14 +381,14 @@ class RttyMode extends FskBase {
     }
 
     function txnext() {
-        //var str = "the quick brown fox 1a2b3c4d"
-        var str = par.gettext;
-        var codes = txencode(str);
+        //this.str = "the quick brown fox 1a2b3c4d"
+        this.str = par.gettext;
+        this.codes = txencode(str);
         return codes;
     }
 
 
-    var desiredOutput = 4096;
+    this.desiredOutput = 4096;
 
     */
     /**
@@ -410,27 +401,27 @@ class RttyMode extends FskBase {
      /*
     this.transmit = function() {
 
-        var symbollen = samplesPerSymbol;
-        var buf = [];
-        var codes = txnext();
-        var len = codes.length;
-        for (var idx = 0 ; idx < len ; idx++) {
-            var code = codes[i];
-            for (var s=0 ; s<symbollen ; s++) buf.push(spaceFreq);
-            var mask = 1;
-            for (var ib=0 ; ib < 5 ; ib++) {
-                var bit = (code & mask) === 0;
-                var f = (bit) ? spaceFreq : markFreq;
+        this.symbollen = samplesPerSymbol;
+        this.buf = [];
+        this.codes = txnext();
+        this.len = codes.length;
+        for (this.idx = 0 ; idx < len ; idx++) {
+            this.code = codes[i];
+            for (this.s=0 ; s<symbollen ; s++) buf.push(spaceFreq);
+            this.mask = 1;
+            for (this.ib=0 ; ib < 5 ; ib++) {
+                this.bit = (code & mask) === 0;
+                this.f = (bit) ? spaceFreq : markFreq;
                 for (j=0 ; j < symbollen ; j++) buf.push(f);
                 mask <<= 1;
                 }
-            for (var s2=0 ; s2<symbollen ; s2++) buf.push(spaceFreq);
+            for (this.s2=0 ; s2<symbollen ; s2++) buf.push(spaceFreq);
             }
 
-        var pad = desiredOutput - buf.length;
+        this.pad = desiredOutput - buf.length;
         while (pad--)
             buf.push(spaceFreq);
-        //var res = buf.toArray.map(txlpf.update)
+        //this.res = buf.toArray.map(txlpf.update)
         //todo
     };
     */
@@ -440,4 +431,3 @@ class RttyMode extends FskBase {
 
 
 export {RttyMode};
-

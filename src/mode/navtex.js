@@ -54,27 +54,38 @@ const CCIR = (function() {
     t[0x0f] = ['\n', '\n']; //actually \r
     t[0x1b] = ['\n', '\n'];
 
+    let NUL    = 0x2b;
+    let SPACE  = 0x1d;
+    let CR     = 0x0f;
+    let LF     = 0x1b;
+    let LTRS   = 0x2d;
+    let FIGS   = 0x36;
+    let ALPHA  = 0x78;
+    let BETA   = 0x66;
+    let SYNC   = 0x00;
+    let REPEAT = 0x33;
+
     let cls = {
-        NUL    : 0x2b,
-        SPACE  : 0x1d,
-        CR     : 0x0f,
-        LF     : 0x1b,
-        LTRS   : 0x2d,
-        FIGS   : 0x36,
-        ALPHA  : 0x78,
-        BETA   : 0x66,
-        SYNC   : 0x00,
-        REPEAT : 0x33,
-        isValid : function(code) {
-        return (table[code] !== undefined) ||
-            code === NUL ||
-            code === LTRS ||
-            code === FIGS ||
-            code === ALPHA ||
-            code === BETA ||
-            code === SYNC ||
-            code === REPEAT;
-        }
+        NUL    : NUL,
+        SPACE  : SPACE,
+        CR     : CR,
+        LF     : LF,
+        LTRS   : LTRS,
+        FIGS   : FIGS,
+        ALPHA  : ALPHA,
+        BETA   : BETA,
+        SYNC   : SYNC,
+        REPEAT : REPEAT
+    };
+    cls.isValid = function(code) {
+      return (t[code] !== undefined) ||
+          code === NUL ||
+          code === LTRS ||
+          code === FIGS ||
+          code === ALPHA ||
+          code === BETA ||
+          code === SYNC ||
+          code === REPEAT;
     };
     cls.t = t;
 
@@ -110,7 +121,7 @@ function reverse(v, len) {
  */
 class NavtexMode extends FskBase {
 
-    static props() {
+    static props(tgt) {
         return {
             name: "navtex",
             tooltip: "international naval teleprinter",
@@ -119,28 +130,28 @@ class NavtexMode extends FskBase {
                     name: "inv",
                     type: "boolean",
                     get value() {
-                        return self.getInverted();
+                        return tgt.getInverted();
                     },
                     set value(v) {
-                        self.setInverted(v);
+                        tgt.setInverted(v);
                     }
                 },
                 {
                     name: "UoS",
                     type: "boolean",
                     get value() {
-                        return self.getUnshiftOnSpace();
+                        return tgt.getUnshiftOnSpace();
                     },
                     set value(v) {
-                        self.setUnshiftOnSpace(v);
+                        tgt.setUnshiftOnSpace(v);
                     }
                 }
             ]
         };
     }
-    
+
     constructor(par) {
-        super(par, props(), 1000.0);
+        super(par, NavtexMode.props, 1000.0);
         this.unshiftOnSpace = false;
         this.shift = 170.0;
         this.rate = 100.0;
@@ -166,10 +177,15 @@ class NavtexMode extends FskBase {
         //Sitor-B is in either DX (data) or RX (repeat) mode
         this.dxMode = true;
 
+        this.q3 = 0;
+        this.q2 = 0;
+        this.q1 = 0;
+
+        this.lastChar = '@';
     }
 
-    
-    
+
+
     shift7(bit) {
         let a = (bit) ? 1 : 0;
         let b = (this.sync1 >> 6) & 1;
@@ -183,11 +199,11 @@ class NavtexMode extends FskBase {
         a = b;
         this.sync4 = ((this.sync4 << 1) + a) & 0x7f;
     }
-    
 
-   
+
+
     processBit(bit) {
-    
+
         if (!this.isMiddleBit(bit)) {
             return;
         }
@@ -204,18 +220,18 @@ class NavtexMode extends FskBase {
                 this.sync3    = 0;
                 this.sync4    = 0;
                 break;
-            case Rxthis.sync2 :
+            case RxSync2 :
                 //trace("Rxthis.sync2")
                 this.shift7(bit);
                 //trace(this.sync1.toHexString + ", "+  this.sync2.toHexString + ", " +
                 //     this.sync3.toHexString + ", " + this.sync4.toHexString);
                 //trace("bit: " + bit);
-                if (isValid(this.sync1) && isValid(this.sync2) &&
-                    isValid(this.sync3) && isValid(this.sync4)) {
-                    processCode(this.sync1);
-                    processCode(this.sync2);
-                    processCode(this.sync3);
-                    processCode(this.sync4);
+                if (CCIR.isValid(this.sync1) && CCIR.isValid(this.sync2) &&
+                    CCIR.isValid(this.sync3) && CCIR.isValid(this.sync4)) {
+                    this.processCode(this.sync1);
+                    this.processCode(this.sync2);
+                    this.processCode(this.sync3);
+                    this.processCode(this.sync4);
                     this.state = RxData;
                 }
                 break;
@@ -224,7 +240,7 @@ class NavtexMode extends FskBase {
                 this.code = ((this.code<<1) + ((bit) ? 1 : 0)) & 0x7f;
                 //trace("code: " + code);
                 if (++this.bitcount >= 7) {
-                    if (processCode(code) != ResultFail) { //we want Ok or Soft
+                    if (this.processCode(this.code) != ResultFail) { //we want Ok or Soft
                         //stay in RxData.  ready for next code
                         this.code     = 0;
                         this.bitcount = 0;
@@ -242,49 +258,37 @@ class NavtexMode extends FskBase {
             default:
             }//switch
     }
-    
 
-    var q3 = 0;
-    var q2 = 0;
-    var q1 = 0;
-    
-    function qadd(v) {
-        q3 = q2;
-        q2 = q1;
-        q1 = v;
+
+
+    qadd(v) {
+        this.q3 = this.q2;
+        this.q2 = this.q1;
+        this.q1 = v;
     }
 
-    var table  = CCIR.t;
-    var NUL    = CCIR.NUL;
-    var LTRS   = CCIR.LTRS;
-    var FIGS   = CCIR.FIGS;
-    var ALPHA  = CCIR.ALPHA;
-    var BETA   = CCIR.BETA;
-    var SYNC   = CCIR.SYNC;
-    var REPEAT = CCIR.REPEAT;
-    
     processCode(code) {
         //trace("code: " + code.toHexString + " mode: " + dxMode)
         var res = ResultOk;
-        if (code === REPEAT) {
-            qadd(code);
+        if (this.code ===  CCIR.REPEAT) {
+            this.qadd(this.code);
             this.shifted = false;
             this.dxMode = false;
-        } else if (code === ALPHA) {
+        } else if (this.code ===  CCIR.ALPHA) {
             this.shifted = false;
             this.dxMode = true;
         } else {
             if (this.dxMode) {
-                if (!isValid(code))
+                if (!CCIR.isValid(this.code))
                     res = ResultSoft;
                 this.qadd(code); //dont think.  just queue it
                 this.dxMode = false; //for next time
             } else { //symbol
-                if (CCIR.isValid(code)) {
-                    this.processCode2(code);
+                if (CCIR.isValid(this.code)) {
+                    this.processCode2(this.code);
                 } else {
-                    if (CCIR.isValid(q3)) {
-                        var c = processCode2(q3);
+                    if (CCIR.isValid(this.q3)) {
+                        var c = this.processCode2(this.q3);
                         this.par.status("FEC replaced :" + c);
                         res = ResultSoft;
                     } else {
@@ -298,8 +302,7 @@ class NavtexMode extends FskBase {
         return res;
     }
 
-    var lastChar = '@';
-    
+
 
     processCode2(code) {
         let res = '@';
@@ -308,14 +311,14 @@ class NavtexMode extends FskBase {
         } else if (code < 0) {
             //par.puttext("_");
             res = '_';
-        } else if (code === ALPHA || code === REPEAT) {
+        } else if (code ===  CCIR.ALPHA || code ===  CCIR.REPEAT) {
             //shouldnt be here
-        } else if (code === LTRS) {
+        } else if (code ===  CCIR.LTRS) {
             this.shifted = false;
-        } else if (code === FIGS) {
+        } else if (code ===  CCIR.FIGS) {
             this.shifted = true;
         } else {
-            let v = table[code];
+            let v =  CCIR.t[code];
             if (v !== undefined) {
                 var c = (this.shifted) ? v[1] : v[0];
                 this.par.puttext(c);

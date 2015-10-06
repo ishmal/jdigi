@@ -16,6 +16,7 @@
  *    You should have received a copy of the GNU General Public License
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+/* jslint node: true */
 
 import {FskBase} from "./fsk";
 import {Biquad,FIR} from "../filter";
@@ -103,24 +104,24 @@ class Crc {
     constructor() {
         this.reset();
     }
-    
+
     update(c) {
         let table = CrcTables.crcTable;
         let crc = this.crc;
         let j = (c ^ (crc >> 8)) & 0xff;
         this.crc = table[j] ^ (crc << 8);
     }
-        
+
     value() {
         return (this.crc ^ 0) & 0xffff;
     }
-            
+
     updateLE(c) {
         let table = CrcTables.crcTableLE;
         let crc = this.crc;
         this.crc = ((crc >> 8) ^ table[(crc ^ c) & 0xff]) & 0xffff;
     }
-        
+
     valueLE() {
         return this.crc;
     }
@@ -139,7 +140,7 @@ class PacketAddr {
         this.ssid = ssid;
         this.add = null;
     }
-    
+
     encoded() {
         let add = this.add;
         if (add === null) {
@@ -171,56 +172,54 @@ class PacketAddr {
     toString() {
         return (this.ssid >= 0) ?  this.call + "-" + this.ssid  : this.call;
     }
-  
+
 }
 
 
+const Types = {
+    PID_X25: 0x01,  // ISO 8208/CCITT X.25 PLP
+    PID_TCPIP_COMP: 0x06,  // Compressed TCP/IP packet. Van Jacobson (RFC 1144)
+    PID_TCPIP_UNCOMP: 0x07,  // Uncompressed TCP/IP packet. Van Jacobson (RFC 1144)
+    PID_FRAG: 0x08,  // Segmentation fragment
+    PID_AX25_FLAG1: 0x10,  // AX.25 layer 3 implemented.
+    PID_AX25_FLAG2: 0x20,  // AX.25 layer 3 implemented.
+    PID_AX25_MASK: 0x30,  // AX.25 layer 3 implemented.
+    PID_TEXNET: 0xc3,  // TEXNET datagram protocol
+    PID_LQP: 0xc4,  // Link Quality Protocol
+    PID_APPLETALK: 0xca,  // Appletalk
+    PID_APPLETALK_ARP: 0xcb,  // Appletalk ARP
+    PID_ARPA_IP: 0xcc,  // ARPA Internet Protocol
+    PID_ARPA_ARP: 0xcd,  // ARPA Address Resolution
+    PID_FLEXNET: 0xce,  // FlexNet
+    PID_NETROM: 0xcf,  // NET/ROM
+    PID_NO_3: 0xf0,  // No layer 3 protocol implemented.
+    PID_ESCAPE: 0xff,  // Escape character. Next octet contains more Level 3 protocol information.
+
+    /**
+     * Frame identifiers
+     */
+    FID_NONE: 0,  // Not an ID
+    FID_C: 1,  // Layer 2 Connect Request
+    FID_SABM: 2,  // Layer 2 Connect Request
+    FID_D: 3,  // Layer 2 Disconnect Request
+    FID_DISC: 4,  // Layer 2 Disconnect Request
+    FID_I: 5,  // Information frame
+    FID_RR: 6,  // Receive Ready. System Ready To Receive
+    FID_RNR: 7,  // Receive Not Ready. TNC Buffer Full
+    FID_NR: 8,  // Receive Not Ready. TNC Buffer Full
+    FID_RJ: 9,  // Reject Frame. Out of Sequence or Duplicate
+    FID_REJ: 10,  // Reject Frame. Out of Sequence or Duplicate
+    FID_FRMR: 11,  // Frame Reject. Fatal Error
+    FID_UI: 12,  // Unnumbered Information Frame. "Unproto"
+    FID_DM: 13,  // Disconnect Mode. System Busy or Disconnected.
+
+    IFRAME: 0,
+    SFRAME: 1,
+    UFRAME: 2
+};
 
 
 class Packet {
-
-    const Types = {
-        PID_X25: 0x01,  // ISO 8208/CCITT X.25 PLP
-        PID_TCPIP_COMP: 0x06,  // Compressed TCP/IP packet. Van Jacobson (RFC 1144)
-        PID_TCPIP_UNCOMP: 0x07,  // Uncompressed TCP/IP packet. Van Jacobson (RFC 1144)
-        PID_FRAG: 0x08,  // Segmentation fragment
-        PID_AX25_FLAG1: 0x10,  // AX.25 layer 3 implemented.
-        PID_AX25_FLAG2: 0x20,  // AX.25 layer 3 implemented.
-        PID_AX25_MASK: 0x30,  // AX.25 layer 3 implemented.
-        PID_TEXNET: 0xc3,  // TEXNET datagram protocol
-        PID_LQP: 0xc4,  // Link Quality Protocol
-        PID_APPLETALK: 0xca,  // Appletalk
-        PID_APPLETALK_ARP: 0xcb,  // Appletalk ARP
-        PID_ARPA_IP: 0xcc,  // ARPA Internet Protocol
-        PID_ARPA_ARP: 0xcd,  // ARPA Address Resolution
-        PID_FLEXNET: 0xce,  // FlexNet
-        PID_NETROM: 0xcf,  // NET/ROM
-        PID_NO_3: 0xf0,  // No layer 3 protocol implemented.
-        PID_ESCAPE: 0xff,  // Escape character. Next octet contains more Level 3 protocol information.
-
-        /**
-         * Frame identifiers
-         */
-        FID_NONE: 0,  // Not an ID
-        FID_C: 1,  // Layer 2 Connect Request
-        FID_SABM: 2,  // Layer 2 Connect Request
-        FID_D: 3,  // Layer 2 Disconnect Request
-        FID_DISC: 4,  // Layer 2 Disconnect Request
-        FID_I: 5,  // Information frame
-        FID_RR: 6,  // Receive Ready. System Ready To Receive
-        FID_RNR: 7,  // Receive Not Ready. TNC Buffer Full
-        FID_NR: 8,  // Receive Not Ready. TNC Buffer Full
-        FID_RJ: 9,  // Reject Frame. Out of Sequence or Duplicate
-        FID_REJ: 10,  // Reject Frame. Out of Sequence or Duplicate
-        FID_FRMR: 11,  // Frame Reject. Fatal Error
-        FID_UI: 12,  // Unnumbered Information Frame. "Unproto"
-        FID_DM: 13,  // Disconnect Mode. System Busy or Disconnected.
-
-        IFRAME: 0,
-        SFRAME: 1,
-        UFRAME: 2
-    };
-
 
     constructor(dest, src, rpts, ctrl, pid, info) {
         this.dest = dest;
@@ -324,42 +323,44 @@ const RXLEN= 4096;
  * Mode for AX-25 packet communications.
  *
  * Note:  apparently 4800s/s seems to be necessary for this to work on 1200baud
- *  
+ *
  * @see http://www.tapr.org/pub_ax25.html
- */    
+ */
 class PacketMode extends Mode {
-    
-    const props = {
-        name : "packet",
-        tooltip: "AX.25 and APRS",
-        controls : [
-            {
-            name: "rate",
-            type: "choice",
-            tooltip: "packet data rate",
-            get value() { return self.getRate(); },
-            set value(v) { self.setRate(parseFloat(v)); },
-            values : [
-                { name :  "300", value :  300.0 },
-                { name : "1200", value : 1200.0 }
-                ]
-            },
-            {
-            name: "shift",
-            type: "choice",
-            tooltip: "frequency distance between mark and space",
-            get value() { return self.getShift(); },
-            set value(v) { self.setShift(parseFloat(v)); },
-            values : [
-                { name :  "200", value :  200.0 },
-                { name : "1000", value : 1000.0 }
-                ]
-            }
-        ]
-    };
+
+    static props(tgt) {
+        return {
+          name : "packet",
+          tooltip: "AX.25 and APRS",
+          controls : [
+              {
+              name: "rate",
+              type: "choice",
+              tooltip: "packet data rate",
+              get value() { return tgt.getRate(); },
+              set value(v) { tgt.setRate(parseFloat(v)); },
+              values : [
+                  { name :  "300", value :  300.0 },
+                  { name : "1200", value : 1200.0 }
+                  ]
+              },
+              {
+              name: "shift",
+              type: "choice",
+              tooltip: "frequency distance between mark and space",
+              get value() { return tgt.getShift(); },
+              set value(v) { tgt.setShift(parseFloat(v)); },
+              values : [
+                  { name :  "200", value :  200.0 },
+                  { name : "1000", value : 1000.0 }
+                  ]
+              }
+          ]
+        };
+    }
 
     constructor(par) {
-        super(par, this.props, 4800.0);
+        super(par, PacketMode.props, 4800.0);
         this.setShift(200.0);
         this.setRate(300.0);
         this.state = RxStart;
@@ -371,8 +372,8 @@ class PacketMode extends Mode {
         this.lastBit = false;
     }
 
-    
-    
+
+
 
     /**
      * Attempt to decode a packet.  It will be in NRZI form, so when
@@ -383,7 +384,7 @@ class PacketMode extends Mode {
      *   flag    octet     octet   octet    fcs_hi   fcs_lo    flag
      */
     processBit(inBit) {
-    
+
         if (!this.isMiddleBit(inBit)) {
             return;
         }
@@ -393,7 +394,7 @@ class PacketMode extends Mode {
         this.octet = octet;
         let bit = (inBit === this.lastBit); //google "nrzi"
         this.lastBit = inBit;
-        if (bit) 
+        if (bit)
             { this.ones += 1 ; octet |= 128; }
         else
             this.ones = 0;
@@ -441,7 +442,7 @@ class PacketMode extends Mode {
 
             case RxFlag1 :
                 //trace("RxFlag");
-                if (bit) { //was really a 6th bit. 
+                if (bit) { //was really a 6th bit.
                     this.state = RxFlag2;
                 } else { //was a zero.  drop it and continue
                     octet = (octet << 1) & 0xfe;
@@ -456,13 +457,13 @@ class PacketMode extends Mode {
                     this.rxbuf[rdx] = 0;
                 this.state = RxStart;
                 break;
-            
+
             default :
                 //dont know
-                   
+
         }//switch
     }
-    
+
 
     rawPacket(ibytes, offset, len) {
         let str = "";
@@ -471,8 +472,8 @@ class PacketMode extends Mode {
             str += String.fromCharCode(b);
         }
         return str;
-    }        
-    
+    }
+
     processPacket(data, len) {
 
         //trace("raw:" + len)
@@ -541,7 +542,7 @@ class PacketMode extends Mode {
             }
         buf.toSeq
         }
-    
+
     def txnext : Seq[Int] =
         {
         //var str = "the quick brown fox 1a2b3c4d"
@@ -549,8 +550,8 @@ class PacketMode extends Mode {
         var codes = txencode(str)
         codes
         }
-    
-    
+
+
     private var desiredOutput = 4096;
 
     /o*
@@ -559,7 +560,7 @@ class PacketMode extends Mode {
      * of sampled audio data at its sample rate.  If the
      * mode has no current data, then it should send padding
      * in the form of what is considered to be an "idle" signal
-     o/                             
+     o/
     override def transmit : Option[Array[Complex]] =
         {
         var symbollen = samplesPerSymbol.toInt
@@ -568,7 +569,7 @@ class PacketMode extends Mode {
         for (code <- codes)
             {
             for (i <- 0 until symbollen) buf += spaceFreq
-            var mask = 1 
+            var mask = 1
             for (i <- 0 until 5)
                 {
                 var bit = (code & mask) == 0
@@ -578,19 +579,16 @@ class PacketMode extends Mode {
                 }
             for (i <- 0 until symbollen) buf += spaceFreq
             }
-        
+
         var pad = desiredOutput - buf.size
         for (i <- 0 until pad)
             buf += spaceFreq
         //var res = buf.toArray.map(txFilter.update)
         None
     }
-    
+
     */
 
 }
 
 export {Crc,PacketMode};
-
-
-

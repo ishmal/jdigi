@@ -28,7 +28,7 @@ class Mode {
 
     constructor(par, props, sampleRateHint) {
         this.par = par;
-        this.properties = props;
+        this.properties = props(this);
         this._frequency = 1000;
         this.decimation = Math.floor(par.getSampleRate() / sampleRateHint);
         this.sampleRate = par.getSampleRate() / this._decimation;
@@ -78,7 +78,7 @@ class Mode {
        this.hiBin = ((freq+bw*0.707) / binWidth) | 0;
        //console.log("afc: " + loBin + "," + freqBin + "," + hiBin);
     }
-    
+
 
      computeAfc(ps) {
        let sum = 0;
@@ -116,7 +116,7 @@ class Mode {
     //#######################
     //# R E C E I V E
     //#######################
-    
+
     receiveFft(ps) {
         if (useAfc) {
             this.computeAfc(ps);
@@ -140,14 +140,14 @@ class Mode {
     receive(v) {
     }
 
-    
+
     //#######################
     //# T R A N S M I T
     //#######################
-    
+
 
     getTransmitData() {
-    
+
         //output buffer empty?
         if (this.optr >= this.decimation) {
             //input buffer empty?
@@ -172,4 +172,3 @@ class Mode {
 }
 
 export {Mode};
-
