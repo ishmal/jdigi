@@ -29,8 +29,8 @@ class Watcher {
         this.prefix = "([A-Z]{1,2}|[0-9][A-Z]|[A-Z][0-9])";
         this.digits = "([0-9])";
         this.suffix = "(F[A-Z]{3}|[A-Z]{1,3})";  //note:  Fxxx is australian
-        this.call = prefix + digits + suffix;
-        this.spot = "[^a-z0-9](?:de|cq)\\s+(" + call + ")[^a-z0-9]";
+        this.call = this.prefix + this.digits + this.suffix;
+        //this.spot = "[^a-z0-9](?:de|cq)\\s+(" + call + ")[^a-z0-9]";
         //var spot2 = "\\s+(" + call + ")\\s+[Kk]\\s";
         //var spot3 = "\\s+(" + call + ")\\s+[Cc][Qq]";
         //var spot = spot1 + "|" + spot2 + "|" + spot3;
@@ -75,16 +75,14 @@ class Watcher {
         let rgx = new RegExp(spot, "ig");
         for (let res = rgx.exec(str); res !== null; res = rgx.exec(str)) {
             let mode = this.par.getMode();
-            let name = mode.properties.name;
-            let rate = mode.getRate();
             let call = {
                 call: res[1].toLowerCase(),
                 prefix: res[2].toLowerCase(),
                 digit: res[3],
                 suffix: res[4].toLowerCase(),
-                freq: par.getFrequency(),
-                mode: name,
-                rate: rate,
+                freq: this.par.getFrequency(),
+                mode: mode.properties.name,
+                rate: mode.rate,
                 ts: new Date() //timestamp
             };
             this.check(call);

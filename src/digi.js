@@ -87,11 +87,11 @@ export function Digi() {
     };
 
     this.setFrequency = function (freq, setTuner) {
-        mode.setFrequency(freq);
+        mode.frequency = freq;
     };
 
     this.getFrequency = function () {
-        return mode.getFrequency();
+        return mode.frequency;
     };
 
     this.getUseAfc = function () {
@@ -102,10 +102,10 @@ export function Digi() {
     };
 
     this.getUseQrz = function () {
-        return watcher.getUseQrz();
+        return watcher.useQrz;
     };
     this.setUseQrz = function (v) {
-        watcher.setUseQrz(v);
+        watcher.useQrz = v;
     };
 
     var txmode = false;
@@ -115,11 +115,11 @@ export function Digi() {
     this.setTxMode = function (v) {
         txmode = v;
         if (v) {
-            audioInput.setEnabled(false);
-            audioOutput.setEnabled(true);
+            audioInput.enabled = false;
+            audioOutput.enabled = true;
         } else {
-            audioInput.setEnabled(true);
-            audioOutput.setEnabled(false);
+            audioInput.enabled = true;
+            audioOutput.enabled = false;
         }
     };
 
