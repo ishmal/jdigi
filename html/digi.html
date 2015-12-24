@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Fldigi interface</title>
+<script src="https://code.jquery.com/jquery-1.11.3.min.js"></script>
+<script src="https://code.jquery.com/jquery-migrate-1.2.1.min.js"></script>
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css"
+integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7"
+ crossorigin="anonymous">
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap-theme.min.css"
+integrity="sha384-fLW2N01lMqjakBkx3l/M9EahuwpSfeNvV63J5ezn3uZzapT0u7EYsXMjQV+0En5r"
+crossorigin="anonymous">
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"
+ integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS"
+ crossorigin="anonymous"></script>
+
+<style>
+
+#main {
+    display: flex;
+    flex-direction: column;
+    background-color: gray;
+    width: 100%;
+    height: 500px;
+}
+
+#waterfall {
+    background-color: midnightblue;
+    width: 100%;
+    height: 20%;
+}
+
+#toolbar {
+    display: flex;
+    background-color: cyan;
+    width: 100%;
+}
+
+#console {
+    display: flex;
+    flex-direction: column;
+    background-color: green;
+    width: 100%;
+    height: 50%;
+}
+
+#input {
+    background-color: pink;
+    width: 100%;
+    height: 50%;
+}
+
+#output {
+    background-color: red;
+    width: 100%;
+    height: 50%;
+}
+
+</style>
+
+</head>
+
+<body>
+<div id="main">
+<div id="waterfall">
+
+</div>
+<div id="toolbar">
+  <button type="button" class="btn btn-primary" data-toggle="button" aria-pressed="false" autocomplete="off">
+    TX
+  </button>
+</div><!-- toolbar -->
+
+<div id="console">
+<div id="output">
+
+</div>
+
+<div id="input">
+
+</div>
+</div><!-- console -->
+
+
+</div><!-- main -->
+</body>
+
+</html>
