@@ -1,60 +1,115 @@
-var babelify = require('babelify');
-var browserify = require('browserify');
-var buffer = require('vinyl-buffer');
-var concat = require('gulp-concat');
 var gulp = require('gulp');
-var jshint = require("gulp-jshint");
-var rimraf = require("gulp-rimraf");
-var source = require('vinyl-source-stream');
-var sourcemaps = require('gulp-sourcemaps');
-var mocha = require('gulp-mocha');
-
-/*
-gulp.task('build', function() {
-    var bundler = browserify('./src/index.js', { debug: true }).transform(babelify.configure({compact: false}));
-    bundler.bundle()
-      .on('error', function(err) { console.error(err); this.emit('end'); })
-      .pipe(source('jdigi.js'))
-      .pipe(buffer())
-      .pipe(sourcemaps.init({ loadMaps: true }))
-      .pipe(sourcemaps.write('./'))
-      .pipe(gulp.dest('./dist'));
-});
-*/
-
-gulp.task('build', function() {
-    var bundler = browserify('./src/index.js', { debug: true }).transform(babelify);
-    bundler.bundle()
-      .on('error', function(err) { console.error(err); this.emit('end'); })
-      .pipe(source('jdigi.js'))
-      .pipe(buffer())
-      .pipe(sourcemaps.init({ loadMaps: true }))
-      .pipe(sourcemaps.write('./'))
-      .pipe(gulp.dest('./dist'));
+var ts = require('gulp-typescript');
+var gutil = require("gulp-util");
+var rimraf = require('rimraf');
+var browserSync = require('browser-sync');
+var webpack = require('webpack');
+var jshint = require('gulp-jshint');
+var gulp   = require('gulp');
+ 
+gulp.task('lint', function() {
+  return gulp.src('./lib/*.js')
+    .pipe(jshint({esnext: true}))
+    .pipe(jshint.reporter('default'));
 });
 
-gulp.task('jshint', function() {
-    return gulp.src('src/**/*.js')
-        .pipe(jshint({esnext : true}))
-        .pipe(jshint.reporter('default'))
+// in order for project-based gulp-typescript to work, you MUST create the project
+// outside of a task...
+var tsProject = ts.createProject('tsconfig.json');
+
+gulp.task('setup', function(done) {
+    gulp.src(['node_modules/angular2/**/*'], {base: "node_modules/angular2"} )
+      .pipe(gulp.dest('web/lib/angular2'));
+    gulp.src(['node_modules/reflect-metadata/**/*'], {base: "node_modules/reflect-metadata"} )
+      .pipe(gulp.dest('web/lib/reflect-metadata'));
+    gulp.src(['node_modules/es6-shim/**/*'], {base: "node_modules/es6-shim"} )
+      .pipe(gulp.dest('web/lib/es6-shim'));
+    gulp.src(['node_modules/es6-promise/**/*'], {base: "node_modules/es6-promise"} )
+        .pipe(gulp.dest('web/lib/es6-promise'));
+    gulp.src(['node_modules/systemjs/**/*'], {base: "node_modules/systemjs"} )
+        .pipe(gulp.dest('web/lib/systemjs'));
+    gulp.src(['node_modules/bootstrap/**/*'], {base: "node_modules/bootstrap"} )
+        .pipe(gulp.dest('web/lib/bootstrap'));
+    gulp.src(['node_modules/jquery/**/*'], {base: "node_modules/jquery"} )
+        .pipe(gulp.dest('web/lib/jquery'));
+    gulp.src(['node_modules/rxjs/**/*'], {base: "node_modules/rxjs"} )
+        .pipe(gulp.dest('web/lib/rxjs'));
 });
 
-gulp.task('mocha', function() {
-    return gulp.src('test/**/test*.js')
-        .pipe(jshint())
-        .pipe(mocha({reporter: 'spec'}));
+gulp.task('assets', function() {
+  gulp.src(['./uisrc/**/*.json', './uisrc/**/*.html', './uisrc/**/*.css', './uisrc/**/*.png'])
+    .pipe(gulp.dest('./web'));
 });
 
-gulp.task('copy', function() {
-    return gulp.src('./html/**')
-        .pipe(gulp.dest('./dist'));
+gulp.task('ts', function(done) {
+  //var tsResult = tsProject.src()
+  var tsResult = gulp.src([
+      "uisrc/**/*.ts",
+      "typings/**/*.d.ts"
+    ])
+    .pipe(ts(tsProject), undefined, ts.reporter.fullReporter(true));
+  return tsResult.js.pipe(gulp.dest('web'));
 });
 
-gulp.task('clean', function () {
-    gulp.src('build/*', {read: false}).pipe(rimraf());
-    gulp.src('dist/*', {read: false}).pipe(rimraf());
-    gulp.src('tmp/*', {read: false}).pipe(rimraf());
+gulp.task('watch', ['watch.assets', 'watch.ts', 'watch.web']);
+
+gulp.task('watch.assets', ['assets'], function() {
+  return gulp.watch(['./uisrc/**/*.json', './uisrc/**/*.html', './uisrc/**/*.css'], [
+    'assets'
+  ]);
 });
 
-gulp.task('default', ['build', 'copy']);
-gulp.task('test', ['jshint', 'mocha'])
+gulp.task('watch.ts', ['ts'], function() {
+  return gulp.watch('uisrc/**/*.ts', ['ts']);
+});
+
+gulp.task('watch.web', function() {
+
+});
+
+gulp.task("webpack", function(callback) {
+
+    var config = {
+    	context: __dirname + "/lib",
+        entry: './digi',
+		output: {
+			path: __dirname + "/web/lib",
+			filename: 'bundle.js'
+		},
+		module: {
+			loaders: [
+				{ 
+					test: /\.js$/,
+			  		loader: 'babel-loader',
+			  		query: {
+			  		 	plugins: ['transform-runtime'],
+			  			presets: [ 'es2015' ]
+			  		}
+			  	}
+			]
+		}
+	};
+	
+    webpack(config, function(err, stats) {
+        if(err) throw new gutil.PluginError("webpack", err);
+        gutil.log("[webpack]", stats.toString({
+            // output options
+        }));
+        callback();
+    });
+    
+});
+
+gulp.task('webserver', function() {
+    browserSync({
+        server: {
+            baseDir: "./web/"
+        }
+    });
+});
+
+gulp.task('clean', function(cb) {
+  rimraf("./web", { force: true }, cb);
+});
+
+gulp.task('default', ['setup', 'webserver', 'watch']);
