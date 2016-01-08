@@ -1,0 +1,48 @@
+<div id='content'>
+     <jdigi-tuner></jdigi-tuner>
+     <div id="toolbar">
+        <button type="button" class="btn btn-primary btn-sm" ng-class="{btnselect:toolbar.tx}" ng-model="toolbar.tx"
+                btn-checkbox btn-checkbox-true="true" btn-checkbox-false="false"
+                tooltip="Toggle Tx/Rx" tooltip-placement="right">Tx</button>
+        <button type="button" class="btn btn-primary btn-sm" ng-class="{btnselect:toolbar.afc}" ng-model="toolbar.afc"
+                btn-checkbox btn-checkbox-true="true" btn-checkbox-false="false"
+                tooltip="aids centering on a signal" tooltip-placement="right">AFC</button>
+        <button type="button" class="btn btn-primary btn-sm" ng-class="{btnselect:toolbar.qrz}" ng-model="toolbar.qrz"
+                btn-checkbox btn-checkbox-true="true" btn-checkbox-false="false"
+                tooltip="Show QRZ.com page for callsigns" tooltip-placement="right">QRZ</button>
+        <span>Jdigi  <a target="_new" href="http://github.com/ishmal/jdigi">http://github.com/ishmal/jdigi</a></span>
+    </div>
+	<tabset>
+	    <tab ng-repeat="mode in modes" heading="{{mode.properties.name}}" select="changeMode(mode)">
+			<span ng-repeat="control in mode.properties.controls" ng-switch="control.type">
+				<span ng-switch-when="boolean">
+					<button type="button" class="btn btn-primary btn-sm"
+                            ng-model="control.value" ng-class="{btnselect:control.value}"
+						    btn-checkbox btn-checkbox-true="true" btn-checkbox-false="false">
+						{{control.name}}
+					</button>
+				</span>
+				<span ng-switch-when="choice">
+				    {{control.name}}
+					<span class="btn-group">
+						 <button class="btn btn-primary btn-sm" ng-repeat="v in control.values"
+						     ng-model="control.value" ng-class="{btnselect:control.value==v.value}"
+                             btn-radio="v.value">{{v.name}}</button>
+					</span>
+				</span>
+			</span>
+		</tab>
+	</tabset>
+	<jdigi-status></jdigi-status>
+	<jdigi-input></jdigi-input>
+	<jdigi-output></jdigi-output>
+</div>
+
+
+<br />
+
+<p>
+NOTE: You can select the audio input source on Firefox when it asks permission. You can <b>also</b> select
+the input source on Chrome by going to chrome://settings/content .
+</p>
+
