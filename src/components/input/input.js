@@ -9,27 +9,27 @@ System.register(['angular2/core'], function(exports_1) {
         if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
     };
     var core_1;
-    var Status;
+    var Input;
     return {
         setters:[
             function (core_1_1) {
                 core_1 = core_1_1;
             }],
         execute: function() {
-            Status = (function () {
-                function Status() {
+            Input = (function () {
+                function Input() {
                 }
-                Status = __decorate([
+                Input = __decorate([
                     core_1.Component({
-                        selector: 'status',
-                        template: '<h5>Status</h5>'
+                        selector: 'jdigi-input',
+                        template: '<h5>Input</h5>'
                     }), 
                     __metadata('design:paramtypes', [])
-                ], Status);
-                return Status;
+                ], Input);
+                return Input;
             })();
-            exports_1("Status", Status);
+            exports_1("Input", Input);
         }
     }
 });
-//# sourceMappingURL=status.js.map
+//# sourceMappingURL=input.js.map

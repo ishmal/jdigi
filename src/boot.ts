@@ -1,7 +1,7 @@
 import {bootstrap} from 'angular2/platform/browser'
 
 import {AppComponent} from './components/app/app'
-import {Digi} from './services/digi';
+import {DigiService} from './services/digiservice';
 
-bootstrap(AppComponent, [Digi]);
+bootstrap(AppComponent, [DigiService]);
 

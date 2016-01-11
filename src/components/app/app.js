@@ -1,4 +1,4 @@
-System.register(['angular2/core'], function(exports_1) {
+System.register(['angular2/core', '../tuner/tuner', '../input/input', '../output/output', '../status/status'], function(exports_1) {
     var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
         var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
         if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
@@ -8,28 +8,41 @@ System.register(['angular2/core'], function(exports_1) {
     var __metadata = (this && this.__metadata) || function (k, v) {
         if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
     };
-    var core_1;
-    var Input;
+    var core_1, tuner_1, input_1, output_1, status_1;
+    var AppComponent;
     return {
         setters:[
             function (core_1_1) {
                 core_1 = core_1_1;
+            },
+            function (tuner_1_1) {
+                tuner_1 = tuner_1_1;
+            },
+            function (input_1_1) {
+                input_1 = input_1_1;
+            },
+            function (output_1_1) {
+                output_1 = output_1_1;
+            },
+            function (status_1_1) {
+                status_1 = status_1_1;
             }],
         execute: function() {
-            Input = (function () {
-                function Input() {
+            AppComponent = (function () {
+                function AppComponent() {
                 }
-                Input = __decorate([
+                AppComponent = __decorate([
                     core_1.Component({
-                        selector: 'input',
-                        template: '<h5>Input</h5>'
+                        selector: 'jdigi-app',
+                        directives: [tuner_1.Tuner, input_1.Input, output_1.Output, status_1.Status],
+                        templateUrl: './components/app/app.html'
                     }), 
                     __metadata('design:paramtypes', [])
-                ], Input);
-                return Input;
+                ], AppComponent);
+                return AppComponent;
             })();
-            exports_1("Input", Input);
+            exports_1("AppComponent", AppComponent);
         }
     }
 });
-//# sourceMappingURL=input.js.map
+//# sourceMappingURL=app.js.map

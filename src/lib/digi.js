@@ -29,9 +29,32 @@ import {Watcher} from "./watch";
 
 
 /**
+ * Interface for a text output widget, which the UI should overload
+ */
+export class OutText {
+    clear() {
+    }
+
+    putText() {
+    }
+}
+
+/**
+ * Interface for a test input widget, which the UI should overload
+ */
+export class InText {
+    clear() {
+    }
+
+    getText() {
+    }
+}
+
+
+/**
  * This is the top-level GUI-less app.  Extend this with a GUI.
  */
-class Digi {
+export class Digi {
 
 
     constructor() {
@@ -50,21 +73,8 @@ class Digi {
         this.modes = [this.pskMode, this.rttyMode, this.packetMode, this.navtexMode];
 
         this._tuner = new Tuner();
-
-        this._outtext = {
-            clear: function (str) {
-            },
-            puttext: function (str) {
-            }
-        };
-
-        this._intext = {
-            clear: function (str) {
-            },
-            gettext: function (str) {
-                return "";
-            }
-        };
+        this._outtext = new OutText();
+        this._intext = new InText();
 
         setupReceive();
     }
@@ -189,15 +199,19 @@ class Digi {
      * Make this an interface, so we can add things later.
      * Let the GUI override this.
      */
-    get outtext() {
+    get outText() {
         return this._outtext;
+    }
+
+    set outText(val) {
+        this._outtext = val;
     }
 
     /**
      * Output text to the gui
      */
-    puttext(str) {
-        this.outtext.puttext(str);
+    putText(str) {
+        this._outtext.putText(str);
         watcher.update(str);
     }
 
@@ -205,15 +219,19 @@ class Digi {
      * Make this an interface, so we can add things later.
      * Let the GUI override this.
      */
-    get intext() {
+    get inText() {
       return this._intext;
     }
 
+    set inText(val) {
+        this._intext = val;
+    }
+
     /**
-     * Output text to the gui
+     * Input text from the gui
      */
-    gettext() {
-        return this._intext.gettext();
+    getText() {
+        return this._intext.getText();
     }
 
     clear() {

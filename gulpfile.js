@@ -5,19 +5,16 @@ var rimraf = require('rimraf');
 var browserSync = require('browser-sync');
 var webpack = require('webpack');
 var jshint = require('gulp-jshint');
-var gulp   = require('gulp');
+
  
 gulp.task('lint', function() {
-  return gulp.src('./lib/*.js')
+  return gulp.src('./src/lib/*.js')
     .pipe(jshint({esnext: true}))
     .pipe(jshint.reporter('default'));
 });
 
-// in order for project-based gulp-typescript to work, you MUST create the project
-// outside of a task...
-var tsProject = ts.createProject('tsconfig.json');
 
-gulp.task('setup', function(done) {
+gulp.task('copylibs', function(done) {
     gulp.src(['node_modules/angular2/**/*'], {base: "node_modules/angular2"} )
       .pipe(gulp.dest('web/lib/angular2'));
     gulp.src(['node_modules/reflect-metadata/**/*'], {base: "node_modules/reflect-metadata"} )
@@ -37,14 +34,18 @@ gulp.task('setup', function(done) {
 });
 
 gulp.task('assets', function() {
-  gulp.src(['./uisrc/**/*.json', './uisrc/**/*.html', './uisrc/**/*.css', './uisrc/**/*.png'])
+  gulp.src(['./src/**/*.json', './src/**/*.html', './src/**/*.css', './src/**/*.png'])
     .pipe(gulp.dest('./web'));
 });
+
+// in order for project-based gulp-typescript to work, you MUST create the project
+// outside of a task...
+var tsProject = ts.createProject('tsconfig.json');
 
 gulp.task('ts', function(done) {
   //var tsResult = tsProject.src()
   var tsResult = gulp.src([
-      "uisrc/**/*.ts",
+      "src/**/*.ts",
       "typings/**/*.d.ts"
     ])
     .pipe(ts(tsProject), undefined, ts.reporter.fullReporter(true));
@@ -54,13 +55,13 @@ gulp.task('ts', function(done) {
 gulp.task('watch', ['watch.assets', 'watch.ts', 'watch.web']);
 
 gulp.task('watch.assets', ['assets'], function() {
-  return gulp.watch(['./uisrc/**/*.json', './uisrc/**/*.html', './uisrc/**/*.css'], [
+  return gulp.watch(['./src/**/*.json', './src/**/*.html', './src/**/*.css'], [
     'assets'
   ]);
 });
 
 gulp.task('watch.ts', ['ts'], function() {
-  return gulp.watch('uisrc/**/*.ts', ['ts']);
+  return gulp.watch('src/**/*.ts', ['ts']);
 });
 
 gulp.task('watch.web', function() {
@@ -70,26 +71,22 @@ gulp.task('watch.web', function() {
 gulp.task("webpack", function(callback) {
 
     var config = {
-    	context: __dirname + "/lib",
-        entry: './digi',
-		output: {
-			path: __dirname + "/web/lib",
-			filename: 'bundle.js'
-		},
-		module: {
-			loaders: [
-				{ 
-					test: /\.js$/,
-			  		loader: 'babel-loader',
-			  		query: {
-			  		 	plugins: ['transform-runtime'],
-			  			presets: [ 'es2015' ]
-			  		}
-			  	}
-			]
-		}
-	};
-	
+        context: __dirname + "/src",
+        entry: './boot',
+        output: {
+            path: __dirname + "/web/lib",
+            filename: 'app.bundle.js'
+        },
+        module: {
+            loaders: [
+                {
+                    test: /\.ts$/,
+                    loader: 'ts-loader'
+                }
+            ]
+        }
+    };
+
     webpack(config, function(err, stats) {
         if(err) throw new gutil.PluginError("webpack", err);
         gutil.log("[webpack]", stats.toString({
@@ -97,7 +94,40 @@ gulp.task("webpack", function(callback) {
         }));
         callback();
     });
-    
+
+});
+
+gulp.task("webpack-lib", function(callback) {
+
+    var config = {
+        context: __dirname + "/src/lib",
+        entry: './digi',
+        output: {
+            path: __dirname + "/web/lib",
+            filename: 'libdigi.js'
+        },
+        module: {
+            loaders: [
+                {
+                    test: /\.js$/,
+                    loader: 'babel-loader',
+                    query: {
+                        plugins: ['transform-runtime'],
+                        presets: [ 'es2015' ]
+                    }
+                }
+            ]
+        }
+    };
+
+    webpack(config, function(err, stats) {
+        if(err) throw new gutil.PluginError("webpack", err);
+        gutil.log("[webpack]", stats.toString({
+            // output options
+        }));
+        callback();
+    });
+
 });
 
 gulp.task('webserver', function() {
@@ -108,8 +138,10 @@ gulp.task('webserver', function() {
     });
 });
 
+gulp.task('build', ['copylibs', 'webpack', 'ts']);
+
 gulp.task('clean', function(cb) {
   rimraf("./web", { force: true }, cb);
 });
 
-gulp.task('default', ['setup', 'webserver', 'watch']);
+gulp.task('default', ['build', 'webserver', 'watch']);

@@ -9,27 +9,27 @@ System.register(['angular2/core'], function(exports_1) {
         if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
     };
     var core_1;
-    var AppComponent;
+    var Tuner;
     return {
         setters:[
             function (core_1_1) {
                 core_1 = core_1_1;
             }],
         execute: function() {
-            AppComponent = (function () {
-                function AppComponent() {
+            Tuner = (function () {
+                function Tuner() {
                 }
-                AppComponent = __decorate([
+                Tuner = __decorate([
                     core_1.Component({
-                        selector: 'my-app',
-                        template: '<h1>My First Angular 2 App</h1>'
+                        selector: 'jdigi-tuner',
+                        template: "<canvas class='jdigi-tuner' width='800px' height='250px'></canvas>"
                     }), 
                     __metadata('design:paramtypes', [])
-                ], AppComponent);
-                return AppComponent;
+                ], Tuner);
+                return Tuner;
             })();
-            exports_1("AppComponent", AppComponent);
+            exports_1("Tuner", Tuner);
         }
     }
 });
-//# sourceMappingURL=app.js.map
+//# sourceMappingURL=tuner.js.map
