@@ -3,6 +3,10 @@
   "version": "1.0.0",
   "scripts": {},
   "license": "ISC",
+  "repository" : {
+    "type" : "git",
+    "url" : "https://github.com/ishmal/jdigi.git"
+  },
   "dependencies": {
     "angular2": "2.0.0-beta.0",
     "babel-runtime": "^6.3.19",

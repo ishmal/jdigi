@@ -1,5 +1,5 @@
 
-import {Digi} from './../lib/digi';
+import {Digi} from '../lib/digi';
 
 /**
  * Simple service to allow all components to get
