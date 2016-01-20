@@ -3,9 +3,9 @@
   "version": "1.0.0",
   "scripts": {},
   "license": "ISC",
-  "repository" : {
-    "type" : "git",
-    "url" : "https://github.com/ishmal/jdigi.git"
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ishmal/jdigi.git"
   },
   "dependencies": {
     "angular2": "2.0.0-beta.0",
@@ -13,6 +13,7 @@
     "bootstrap": "^3.3.6",
     "es6-promise": "^3.0.2",
     "es6-shim": "^0.33.13",
+    "jsdigi": "git+https://github.com/ishmal/jsdigi.git",
     "reflect-metadata": "0.1.2",
     "rxjs": "5.0.0-beta.0",
     "systemjs": "0.19.6",

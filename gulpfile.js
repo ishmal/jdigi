@@ -97,39 +97,6 @@ gulp.task("webpack", function(callback) {
 
 });
 
-gulp.task("webpack-lib", function(callback) {
-
-    var config = {
-        context: __dirname + "/src/lib",
-        entry: './digi',
-        output: {
-            path: __dirname + "/web/lib",
-            filename: 'libdigi.js'
-        },
-        module: {
-            loaders: [
-                {
-                    test: /\.js$/,
-                    loader: 'babel-loader',
-                    query: {
-                        plugins: ['transform-runtime'],
-                        presets: [ 'es2015' ]
-                    }
-                }
-            ]
-        }
-    };
-
-    webpack(config, function(err, stats) {
-        if(err) throw new gutil.PluginError("webpack", err);
-        gutil.log("[webpack]", stats.toString({
-            // output options
-        }));
-        callback();
-    });
-
-});
-
 gulp.task('webserver', function() {
     browserSync({
         server: {

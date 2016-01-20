@@ -1,5 +1,5 @@
-
-import {Digi} from '../lib/digi';
+'use strict';
+import jsdigi = require('jsdigi');
 
 /**
  * Simple service to allow all components to get
@@ -7,13 +7,13 @@ import {Digi} from '../lib/digi';
  */
 export class DigiService {
 
-    private _digi: Digi;
+    private _digi: jsdigi.Digi;
 
     constructor() {
-        this._digi = new Digi();
+        this._digi = new jsdigi.Digi();
     }
 
-    get digi(): Digi {
+    get digi(): jsdigi.Digi {
         return this._digi;
     }
 }

@@ -11,8 +11,5 @@
   },
   "exclude": [
     "node_modules"
-  ],
-  "files": [
-    "typings/digi.d.ts"
   ]
 }
