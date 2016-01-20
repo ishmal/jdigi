@@ -1,4 +1,4 @@
-web
+
 
 .DS_Store
 node_modules
@@ -11,6 +11,9 @@ tmp
 *.bak
 gulp-debug.bat
 
-
+### Bob
+web
+src/**/*.js
+src/**/*.map
 
 

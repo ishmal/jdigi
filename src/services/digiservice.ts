@@ -1,5 +1,4 @@
-'use strict';
-import jsdigi = require('jsdigi');
+import {Digi} from '../lib/digi';
 
 /**
  * Simple service to allow all components to get

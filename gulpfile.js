@@ -6,7 +6,7 @@ var browserSync = require('browser-sync');
 var webpack = require('webpack');
 var jshint = require('gulp-jshint');
 
- 
+
 gulp.task('lint', function() {
   return gulp.src('./src/lib/*.js')
     .pipe(jshint({esnext: true}))
@@ -45,8 +45,8 @@ var tsProject = ts.createProject('tsconfig.json');
 gulp.task('ts', function(done) {
   //var tsResult = tsProject.src()
   var tsResult = gulp.src([
-      "src/**/*.ts",
-      "typings/**/*.d.ts"
+      "typings/**/*.d.ts",
+      "src/**/*.ts"
     ])
     .pipe(ts(tsProject), undefined, ts.reporter.fullReporter(true));
   return tsResult.js.pipe(gulp.dest('web'));
@@ -68,35 +68,6 @@ gulp.task('watch.web', function() {
 
 });
 
-gulp.task("webpack", function(callback) {
-
-    var config = {
-        context: __dirname + "/src",
-        entry: './boot',
-        output: {
-            path: __dirname + "/web/lib",
-            filename: 'app.bundle.js'
-        },
-        module: {
-            loaders: [
-                {
-                    test: /\.ts$/,
-                    loader: 'ts-loader'
-                }
-            ]
-        }
-    };
-
-    webpack(config, function(err, stats) {
-        if(err) throw new gutil.PluginError("webpack", err);
-        gutil.log("[webpack]", stats.toString({
-            // output options
-        }));
-        callback();
-    });
-
-});
-
 gulp.task('webserver', function() {
     browserSync({
         server: {
@@ -105,7 +76,7 @@ gulp.task('webserver', function() {
     });
 });
 
-gulp.task('build', ['copylibs', 'webpack', 'ts']);
+gulp.task('build', ['copylibs', 'ts']);
 
 gulp.task('clean', function(cb) {
   rimraf("./web", { force: true }, cb);

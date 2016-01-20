@@ -9,7 +9,19 @@
     "removeComments": false,
     "noImplicitAny": false
   },
-  "exclude": [
-    "node_modules"
-  ]
+  "filesGlob": [
+    "./typings/*.ts",
+    "./src/*.ts",
+    "!./node_modules/**/*.ts",
+    "!./web/**/*.ts"
+  ],
+  "files": [
+    "./typings/MediaStream.d.ts",
+    "./typings/webaudio.d.ts",
+    "./src/boot.ts"
+  ],
+  "exclude": [],
+  "atom": {
+    "rewriteTsconfig": true
+  }
 }
