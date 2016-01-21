@@ -102,14 +102,24 @@ export class Mode {
         this.par.status(this.properties.name + " : " + msg);
     }
 
-    set rate(v) {
-        this._rate = v;
-        this.adjustAfc();
-        this.status("Fs: " + this.par.sampleRate + " rate: " + v +
-            " sps: " + this.samplesPerSymbol);
+    /**
+     * There is a known bug in Typescript that will not allow
+     * calling a super property setter.  The work around is to delegate
+     * the setting to s parent class method, and override that.  This
+     * works in ES6.
+     */
+    _setRate(v: number) {
+      this._rate = v;
+      this.adjustAfc();
+      this.status("Fs: " + this.par.sampleRate + " rate: " + v +
+          " sps: " + this.samplesPerSymbol);
     }
 
-    get rate() {
+    set rate(v: number) {
+      this._setRate(v);
+    }
+
+    get rate(): number {
         return this._rate;
     }
 
@@ -174,4 +184,3 @@ export class Mode {
     }
 
 }
-

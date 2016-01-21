@@ -16,6 +16,8 @@
     "!./web/**/*.ts"
   ],
   "files": [
+    "./typings/MediaStream.d.ts",
+    "./typings/webaudio.d.ts",
     "./src/boot.ts"
   ],
   "exclude": [],

@@ -157,7 +157,7 @@ function newFilter(size, coeffs) {
 
 export class FIR {
 
-      static average(size: number, window: Window): Filter {
+      static average(size: number, window?: Window): Filter {
           let omega = 1.0 / size;
           let coeffs = genCoeffs(size, window, function (i) {
               return omega;
@@ -165,14 +165,14 @@ export class FIR {
           return (size === 13) ? newFilter13(coeffs) : newFilter(size, coeffs);
       }
 
-      static boxcar(size: number, window: Window): Filter {
+      static boxcar(size: number, window?: Window): Filter {
           let coeffs = genCoeffs(size, window, function (i) {
               return 1.0;
           });
           return (size === 13) ? newFilter13(coeffs) : newFilter(size, coeffs);
       }
 
-      static lowpass(size: number, cutoffFreq: number, sampleRate: number, window: Window) {
+      static lowpass(size: number, cutoffFreq: number, sampleRate: number, window?: Window) {
           let omega = 2.0 * Math.PI * cutoffFreq / sampleRate;
           let coeffs = genCoeffs(size, window, function (i) {
               return (i === 0) ? omega / Math.PI : Math.sin(omega * i) / (Math.PI * i);
@@ -180,7 +180,7 @@ export class FIR {
           return (size === 13) ? newFilter13(coeffs) : newFilter(size, coeffs);
       }
 
-      static highpass(size: number, cutoffFreq: number, sampleRate: number, window: Window) {
+      static highpass(size: number, cutoffFreq: number, sampleRate: number, window?: Window) {
           let omega = 2.0 * Math.PI * cutoffFreq / sampleRate;
           let coeffs = genCoeffs(size, window, function (i) {
               return (i === 0) ? 1.0 - omega / Math.PI : -Math.sin(omega * i) / (Math.PI * i);
@@ -188,7 +188,7 @@ export class FIR {
           return (size === 13) ? newFilter13(coeffs) : newFilter(size, coeffs);
       }
 
-      static bandpass(size: number, loCutoffFreq: number, hiCutoffFreq: number, sampleRate: number, window: Window) {
+      static bandpass(size: number, loCutoffFreq: number, hiCutoffFreq: number, sampleRate: number, window?: Window) {
           let omega1 = 2.0 * Math.PI * hiCutoffFreq / sampleRate;
           let omega2 = 2.0 * Math.PI * loCutoffFreq / sampleRate;
           let coeffs = genCoeffs(size, window, function (i) {
@@ -198,7 +198,7 @@ export class FIR {
           return (size === 13) ? newFilter13(coeffs) : newFilter(size, coeffs);
       }
 
-      static bandreject(size: number, loCutoffFreq: number, hiCutoffFreq: number, sampleRate: number, window: Window) {
+      static bandreject(size: number, loCutoffFreq: number, hiCutoffFreq: number, sampleRate: number, window?: Window) {
           let omega1 = 2.0 * Math.PI * hiCutoffFreq / sampleRate;
           let omega2 = 2.0 * Math.PI * loCutoffFreq / sampleRate;
           let coeffs = genCoeffs(size, window, function (i) {
@@ -208,7 +208,7 @@ export class FIR {
           return (size === 13) ? newFilter13(coeffs) : newFilter(size, coeffs);
       }
 
-      static raisedcosine(size: number, rolloff: number, symbolFreq: number, sampleRate: number, window: Window) {
+      static raisedcosine(size: number, rolloff: number, symbolFreq: number, sampleRate: number, window?: Window) {
           let T = sampleRate / symbolFreq;
           let a = rolloff;
 
