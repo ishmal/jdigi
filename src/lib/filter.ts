@@ -18,30 +18,19 @@
  */
 
 import {Window} from "./window";
+import {Complex} from "./complex";
 
 
-class Filter {
-
-    constructor() {
-
-    }
-
-    update(v) {
-        return v;
-    }
-
-    updatex(v) {
-        return v;
-    }
+export interface Filter {
+    update(v: number): number;
+    updatex(v: Complex): Complex;
 }
-
-
 
 
 /**
  * Hardcoded filter for size 13.  Pick 13!
  */
-function newFilter13(coeffs) {
+function newFilter13(coeffs: number[]): Filter {
 
     let c0 = coeffs[0], c1 = coeffs[1], c2 = coeffs[2], c3 = coeffs[3],
         c4 = coeffs[4], c5 = coeffs[5], c6 = coeffs[6], c7 = coeffs[7],
@@ -54,7 +43,7 @@ function newFilter13(coeffs) {
         i7 = 0, i8 = 0, i9 = 0, i10 = 0, i11 = 0, i12 = 0;
 
     return {
-        update: function (v) {
+        update: function (v: number): number {
             r12 = r11;
             r11 = r10;
             r10 = r9;
@@ -73,7 +62,7 @@ function newFilter13(coeffs) {
                 c7 * r5 + c8 * r4 + c9 * r3 + c10 * r2 + c11 * r1 + c12 * r0;
         },
 
-        updatex: function (v) {
+        updatex: function (v: Complex): Complex {
             r12 = r11;
             r11 = r10;
             r10 = r9;
@@ -112,141 +101,137 @@ function newFilter13(coeffs) {
 }
 
 
-let FIR = (function () {
+function genCoeffs(size, window, func): number[] {
+      window = window || Window.hann;
+      let W = window(size);
+      let center = size * 0.5;
+      let sum = 0.0;
+      let arr = [];
+      for (let i = 0; i < size; i++) {
+          let v = func(i - center) * W[i];
+          sum += v;
+          arr[arr.length] = v;
+      }
+      for (let j = 0; j < size; j++) {
+          arr[j] /= sum;
+      }
+   return arr;
+}
 
-    function genCoeffs(size, window, func) {
-        window = window || Window.hann;
-        let W = window(size);
-        let center = size * 0.5;
-        let sum = 0.0;
-        let arr = [];
-        for (let i = 0; i < size; i++) {
-            let v = func(i - center) * W[i];
-            sum += v;
-            arr[arr.length] = v;
-        }
-        for (let j = 0; j < size; j++) {
-            arr[j] /= sum;
-            //console.log("coeff " + j + " : " + arr[j]);
-        }
-        return arr;
-    }
+function newFilter(size, coeffs) {
+      let sizeless = size - 1;
+      let dlr = new Array(size);
+      let dli = new Array(size);
+      let dptr = 0;
 
-    function newFilter(size, coeffs) {
-        let sizeless = size - 1;
-        let dlr = new Array(size);
-        let dli = new Array(size);
-        let dptr = 0;
+      let filter = {
+          update: function (v) {
+              dlr[dptr++] = v;
+              dptr %= size;
+              let ptr = dptr;
+              let sum = 0;
+              for (let i = 0; i < size; i++) {
+                  sum += coeffs[i] * dlr[ptr];
+                  ptr = (ptr + sizeless) % size;
+              }
+              return sum;
+          },
 
-        let filter = {
-            update: function (v) {
-                dlr[dptr++] = v;
-                dptr %= size;
-                let ptr = dptr;
-                let sum = 0;
-                for (let i = 0; i < size; i++) {
-                    sum += coeffs[i] * dlr[ptr];
-                    ptr = (ptr + sizeless) % size;
-                }
-                return sum;
-            },
+          updatex: function (v) {
+              dlr[dptr] = v.r;
+              dli[dptr++] = v.i;
+              dptr %= size;
+              let ptr = dptr;
+              let sumr = 0;
+              let sumi = 0;
+              for (let i = 0; i < size; i++) {
+                  sumr += coeffs[i] * dlr[ptr];
+                  sumi += coeffs[i] * dli[ptr];
+                  ptr = (ptr + sizeless) % size;
+              }
+              return {r: sumr, i: sumi};
+          }
+      };
+    return filter;
+}
 
-            updatex: function (v) {
-                dlr[dptr] = v.r;
-                dli[dptr++] = v.i;
-                dptr %= size;
-                let ptr = dptr;
-                let sumr = 0;
-                let sumi = 0;
-                for (let i = 0; i < size; i++) {
-                    sumr += coeffs[i] * dlr[ptr];
-                    sumi += coeffs[i] * dli[ptr];
-                    ptr = (ptr + sizeless) % size;
-                }
-                return {r: sumr, i: sumi};
-            }
-        };
-        return filter;
-    }
+export class FIR {
 
-    let cls = {
+      static average(size: number, window: Window): Filter {
+          let omega = 1.0 / size;
+          let coeffs = genCoeffs(size, window, function (i) {
+              return omega;
+          });
+          return (size === 13) ? newFilter13(coeffs) : newFilter(size, coeffs);
+      }
 
-        average: function (size, window) {
-            let omega = 1.0 / size;
-            let coeffs = genCoeffs(size, window, function (i) {
-                return omega;
-            });
-            return (size === 13) ? newFilter13(coeffs) : newFilter(size, coeffs);
-        },
+      static boxcar(size: number, window: Window): Filter {
+          let coeffs = genCoeffs(size, window, function (i) {
+              return 1.0;
+          });
+          return (size === 13) ? newFilter13(coeffs) : newFilter(size, coeffs);
+      }
 
-        boxcar: function (size, window) {
-            let coeffs = genCoeffs(size, window, function (i) {
-                return 1.0;
-            });
-            return (size === 13) ? newFilter13(coeffs) : newFilter(size, coeffs);
-        },
+      static lowpass(size: number, cutoffFreq: number, sampleRate: number, window: Window) {
+          let omega = 2.0 * Math.PI * cutoffFreq / sampleRate;
+          let coeffs = genCoeffs(size, window, function (i) {
+              return (i === 0) ? omega / Math.PI : Math.sin(omega * i) / (Math.PI * i);
+          });
+          return (size === 13) ? newFilter13(coeffs) : newFilter(size, coeffs);
+      }
 
-        lowpass: function (size, cutoffFreq, sampleRate, window) {
-            let omega = 2.0 * Math.PI * cutoffFreq / sampleRate;
-            let coeffs = genCoeffs(size, window, function (i) {
-                return (i === 0) ? omega / Math.PI : Math.sin(omega * i) / (Math.PI * i);
-            });
-            return (size === 13) ? newFilter13(coeffs) : newFilter(size, coeffs);
-        },
+      static highpass(size: number, cutoffFreq: number, sampleRate: number, window: Window) {
+          let omega = 2.0 * Math.PI * cutoffFreq / sampleRate;
+          let coeffs = genCoeffs(size, window, function (i) {
+              return (i === 0) ? 1.0 - omega / Math.PI : -Math.sin(omega * i) / (Math.PI * i);
+          });
+          return (size === 13) ? newFilter13(coeffs) : newFilter(size, coeffs);
+      }
 
-        highpass: function (size, cutoffFreq, sampleRate, window) {
-            let omega = 2.0 * Math.PI * cutoffFreq / sampleRate;
-            let coeffs = genCoeffs(size, window, function (i) {
-                return (i === 0) ? 1.0 - omega / Math.PI : -Math.sin(omega * i) / (Math.PI * i);
-            });
-            return (size === 13) ? newFilter13(coeffs) : newFilter(size, coeffs);
-        },
+      static bandpass(size: number, loCutoffFreq: number, hiCutoffFreq: number, sampleRate: number, window: Window) {
+          let omega1 = 2.0 * Math.PI * hiCutoffFreq / sampleRate;
+          let omega2 = 2.0 * Math.PI * loCutoffFreq / sampleRate;
+          let coeffs = genCoeffs(size, window, function (i) {
+              return (i === 0) ? (omega2 - omega1) / Math.PI :
+              (Math.sin(omega2 * i) - Math.sin(omega1 * i)) / (Math.PI * i);
+          });
+          return (size === 13) ? newFilter13(coeffs) : newFilter(size, coeffs);
+      }
 
-        bandpass: function (size, loCutoffFreq, hiCutoffFreq, sampleRate, window) {
-            let omega1 = 2.0 * Math.PI * hiCutoffFreq / sampleRate;
-            let omega2 = 2.0 * Math.PI * loCutoffFreq / sampleRate;
-            let coeffs = genCoeffs(size, window, function (i) {
-                return (i === 0) ? (omega2 - omega1) / Math.PI :
-                (Math.sin(omega2 * i) - Math.sin(omega1 * i)) / (Math.PI * i);
-            });
-            return (size === 13) ? newFilter13(coeffs) : newFilter(size, coeffs);
-        },
+      static bandreject(size: number, loCutoffFreq: number, hiCutoffFreq: number, sampleRate: number, window: Window) {
+          let omega1 = 2.0 * Math.PI * hiCutoffFreq / sampleRate;
+          let omega2 = 2.0 * Math.PI * loCutoffFreq / sampleRate;
+          let coeffs = genCoeffs(size, window, function (i) {
+              return (i === 0) ? 1.0 - (omega2 - omega1) / Math.PI :
+              (Math.sin(omega1 * i) - Math.sin(omega2 * i)) / (Math.PI * i);
+          });
+          return (size === 13) ? newFilter13(coeffs) : newFilter(size, coeffs);
+      }
 
-        bandreject: function (size, loCutoffFreq, hiCutoffFreq, sampleRate, window) {
-            let omega1 = 2.0 * Math.PI * hiCutoffFreq / sampleRate;
-            let omega2 = 2.0 * Math.PI * loCutoffFreq / sampleRate;
-            let coeffs = genCoeffs(size, window, function (i) {
-                return (i === 0) ? 1.0 - (omega2 - omega1) / Math.PI :
-                (Math.sin(omega1 * i) - Math.sin(omega2 * i)) / (Math.PI * i);
-            });
-            return (size === 13) ? newFilter13(coeffs) : newFilter(size, coeffs);
-        },
+      static raisedcosine(size: number, rolloff: number, symbolFreq: number, sampleRate: number, window: Window) {
+          let T = sampleRate / symbolFreq;
+          let a = rolloff;
 
-        raisedcosine: function (size, rolloff, symbolFreq, sampleRate, window) {
-            let T = sampleRate / symbolFreq;
-            let a = rolloff;
+          let coeffs = genCoeffs(size, window, (i) => {
+              let nT = i / T;
+              let anT = a * nT;
+              let c = 0;
+              if (i === 0)
+                  c = 1.0;
+              else if (anT === 0.5 || anT === -0.5)//look at denominator below
+                  c = Math.sin(Math.PI * nT) / (Math.PI * nT) * Math.PI / 4.0;
+              else
+                  c = Math.sin(Math.PI * nT) / (Math.PI * nT) * Math.cos(Math.PI * anT) /
+                      (1.0 - 4.0 * anT * anT);
+              return c;
+          });
+          return (size === 13) ? newFilter13(coeffs) : newFilter(size, coeffs);
+      }
 
-            let coeffs = genCoeffs(size, window, function (i) {
-                let nT = i / T;
-                let anT = a * nT;
-                let c = 0;
-                if (i === 0)
-                    c = 1.0;
-                else if (anT === 0.5 || anT === -0.5)//look at denominator below
-                    c = Math.sin(Math.PI * nT) / (Math.PI * nT) * Math.PI / 4.0;
-                else
-                    c = Math.sin(Math.PI * nT) / (Math.PI * nT) * Math.cos(Math.PI * anT) /
-                        (1.0 - 4.0 * anT * anT);
-                return c;
-            });
-            return (size === 13) ? newFilter13(coeffs) : newFilter(size, coeffs);
-        }
+  };
 
-    };
 
-    return cls;
 
-})();
 
 
 //########################################################################
@@ -257,24 +242,25 @@ let FIR = (function () {
  * A biquad filter
  * @see http://en.wikipedia.org/wiki/Digital_biquad_filter
  */
-let Biquad = (function () {
+function BiquadFilter(b0: number, b1: number,
+    b2: number, a1: number, a2: number): Filter {
 
-    function Filter(b0, b1, b2, a1, a2) {
+      let x1 = 0, x2 = 0, y1 = 0, y2 = 0;
+      let x1r = 0, x2r = 0, y1r = 0, y2r = 0;
+      let x1i = 0, x2i = 0, y1i = 0, y2i = 0;
 
-        let x1 = 0, x2 = 0, y1 = 0, y2 = 0;
-        let x1r = 0, x2r = 0, y1r = 0, y2r = 0;
-        let x1i = 0, x2i = 0, y1i = 0, y2i = 0;
+      return {
 
-        this.update = function (x) {
+        update: function (x:number): number {
             let y = b0 * x + b1 * x1 + b2 * x2 - a1 * y1 - a2 * y2;
             x2 = x1;
             x1 = x;
             y2 = y1;
             y1 = y;
             return y;
-        };
+        },
 
-        this.updatex = function (x) {
+        updatex: function (x:Complex): Complex {
             let r = x.r;
             let i = x.i;
             let yr = b0 * r + b1 * x1r + b2 * x2r - a1 * y1r - a2 * y2r;
@@ -288,11 +274,14 @@ let Biquad = (function () {
             y2i = y1i;
             y1i = yi;
             return {r: yr, i: yi};
-        };
-    }
+        }
+    };
 
-    let cls = {
-        lowPass: function (frequency, sampleRate, q) {
+}
+
+export class Biquad {
+
+        static lowPass(frequency:number, sampleRate: number, q?: number): Filter {
             q = typeof q !== 'undefined' ? q : 0.707;
             let freq = 2.0 * Math.PI * frequency / sampleRate;
             let alpha = Math.sin(freq) / (2.0 * q);
@@ -302,10 +291,10 @@ let Biquad = (function () {
             let a0 = 1.0 + alpha;
             let a1 = -2.0 * Math.cos(freq);
             let a2 = 1.0 - alpha;
-            return new Filter(b0 / a0, b1 / a0, b2 / a0, a1 / a0, a2 / a0);
-        },
+            return BiquadFilter(b0 / a0, b1 / a0, b2 / a0, a1 / a0, a2 / a0);
+        }
 
-        highPass: function (frequency, sampleRate, q) {
+        static highPass(frequency:number, sampleRate: number, q?: number): Filter {
             q = typeof q !== 'undefined' ? q : 0.707;
             let freq = 2.0 * Math.PI * frequency / sampleRate;
             let alpha = Math.sin(freq) / (2.0 * q);
@@ -315,10 +304,10 @@ let Biquad = (function () {
             let a0 = 1.0 + alpha;
             let a1 = -2.0 * Math.cos(freq);
             let a2 = 1.0 - alpha;
-            return new Filter(b0 / a0, b1 / a0, b2 / a0, a1 / a0, a2 / a0);
-        },
+            return BiquadFilter(b0 / a0, b1 / a0, b2 / a0, a1 / a0, a2 / a0);
+        }
 
-        bandPass: function (frequency, sampleRate, q) {
+        static bandPass(frequency:number, sampleRate: number, q?: number): Filter {
             q = typeof q !== 'undefined' ? q : 0.5;
             let freq = 2.0 * Math.PI * frequency / sampleRate;
             let alpha = Math.sin(freq) / (2.0 * q);
@@ -328,10 +317,10 @@ let Biquad = (function () {
             let a0 = 1.0 + alpha;
             let a1 = -2.0 * Math.cos(freq);
             let a2 = 1.0 - alpha;
-            return new Filter(b0 / a0, b1 / a0, b2 / a0, a1 / a0, a2 / a0);
-        },
+            return BiquadFilter(b0 / a0, b1 / a0, b2 / a0, a1 / a0, a2 / a0);
+        }
 
-        bandReject: function (frequency, sampleRate, q) {
+        static bandReject(frequency:number, sampleRate: number, q?: number): Filter {
             q = typeof q !== 'undefined' ? q : 0.5;
             let freq = 2.0 * Math.PI * frequency / sampleRate;
             let alpha = Math.sin(freq) / (2.0 * q);
@@ -341,13 +330,7 @@ let Biquad = (function () {
             let a0 = 1.0 + alpha;
             let a1 = -2.0 * Math.cos(freq);
             let a2 = 1.0 - alpha;
-            return new Filter(b0 / a0, b1 / a0, b2 / a0, a1 / a0, a2 / a0);
+            return BiquadFilter(b0 / a0, b1 / a0, b2 / a0, a1 / a0, a2 / a0);
         }
-    };
 
-    return cls;
-
-})();
-
-
-export {FIR, Biquad};
+}

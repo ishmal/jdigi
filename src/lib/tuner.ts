@@ -18,6 +18,7 @@
  */
 
 import {Constants} from "./constants";
+import {Digi} from './digi';
 
 const BINS = Constants.BINS;
 
@@ -31,23 +32,13 @@ function error(msg) {
         console.log("Tuner error : " + msg);
 }
 
-class Tuner {
+export interface Tuner {
 
-  set frequency(freq) {
+  frequency: number;
 
-  }
+  showScope(data: number): void;
 
-  get frequency() {
-
-  }
-
-  showScope(data) {
-
-  }
-
-  update(data) {
-
-  }
+  update(data: number): void;
 
 }
 
@@ -57,23 +48,35 @@ class Tuner {
  * @param par the parent Digi of this waterfall
  * @canvas the canvas to use for drawing
  */
-class TunerImpl extends Tuner {
+export class TunerImpl implements Tuner {
 
-    constructor(par, canvas) {
-    
-      super();
-    	
+  par:  Digi;
+  _canvas: HTMLCanvasElement;
+  _MAX_FREQ: number;
+  _dragging: boolean;
+  _frequency: number;
+  _indices: number[];
+  _width: number;
+  _height: number;
+  _ctx: any;
+  _imgData: number[];
+  _imglen: number;
+  _buf8: number[];
+  _rowsize: number;
+  _lastRow: number;
+  _scopeData: number[];
+
+    constructor(par: Digi, canvas: HTMLCanvasElement) {
+
       window.requestAnimationFrame =
           window.requestAnimationFrame ||
           window.msRequestAnimationFrame ||
           window.mozRequestAnimationFrame ||
           window.webkitRequestAnimationFrame;
 
-      this._par = par;
+      this.par = par;
       this._canvas = canvas;
-
       this._MAX_FREQ = par.sampleRate * 0.5;
-
       this._dragging = false;
       this._frequency = 1000;
       this._indices = null;
@@ -97,16 +100,16 @@ class TunerImpl extends Tuner {
   }
 
     //note that this is different from the public method
-    set frequency(freq) {
+    set frequency(freq: number) {
         this._frequency = freq;
-        this._par.frequency = freq;
+        this.par.frequency = freq;
     }
 
-    get frequency() {
+    get frequency(): number {
       return this._frequency;
     }
 
-    createIndices(targetsize, sourcesize) {
+    createIndices(targetsize: number, sourcesize: number): number[] {
         let xs = new Array(targetsize);
         let ratio = sourcesize / targetsize;
         for (let i = 0; i < targetsize; i++) {
@@ -116,7 +119,7 @@ class TunerImpl extends Tuner {
     }
 
 
-    resize() {
+    resize(): void {
         let canvas = this._canvas;
         let width = canvas.width;
         let height = canvas.height;
@@ -154,8 +157,8 @@ class TunerImpl extends Tuner {
     setupEvents(canvas) {
       function mouseFreq(event) {
           let pt = getMousePos(canvas, event);
-          let freq = MAX_FREQ * pt.x / width;
-          frequency = freq;
+          let freq = this.MAX_FREQ * pt.x / this._width;
+          this.frequency = freq;
       }
 
       function getMousePos(canvas, evt) {
@@ -167,10 +170,10 @@ class TunerImpl extends Tuner {
           mouseFreq(event);
       };
       canvas.onmousedown = function (event) {
-          dragging = true;
+          this._dragging = true;
       };
       canvas.onmouseup = function (event) {
-          dragging = false;
+          this._dragging = false;
       };
       canvas.onmousemove = (event) => {
           if (this._dragging) mouseFreq(event);
@@ -187,13 +190,14 @@ class TunerImpl extends Tuner {
           return false;
       };
 
-      canvas.onmousewheel = (evt) => {
+      function handleWheel(evt) {
           let delta = (evt.detail < 0 || evt.wheelDelta > 0) ? 1 : -1;
           this.frequency += (delta * 1); //or other increments here
           evt.preventDefault();
           return false;
-      };
+      }
 
+      canvas.onmousewheel = handleWheel;
       canvas.addEventListener("DOMMouseScroll", handleWheel, false);
     }
 
@@ -205,7 +209,7 @@ class TunerImpl extends Tuner {
      * Make a palette. tweak this often
      * TODO:  consider using an HSV heat map
      */
-    makePalette() {
+    makePalette(): number[] {
         let xs = new Array(256);
         for (let i = 0; i < 256; i++) {
             let r = (i < 170) ? 0 : (i - 170) * 3;
@@ -223,6 +227,9 @@ class TunerImpl extends Tuner {
         let width = this._width;
         let height = this._height;
 
+        let ctx = this._ctx;
+        let indices = this._indices;
+
         //ctx.fillStyle = 'red';
         ctx.fillStyle = 'rgba(255, 255, 255, 0.50)';
         //ctx.lineWidth = 1;
@@ -237,7 +244,7 @@ class TunerImpl extends Tuner {
             ctx.lineTo(x, y);
         }
         ctx.lineTo(width - 1, base);
-        for (x = width - 1; x >= 0; x--) {
+        for (let x = width - 1; x >= 0; x--) {
             let v = log(1.0 + data[indices[x]]) * 12.0;
             let y = base + v;
             //trace("x:" + x + " y:" + y);
@@ -256,6 +263,8 @@ class TunerImpl extends Tuner {
         let imglen = this._imglen;
         let imgData = this._imgData;
         let width = this._width;
+        let indices = this._indices;
+        let palette = this._palette;
 
         buf8.set(buf8.subarray(rowsize, imglen)); //<-cool, if this works
         //trace("data:" + data[50]);
@@ -275,12 +284,15 @@ class TunerImpl extends Tuner {
     }
 
     drawWaterfall2(data) {
-        let width = this.width;
-        let lastRow = this.lastRow;
+        let width = this._width;
+        let lastRow = this._lastRow;
         let palette = this._palette;
         let buf8 = this._buf8;
         let rowsize = this._rowsize;
         let imgData = this._imgData;
+        let indices = this._indices;
+        let imglen = this._imglen;
+        let ctx = this._ctx;
 
         buf8.set(buf8.subarray(rowsize, imglen)); //<-cool, if this works
         let idx = lastRow;
@@ -304,16 +316,16 @@ class TunerImpl extends Tuner {
 
 
     drawTuner() {
-        let MAX_FREQ = this.MAX_FREQ;
-        let width = this.width;
-        let height = this.height;
-        let frequency = this.frequency;
+        let MAX_FREQ = this._MAX_FREQ;
+        let width = this._width;
+        let height = this._height;
+        let frequency = this._frequency;
         let ctx = this._ctx;
 
         let pixPerHz = 1 / MAX_FREQ * width;
 
         let x = frequency * pixPerHz;
-        let bw = par.bandwidth;
+        let bw = this.par.bandwidth;
         let bww = bw * pixPerHz;
         let bwlo = (frequency - bw * 0.5) * pixPerHz;
 
@@ -365,7 +377,7 @@ class TunerImpl extends Tuner {
         let ctx = this._ctx;
         let boxW = 100;
         let boxH = 100;
-        let boxX = width - boxW;
+        let boxX = this._width - boxW;
         let boxY = 0;
         let centerX = boxX + (boxW >> 1);
         let centerY = boxY + (boxH >> 1);
@@ -389,12 +401,12 @@ class TunerImpl extends Tuner {
 
         ctx.strokeStyle = "yellow";
         ctx.beginPath();
-        var pt = _scopeData[0];
+        var pt = this._scopeData[0];
         var x = centerX + pt[0] * 50.0;
         var y = centerY + pt[1] * 50.0;
         ctx.moveTo(x, y);
         for (var i = 1; i < len; i++) {
-            pt = _scopeData[i];
+            pt = this._scopeData[i];
             x = centerX + pt[0] * 50.0;
             y = centerY + pt[1] * 50.0;
             //console.log("pt:" + x + ":" + y);
@@ -425,7 +437,3 @@ class TunerImpl extends Tuner {
 
 } //Tuner
 
-export {
-  Tuner,
-  TunerImpl
-};

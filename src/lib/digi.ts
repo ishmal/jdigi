@@ -33,10 +33,10 @@ import {Tuner, TunerImpl} from "./tuner";
  * Interface for a text output widget, which the UI should overload
  */
 export class OutText {
-    clear() {
+    clear(): void {
     }
 
-    putText() {
+    putText(str: string): void {
     }
 }
 
@@ -44,10 +44,11 @@ export class OutText {
  * Interface for a test input widget, which the UI should overload
  */
 export class InText {
-    clear() {
+    clear():void {
     }
 
-    getText() {
+    getText(): string {
+      return "";
     }
 }
 
@@ -71,7 +72,7 @@ export class Digi {
   _tuner: Tuner;
   _outtext: OutText;
   _intext: InText;
-  _receive: () => number[];
+  _receive: (data: number) => void;
 
 
     constructor() {
@@ -105,7 +106,7 @@ export class Digi {
       let icnt = 0;
       let psbuf = new Float32Array(Constants.BINS);
 
-      this._receive = function (data: number[]) {
+      this._receive = function (data: number) {
           this._mode.receiveData(data);
           ibuf[iptr++] = data;
           iptr &= FFT_MASK;
@@ -113,14 +114,14 @@ export class Digi {
               icnt = 0;
               fft.powerSpectrum(ibuf, psbuf);
               //console.log("ps: " + ps[100]);
-              self.tuner.update(psbuf);
-              mode.receiveFft(psbuf);
+              this.tuner.update(psbuf);
+              this.mode.receiveFft(psbuf);
           }
         };
     }
 
 
-    receive(data) {
+    receive(data: number) {
         this._receive(data);
     }
 
@@ -144,64 +145,64 @@ export class Digi {
     }
 
 
-    set mode(v) {
+    set mode(v: Mode) {
         this._mode = v;
         //this.status("mode switched");
     }
 
-    get mode() {
+    get mode(): Mode {
         return this._mode;
     }
 
 
-    get bandwidth() {
-        return this._mode.getBandwidth();
+    get bandwidth(): number {
+        return this._mode.bandwidth;
     }
 
-    set frequency(freq) {
-        this._mode.setFrequency(freq);
+    set frequency(freq: number) {
+        this._mode.frequency= freq;
     }
 
-    get frequency() {
-        return this._mode.getFrequency();
+    get frequency(): number {
+        return this._mode.frequency;
     }
 
-    get useAfc() {
+    get useAfc(): boolean {
         return this._mode.useAfc;
     }
 
-    set useAfc(v) {
+    set useAfc(v: boolean) {
         this._mode.useAfc = v;
     }
 
-    get useQrz() {
-        return this._watcher.getUseQrz();
+    get useQrz(): boolean {
+        return this._watcher.useQrz;
     }
 
-    set useQrz(v) {
-        this._watcher.setUseQrz(v);
+    set useQrz(v: boolean) {
+        this._watcher.useQrz = v;
     }
 
-    get txMode() {
-        return _txmode;
+    get txMode(): boolean {
+        return this._txmode;
     }
 
-    set txMode(v) {
+    set txMode(v: boolean) {
         this._txmode = v;
         if (v) {
-            this._audioInput.setEnabled(false);
-            this._audioOutput.setEnabled(true);
+            this._audioInput.enabled = false;
+            this._audioOutput.enabled = true;
         } else {
-            this._audioInput.setEnabled(true);
-            this._audioOutput.setEnabled(false);
+            this._audioInput.enabled = true;
+            this._audioOutput.enabled = false;
         }
     }
 
-    get tuner() {
+    get tuner(): Tuner {
       return this._tuner;
     }
 
-    set tuner(tuner) {
+    set tuner(tuner: Tuner) {
       this._tuner = tuner;
     }
 
@@ -216,38 +217,38 @@ export class Digi {
      * Make this an interface, so we can add things later.
      * Let the GUI override this.
      */
-    get outText() {
+    get outText(): OutText {
         return this._outtext;
     }
 
-    set outText(val) {
+    set outText(val: OutText) {
         this._outtext = val;
     }
 
     /**
      * Output text to the gui
      */
-    putText(str) {
+    putText(str: string) {
         this._outtext.putText(str);
-        watcher.update(str);
+        this._watcher.update(str);
     }
 
     /**
      * Make this an interface, so we can add things later.
      * Let the GUI override this.
      */
-    get inText() {
+    get inText(): InText {
       return this._intext;
     }
 
-    set inText(val) {
+    set inText(val: InText) {
         this._intext = val;
     }
 
     /**
      * Input text from the gui
      */
-    getText() {
+    getText(): string {
         return this._intext.getText();
     }
 
@@ -262,12 +263,12 @@ export class Digi {
     }
 
 
-    start() {
+    start(): void {
         this._audioInput.start();
         this._audioOutput.start();
     }
 
-    stop() {
+    stop(): void {
         this._audioInput.stop();
         this._audioOutput.stop();
     }

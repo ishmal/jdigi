@@ -36,10 +36,10 @@ declare enum OscillatorType
 interface AudioContext
 {
 
-	destination:AudioDestinationNode; // readonly
+	destination: AudioDestinationNode; // readonly
 	sampleRate: number; // readonly
-	currentTime:number; // readonly
-	listener:AudioListener; // readonly
+	currentTime: number; // readonly
+	listener: AudioListener; // readonly
 	activeSourceCount: number; // readonly
 
 	createBuffer(numberOfChannels:number, length:number, sampleRate:number):AudioBuffer;
@@ -84,14 +84,14 @@ interface Window {
 interface OfflineAudioContext extends AudioContext
 {
 	startRendering():void;
-	oncomplete:Function;
+	oncomplete: Function;
 }
 
 interface AudioNode
 {
-	context:AudioContext; // readonly
-	numberOfInputs:number; // readonly
-	numberOfOutputs:number; // readonly
+	context: AudioContext; // readonly
+	numberOfInputs: number; // readonly
+	numberOfOutputs: number; // readonly
 
 	connect(destination:AudioNode, output?:number, input?:number):void;
 	connect(destination:AudioParam, output?:number):void;

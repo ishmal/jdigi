@@ -25,21 +25,17 @@ import {Constants} from "../constants";
 import {Biquad} from "../filter";
 
 
-class Mode {
+export class Mode {
 
   par: Digi;
   properties: any;
   _frequency: number;
-  decimation: number;
-  sampleRate: number;
   afcFilter: Biquad;
   loBin: number;
   freqBin: number;
   hiBin: number;
   useAfc: boolean;
   _rate: number;
-  decimator: Resampler;
-  interpolator: Resampler;
   nco: NCO;
   obuf: Float32Array;
   optr: number;
@@ -48,12 +44,10 @@ class Mode {
   iptr: number;
 
 
-    constructor(par: Digi, props: any, sampleRateHint) {
+    constructor(par: Digi, props: any) {
         this.par = par;
         this.properties = props(this);
         this._frequency = 1000;
-        this.decimation = Math.floor(par.sampleRate / sampleRateHint);
-        this.sampleRate = par.sampleRate / this.decimation;
         this.afcFilter = Biquad.lowPass(1.0, 100.0);
         this.loBin = 0;
         this.freqBin = 0;
@@ -61,27 +55,17 @@ class Mode {
         this.adjustAfc();
         this.useAfc = false;
         this._rate = 31.25;
-        this.decimator = Resampler.create(this.decimation);
-        this.interpolator = Resampler.create(this.decimation);
         this.nco = new Nco(this._frequency, par.sampleRate);
-
-        //transmit
-        this.obuf = new Float32Array(this.decimation);
-        this.optr = 0;
-        this.ibuf = [];
-        this.ilen = 0;
-        this.iptr = 0;
-
     }
 
 
-    set frequency(freq) {
+    set frequency(freq: number) {
         this._frequency = freq;
         this.nco.setFrequency(freq);
         this.adjustAfc();
     }
 
-    get frequency() {
+    get frequency(): number {
         return this._frequency;
     }
 
@@ -121,7 +105,7 @@ class Mode {
     set rate(v) {
         this._rate = v;
         this.adjustAfc();
-        this.status("Fs: " + this.sampleRate + " rate: " + v +
+        this.status("Fs: " + this.par.sampleRate + " rate: " + v +
             " sps: " + this.samplesPerSymbol);
     }
 
@@ -130,8 +114,8 @@ class Mode {
     }
 
 
-    get samplesPerSymbol() {
-        return this.sampleRate / this._rate;
+    get samplesPerSymbol(): number {
+        return this.par.sampleRate / this._rate;
     }
 
 
@@ -139,27 +123,23 @@ class Mode {
     //# R E C E I V E
     //#######################
 
-    receiveFft(ps) {
+    receiveFft(ps: number[]): void {
         if (this.useAfc) {
             this.computeAfc(ps);
         }
     }
 
 
-    receiveData(v) {
+    receiveData(v: number): void {
         var cs = this.nco.next();
-        var cv = this.decimator.decimatex(v * cs.cos, -v * cs.sin);
-        if (cv !== false) {
-            this.receive(cv);
-        }
+        this.receive(v * cs.cos, -v * cs.sin);
     }
 
 
     /**
-     * Overload this for each mode.  The parameter is either float or complex,
-     * depending on downmix()
+     * Overload this for each mode.
      */
-    receive(v) {
+    receive(v: Complex): void {
     }
 
 
@@ -195,4 +175,3 @@ class Mode {
 
 }
 
-export {Mode};

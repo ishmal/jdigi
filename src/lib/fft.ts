@@ -17,7 +17,7 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import {Complex} from "./math";
+import {Complex} from "./complex";
 import {Window} from "./window";
 
 
@@ -388,7 +388,7 @@ function SimpleGoertzel(frequency, binWidth, sampleRate) {
 
     //use this if computed with update()
     this.x = function () {
-        return new Complex(wr * pr1 - pr2, wi * pr1);
+        return {r: wr * pr1 - pr2, i: wi * pr1};
     };
 
     //use this if computed with updateX()

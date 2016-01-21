@@ -17,12 +17,12 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-interface Complex {
+export interface Complex {
   r: number;
   i: number;
 }
 
-export class Complex implements Complex {
+export class ComplexOps {
 
   static add(a: Complex, b: Complex): Complex {
       return {r: a.r + b.r, i: a.i + b.i};

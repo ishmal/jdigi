@@ -19,37 +19,41 @@
 "use strict";
 /* jslint node: true */
 
-import Complex from "./math";
-import Biquad from "./filter";
+import {Complex} from "./complex";
+import {Biquad} from "./filter";
 
+function createCossinTable() {
+    let twopi = Math.PI * 2.0;
+    let two16 = 65536;
+    let delta = twopi / two16;
+    let xs = [];
 
-var cossinTable = (function () {
-
-    var twopi = Math.PI * 2.0;
-    var two16 = 65536;
-    var delta = twopi / two16;
-
-    var xs = new Array(two16);
-
-    for (var idx = 0; idx < two16; idx++) {
-        var angle = delta * idx;
+    for (let idx = 0; idx < two16; idx++) {
+        let angle = delta * idx;
         xs[idx] = {cos: Math.cos(angle), sin: Math.sin(angle)};
     }
     return xs;
-})();
+}
 
+
+const cossinTable = createCossinTable();
 
 /**
  * For reference.  See code below
  */
-function LowPassIIR(cutoff, sampleRate) {
-    var b = Math.exp(-2.0 * Math.PI * cutoff / sampleRate);
-    var a = 1.0 - b;
-    var z = 0.0;
+function LowPassIIR(cutoff: number, sampleRate: number) {
+    let b = Math.exp(-2.0 * Math.PI * cutoff / sampleRate);
+    let a = 1.0 - b;
+    let z = 0.0;
 
-    this.update = function (v) {
-        z = v * a + z * b;
-        return z;
+    return {
+        update : function(v: number): number {
+            z = v * a + z * b;
+            return z;
+        },
+        updatex: function(v:Complex):Complex {
+            return v;
+        }
     };
 }
 
@@ -59,12 +63,12 @@ function LowPassIIR(cutoff, sampleRate) {
  * frequency and data rate
  */
 function CostasIIR(frequency, dataRate, sampleRate) {
-    var freq = 0;
-    var err = 0;
-    var phase = 0 | 0;
-    var table = cossinTable;
-    var iqa, iqb, iz = 0, qz = 0;
-    var da, db, dz = 0;
+    let freq = 0;
+    let err = 0;
+    let phase = 0 | 0;
+    let table = cossinTable;
+    let iqa, iqb, iz = 0, qz = 0;
+    let da, db, dz = 0;
 
 
     function setFrequency(frequency) {
@@ -87,14 +91,14 @@ function CostasIIR(frequency, dataRate, sampleRate) {
 
 
     this.update = function (v) {
-        var adjFreq = (freq + err) | 0;
+        let adjFreq = (freq + err) | 0;
         phase = (phase + adjFreq) & 0xffffffff;
-        var cs = table[(phase >> 16) & 0xffff];
-        var i = v * cs.cos;
-        var q = v * cs.sin;
+        let cs = table[(phase >> 16) & 0xffff];
+        let i = v * cs.cos;
+        let q = v * cs.sin;
         iz = i * iqa + iz * iqb;
         qz = q * iqa + qz * iqb;
-        var cross = Math.atan2(qz, iz);
+        let cross = Math.atan2(qz, iz);
         dz = cross * da + dz * db;
         err = dz * 100000.0; // this too coarse?
         console.log("freq: " + freq + "  err: " + err);
@@ -102,98 +106,30 @@ function CostasIIR(frequency, dataRate, sampleRate) {
         return {r: iz, i: qz};
     };
 
-
 }
 
 
-/**
- * This version uses Biquad filters for the arms
- * http://www.trondeau.com/blog/2011/8/13/control-loop-gain-values.html
- */
-function Costas_old(frequency, dataRate, sampleRate) {
-    var err = 0;
-    var alpha = 0;
-    var beta = 0;
-    var damp = 0.707;
-    var freq = 0;
-    var phase = 0 | 0;
 
-    var table = cossinTable;
-    var ilp, qlp, dlp;
-    var agcint1 = 0, agcint2 = 0;
-    var agcgain = 0.001;
+function Costas(frequency: number, dataRate: number, sampleRate: number) {
+    let err = 0;
+    let bw = 2.0 * Math.PI / 200;
+    let damp = 0.707;
+    let alpha = (4 * damp * bw) / (1 + 2 * damp * bw + bw * bw);
+    let beta = (4 * bw * bw) / (1 + 2 * damp * bw + bw * bw);
+    let freq0 = 0;
+    let freq = 0;
+    let minFreq = 0;
+    let maxFreq = 0;
+    let phase = 0;
+    let twopi = 2.0 * Math.PI;
+    let omega = twopi / sampleRate;
+    let tabRate = 65536 / twopi;
+    let counter = 0;
 
-
-    function setFrequency(frequency) {
-        freq = (4294967296.0 * frequency / sampleRate) | 0;
-    }
-
-    this.setFrequency = setFrequency;
-    setFrequency(frequency);
-    var maxErr = 4294967296.0 * 20.0 / sampleRate;
-    console.log("maxerr: " + maxErr);
-    var minErr = -maxErr;
-
-
-    function setDataRate(rate) {
-        ilp = Biquad.lowPass(rate * 0.5, sampleRate);
-        qlp = Biquad.lowPass(rate * 0.5, sampleRate);
-        dlp = Biquad.lowPass(rate * 6.0, sampleRate);
-    }
-
-    this.setDataRate = setDataRate;
-    setDataRate(dataRate);
-
-
-    this.update = function (v) {
-        v = v * agcint1;
-        var agcerr = 1.0 - Math.abs(v);
-        agcint2 = agcint1;
-        agcint1 = agcint2 + agcgain * agcerr;
-
-        var adjFreq = (freq + err) | 0;
-        phase = (phase + adjFreq) & 0xffffffff;
-        var cs = table[(phase >> 16) & 0xffff];
-        var i = v * cs.cos;
-        var q = v * cs.sin;
-        var iz = ilp.update(i);
-        var qz = qlp.update(q);
-        //console.log("qz: " + qz);
-        var angle = -Math.atan2(qz, iz);
-        err += dlp.update(angle) * 5000.0; // adjust this
-        if (err < minErr)
-            err = minErr;
-        else if (err > maxErr)
-            err = maxErr;
-        console.log("" + iz + " " + qz + " " + angle + " " + err);
-        //console.log("iq: " + iz + ", " + qz);
-        return {r: iz, i: qz};
-    };
-
-
-}
-
-
-function Costas(frequency, dataRate, sampleRate) {
-    var err = 0;
-    var bw = 2.0 * Math.PI / 200;
-    var damp = 0.707;
-    var alpha = (4 * damp * bw) / (1 + 2 * damp * bw + bw * bw);
-    var beta = (4 * bw * bw) / (1 + 2 * damp * bw + bw * bw);
-    var freq0 = 0;
-    var freq = 0;
-    var minFreq = 0;
-    var maxFreq = 0;
-    var phase = 0;
-    var twopi = 2.0 * Math.PI;
-    var omega = twopi / sampleRate;
-    var tabRate = 65536 / twopi;
-    var counter = 0;
-
-    var table = cossinTable;
-    var ilp, qlp, dlp;
-    var agcint1 = 0, agcint2 = 0;
-    var agcgain = 0.001;
+    let table = cossinTable;
+    let ilp, qlp, dlp;
+    let agcint1 = 0, agcint2 = 0;
+    let agcgain = 0.001;
 
     function toRad(f) {
         return twopi * f / sampleRate;
@@ -225,7 +161,7 @@ function Costas(frequency, dataRate, sampleRate) {
 
     this.update = function (v) {
         v = v * agcint1;
-        var agcerr = 1.0 - Math.abs(v);
+        let agcerr = 1.0 - Math.abs(v);
         agcint2 = agcint1;
         agcint1 = agcint2 + agcgain * agcerr;
 
@@ -236,13 +172,13 @@ function Costas(frequency, dataRate, sampleRate) {
             freq = maxFreq;
         phase = phase + freq + alpha * err;
         while (phase > twopi) phase -= twopi;
-        var cs = table[(phase * tabRate) & 0xffff];
-        var i = v * cs.cos;
-        var q = v * cs.sin;
-        var iz = ilp.update(i);
-        var qz = qlp.update(q);
+        let cs = table[(phase * tabRate) & 0xffff];
+        let i = v * cs.cos;
+        let q = v * cs.sin;
+        let iz = ilp.update(i);
+        let qz = qlp.update(q);
         //console.log("qz: " + qz);
-        var angle = -Math.atan2(qz, iz);
+        let angle = -Math.atan2(qz, iz);
         err = dlp.update(angle);
         //console.log("" + iz + " " + qz + " " + angle + " " + err);
         //if (++counter % 10 === 0)
@@ -254,7 +190,3 @@ function Costas(frequency, dataRate, sampleRate) {
 
 
 export {Costas};
-
-
-
-
