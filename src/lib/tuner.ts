@@ -42,6 +42,18 @@ export interface Tuner {
 
 }
 
+export class TunerDummy implements Tuner {
+  constructor() {
+
+  }
+
+  get frequency(): number { return 0; }
+
+  showScope(data:number):void {}
+
+  update(data: number): void {}
+}
+
 
 /**
  * Provides a Waterfall display and tuning interactivity
@@ -59,20 +71,20 @@ export class TunerImpl implements Tuner {
   _width: number;
   _height: number;
   _ctx: any;
-  _imgData: number[];
+  _imgData: ImageData;
   _imglen: number;
-  _buf8: number[];
+  _buf8: Uint8ClampedArray;
   _rowsize: number;
   _lastRow: number;
   _scopeData: number[];
+  _palette: number[];
 
     constructor(par: Digi, canvas: HTMLCanvasElement) {
 
-      window.requestAnimationFrame =
-          window.requestAnimationFrame ||
-          window.msRequestAnimationFrame ||
-          window.mozRequestAnimationFrame ||
-          window.webkitRequestAnimationFrame;
+      window.requestAnimationFrame = window.requestAnimationFrame
+          || window.msRequestAnimationFrame
+          // || window.mozRequestAnimationFrame
+          // || window.webkitRequestAnimationFrame;
 
       this.par = par;
       this._canvas = canvas;
@@ -280,7 +292,7 @@ export class TunerImpl implements Tuner {
             buf8[idx++] = pix[3];
         }
         imgData.data.set(buf8);
-        ctx.putImageData(imgData, 0, 0);
+        this._ctx.putImageData(imgData, 0, 0);
     }
 
     drawWaterfall2(data) {
@@ -436,4 +448,3 @@ export class TunerImpl implements Tuner {
     }
 
 } //Tuner
-

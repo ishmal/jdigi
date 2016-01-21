@@ -26,7 +26,7 @@ import {RttyMode} from "./mode/rtty";
 import {PacketMode} from "./mode/packet";
 import {NavtexMode} from "./mode/navtex";
 import {Watcher} from "./watch";
-import {Tuner, TunerImpl} from "./tuner";
+import {Tuner, TunerImpl, TunerDummy} from "./tuner";
 
 
 /**
@@ -90,7 +90,7 @@ export class Digi {
         this._mode = this.pskMode;
         this.modes = [this.pskMode, this.rttyMode, this.packetMode, this.navtexMode];
 
-        this._tuner = new Tuner();
+        this._tuner = new TunerDummy();
         this._outtext = new OutText();
         this._intext = new InText();
 

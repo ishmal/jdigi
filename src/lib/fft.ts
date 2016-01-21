@@ -17,7 +17,7 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import {Complex} from "./complex";
+import {Complex, ComplexOps} from "./complex";
 import {Window} from "./window";
 
 
@@ -412,7 +412,7 @@ function SimpleGoertzel(frequency, binWidth, sampleRate) {
 
     //for complex values
     this.magX = function () {
-        return Complex.mag(this.X());
+        return ComplexOps.mag(this.X());
     };
 
     this.update = function (point) {

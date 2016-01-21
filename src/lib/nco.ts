@@ -18,45 +18,52 @@
  */
 "use strict";
 
-function createCossinTable() {
+import {Complex} from "./complex";
 
+function createCossinTable(): Complex[] {
     let twopi = Math.PI * 2.0;
     let two16 = 65536;
     let delta = twopi / two16;
-
     let xs = new Array(two16);
 
     for (let idx = 0; idx < two16; idx++) {
         let angle = delta * idx;
-        xs[idx] = {cos: Math.cos(angle), sin: Math.sin(angle)};
+        xs[idx] = {r: Math.cos(angle), i: Math.sin(angle)};
     }
     return xs;
 }
 
 const ncoTable = createCossinTable();
 
+export interface Nco {
+  setFrequency(v: number): void,
+  setError(v: number): void,
+  next(): Complex,
+  mixNext(v: number): Complex
+}
+
 /**
  * A sine generator with a 31-bit accumulator and a 16-bit
  * lookup table.  Much faster than Math.whatever
  */
-function Nco(frequency, sampleRate) {
+export function NcoCreate(frequency, sampleRate): Nco {
 
     let hzToInt = 0x7fffffff / sampleRate;
     let freq = 0 | 0;
+    let phase = 0 | 0;
+    let table = ncoTable;
+    let err = 0;
+    let maxErr = (50 * hzToInt) | 0;  //in hertz
+    console.log("NCO maxErr: " + maxErr);
+    let minErr = -(50 * hzToInt) | 0;  //in hertz
+    setFrequency(frequency);
 
-    function setFrequency(frequency) {
+    function setFrequency(frequency: number): void {
         freq = (frequency * hzToInt) | 0;
     }
 
-    this.setFrequency = setFrequency;
-    setFrequency(frequency);
 
-    let err = 0;
-    let maxErr = (50 * hzToInt) | 0;  //in hertz
-    console.log("maxErr: " + maxErr);
-    let minErr = -(50 * hzToInt) | 0;  //in hertz
-
-    function setError(v) {
+    function setError(v: number): void {
         err = (err * 0.9 + v * 100000.0) | 0;
         //console.log("err:" + err + "  v:" + v);
         if (err > maxErr)
@@ -65,24 +72,21 @@ function Nco(frequency, sampleRate) {
             err = minErr;
     }
 
-    this.setError = setError;
-
-    let phase = 0 | 0;
-    let table = ncoTable;
-
-    this.next = function () {
+    function next(): Complex {
         phase = (phase + (freq + err)) & 0x7fffffff;
         return table[(phase >> 16) & 0xffff];
-    };
+    }
 
-    this.mixNext = function (v) {
+    function mixNext(v: number): Complex {
         phase = (phase + (freq + err)) & 0x7fffffff;
         let cs = table[(phase >> 16) & 0xffff];
-        return {r: v * cs.cos, i: -v * cs.sin};
+        return {r: v * cs.r, i: -v * cs.i};
+    }
+
+    return {
+      setFrequency: setFrequency,
+      setError: setError,
+      next: next,
+      mixNext: mixNext
     };
 }
-
-export {Nco};
-
-
-

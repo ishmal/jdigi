@@ -6,13 +6,13 @@ import {Digi} from '../lib/digi';
  */
 export class DigiService {
 
-    private _digi: jsdigi.Digi;
+    private _digi: Digi;
 
     constructor() {
-        this._digi = new jsdigi.Digi();
+        this._digi = new Digi();
     }
 
-    get digi(): jsdigi.Digi {
+    get digi(): Digi {
         return this._digi;
     }
 }

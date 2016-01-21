@@ -27,7 +27,7 @@ import {Digi} from "./digi";
 import {Resampler} from "./resample";
 
 
-const AudioContextImpl = window.AudioContext || window.webkitAudioContext;
+const AudioContextImpl = /* window.AudioContext || */ window.webkitAudioContext;
 navigator.getUserMedia = navigator.getUserMedia ||
     navigator.webkitGetUserMedia ||
     navigator.mozGetUserMedia;
@@ -76,7 +76,7 @@ class AudioInput {
             let d = decimator;
             for (let i = 0; i < len; i++) {
                 let v = d.decimate(input[i]);
-                if (v !== false) {
+                if (v !== null) {
                     this.par.receive(v);
                 }
             }
@@ -132,7 +132,7 @@ class AudioOutput {
         /**/
         let bufferSize = 4096;
         let decimation = 7;
-        let ibuf = new Float32Array(decimation);
+        let ibuf = [];
         let iptr = decimation;
         let resampler = Resampler.create(decimation);
         let outputNode = this.actx.createScriptProcessor(bufferSize, 0, 1);
