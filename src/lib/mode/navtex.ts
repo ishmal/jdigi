@@ -21,8 +21,19 @@
 
 import {FskBase} from "./fsk";
 
-const CCIR = (function () {
 
+const NUL = 0x2b;
+const SPACE = 0x1d;
+const CR = 0x0f;
+const LF = 0x1b;
+const LTRS = 0x2d;
+const FIGS = 0x36;
+const ALPHA = 0x78;
+const BETA = 0x66;
+const SYNC = 0x00;
+const REPEAT = 0x33;
+
+function createCCIR() {
     let t = [];
     t[0x3a] = ['Q', '1'];
     /*0111010*/
@@ -79,44 +90,21 @@ const CCIR = (function () {
     t[0x1d] = [' ', ' '];
     t[0x0f] = ['\n', '\n']; //actually \r
     t[0x1b] = ['\n', '\n'];
+    return t;
+}
 
-    let NUL = 0x2b;
-    let SPACE = 0x1d;
-    let CR = 0x0f;
-    let LF = 0x1b;
-    let LTRS = 0x2d;
-    let FIGS = 0x36;
-    let ALPHA = 0x78;
-    let BETA = 0x66;
-    let SYNC = 0x00;
-    let REPEAT = 0x33;
+const CCIR = createCCIR();
 
-    let cls = {
-        NUL: NUL,
-        SPACE: SPACE,
-        CR: CR,
-        LF: LF,
-        LTRS: LTRS,
-        FIGS: FIGS,
-        ALPHA: ALPHA,
-        BETA: BETA,
-        SYNC: SYNC,
-        REPEAT: REPEAT
-    };
-    cls.isValid = function (code) {
-        return (t[code] !== undefined) ||
-            code === NUL ||
-            code === LTRS ||
-            code === FIGS ||
-            code === ALPHA ||
-            code === BETA ||
-            code === SYNC ||
-            code === REPEAT;
-    };
-    cls.t = t;
-
-    return cls;
-})();
+function ccirValid(code: number): boolean {
+    return (CCIR[code] !== undefined) ||
+        code === NUL ||
+        code === LTRS ||
+        code === FIGS ||
+        code === ALPHA ||
+        code === BETA ||
+        code === SYNC ||
+        code === REPEAT;
+}
 
 
 const RxSync1 = 0;
@@ -144,7 +132,7 @@ function reverse(v, len) {
  * @see http://en.wikipedia.org/wiki/Asynchronous_serial_communication
  *
  */
-class NavtexMode extends FskBase {
+export class NavtexMode extends FskBase {
 
     static props(self) {
         return {
@@ -175,16 +163,34 @@ class NavtexMode extends FskBase {
         };
     }
 
+    _unshiftOnSpace: boolean;
+    _state: number;
+    _bitcount: number;
+    _code: number;
+    _parityBit: boolean
+    _bitMask: number;
+    _errs: number;
+    _sync1: number;
+    _sync2: number;
+    _sync3: number;
+    _sync4: number;
+    _shifted: boolean;
+    _dxMode: boolean;
+    _q1: number;
+    _q2: number;
+    _q3: number;
+    _lastChar: string;
+
     constructor(par) {
-        super(par, NavtexMode.props, 1000.0);
-        this.unshiftOnSpace = false;
+        super(par, NavtexMode.props);
+        this._unshiftOnSpace = false;
         this.shift = 170.0;
         this.rate = 100.0;
-        this.state = RxSync1;
-        this.bitcount = 0;
-        this.code = 0;
-        this.parityBit = false;
-        this.bitMask = 0;
+        this._state = RxSync1;
+        this._bitcount = 0;
+        this._code = 0;
+        this._parityBit = false;
+        this._bitMask = 0;
 
         /**
          * Since there is no start or stop bit, we must sync ourselves.
@@ -192,36 +198,36 @@ class NavtexMode extends FskBase {
          * shift registers.  When all four have valid characters, we consider
          * it to be synced.
          */
-        this.errs = 0;
-        this.sync1 = 0;
-        this.sync2 = 0;
-        this.sync3 = 0;
-        this.sync4 = 0;
+        this._errs = 0;
+        this._sync1 = 0;
+        this._sync2 = 0;
+        this._sync3 = 0;
+        this._sync4 = 0;
 
-        this.shifted = false;
+        this._shifted = false;
         //Sitor-B is in either DX (data) or RX (repeat) mode
-        this.dxMode = true;
+        this._dxMode = true;
 
-        this.q3 = 0;
-        this.q2 = 0;
-        this.q1 = 0;
+        this._q3 = 0;
+        this._q2 = 0;
+        this._q1 = 0;
 
-        this.lastChar = '@';
+        this._lastChar = '@';
     }
 
 
     shift7(bit) {
         let a = (bit) ? 1 : 0;
-        let b = (this.sync1 >> 6) & 1;
-        this.sync1 = ((this.sync1 << 1) + a) & 0x7f;
+        let b = (this._sync1 >> 6) & 1;
+        this._sync1 = ((this._sync1 << 1) + a) & 0x7f;
         a = b;
-        b = (this.sync2 >> 6) & 1;
-        this.sync2 = ((this.sync2 << 1) + a) & 0x7f;
+        b = (this._sync2 >> 6) & 1;
+        this._sync2 = ((this._sync2 << 1) + a) & 0x7f;
         a = b;
-        b = (this.sync3 >> 6) & 1;
-        this.sync3 = ((this.sync3 << 1) + a) & 0x7f;
+        b = (this._sync3 >> 6) & 1;
+        this._sync3 = ((this._sync3 << 1) + a) & 0x7f;
         a = b;
-        this.sync4 = ((this.sync4 << 1) + a) & 0x7f;
+        this._sync4 = ((this._sync4 << 1) + a) & 0x7f;
     }
 
 
@@ -231,17 +237,17 @@ class NavtexMode extends FskBase {
             return;
         }
 
-        switch (this.state) {
+        switch (this._state) {
             case RxSync1 :
                 //trace("RxSync1")
-                this.state = RxSync2;
-                this.bitcount = 0;
-                this.code = 0;
-                this.errs = 0;
-                this.sync1 = 0;
-                this.sync2 = 0;
-                this.sync3 = 0;
-                this.sync4 = 0;
+                this._state = RxSync2;
+                this._bitcount = 0;
+                this._code = 0;
+                this._errs = 0;
+                this._sync1 = 0;
+                this._sync2 = 0;
+                this._sync3 = 0;
+                this._sync4 = 0;
                 break;
             case RxSync2 :
                 //trace("Rxthis.sync2")
@@ -249,30 +255,30 @@ class NavtexMode extends FskBase {
                 //trace(this.sync1.toHexString + ", "+  this.sync2.toHexString + ", " +
                 //     this.sync3.toHexString + ", " + this.sync4.toHexString);
                 //trace("bit: " + bit);
-                if (CCIR.isValid(this.sync1) && CCIR.isValid(this.sync2) &&
-                    CCIR.isValid(this.sync3) && CCIR.isValid(this.sync4)) {
-                    this.processCode(this.sync1);
-                    this.processCode(this.sync2);
-                    this.processCode(this.sync3);
-                    this.processCode(this.sync4);
-                    this.state = RxData;
+                if (ccirValid(this._sync1) && ccirValid(this._sync2) &&
+                    ccirValid(this._sync3) && ccirValid(this._sync4)) {
+                    this.processCode(this._sync1);
+                    this.processCode(this._sync2);
+                    this.processCode(this._sync3);
+                    this.processCode(this._sync4);
+                    this._state = RxData;
                 }
                 break;
             case RxData :
                 //trace("RxData");
-                this.code = ((this.code << 1) + ((bit) ? 1 : 0)) & 0x7f;
+                this._code = ((this._code << 1) + ((bit) ? 1 : 0)) & 0x7f;
                 //trace("code: " + code);
-                if (++this.bitcount >= 7) {
-                    if (this.processCode(this.code) != ResultFail) { //we want Ok or Soft
+                if (++this._bitcount >= 7) {
+                    if (this.processCode(this._code) != ResultFail) { //we want Ok or Soft
                         //stay in RxData.  ready for next code
-                        this.code = 0;
-                        this.bitcount = 0;
+                        this._code = 0;
+                        this._bitcount = 0;
                     } else {
-                        this.code = 0;
-                        this.bitcount = 0;
-                        this.errs++;
-                        if (this.errs > 3) {
-                            this.state = RxSync1;
+                        this._code = 0;
+                        this._bitcount = 0;
+                        this._errs++;
+                        if (this._errs > 3) {
+                            this._state = RxSync1;
                             //trace("return to sync")
                         }
                     }
@@ -284,33 +290,33 @@ class NavtexMode extends FskBase {
 
 
     qadd(v) {
-        this.q3 = this.q2;
-        this.q2 = this.q1;
-        this.q1 = v;
+        this._q3 = this._q2;
+        this._q2 = this._q1;
+        this._q1 = v;
     }
 
     processCode(code) {
         //trace("code: " + code.toHexString + " mode: " + dxMode)
         var res = ResultOk;
-        if (this.code === CCIR.REPEAT) {
-            this.qadd(this.code);
-            this.shifted = false;
-            this.dxMode = false;
-        } else if (this.code === CCIR.ALPHA) {
-            this.shifted = false;
-            this.dxMode = true;
+        if (this._code === REPEAT) {
+            this.qadd(this._code);
+            this._shifted = false;
+            this._dxMode = false;
+        } else if (this._code === ALPHA) {
+            this._shifted = false;
+            this._dxMode = true;
         } else {
-            if (this.dxMode) {
-                if (!CCIR.isValid(this.code))
+            if (this._dxMode) {
+                if (!ccirValid(this._code))
                     res = ResultSoft;
                 this.qadd(code); //dont think.  just queue it
-                this.dxMode = false; //for next time
+                this._dxMode = false; //for next time
             } else { //symbol
-                if (CCIR.isValid(this.code)) {
-                    this.processCode2(this.code);
+                if (ccirValid(this._code)) {
+                    this.processCode2(this._code);
                 } else {
-                    if (CCIR.isValid(this.q3)) {
-                        var c = this.processCode2(this.q3);
+                    if (ccirValid(this._q3)) {
+                        var c = this.processCode2(this._q3);
                         this.par.status("FEC replaced :" + c);
                         res = ResultSoft;
                     } else {
@@ -318,7 +324,7 @@ class NavtexMode extends FskBase {
                         res = ResultFail;
                     }
                 }
-                this.dxMode = true; // next time
+                this._dxMode = true; // next time
             }//rxmode
         }//symbol
         return res;
@@ -332,25 +338,22 @@ class NavtexMode extends FskBase {
         } else if (code < 0) {
             //par.puttext("_");
             res = '_';
-        } else if (code === CCIR.ALPHA || code === CCIR.REPEAT) {
+        } else if (code === ALPHA || code === REPEAT) {
             //shouldnt be here
-        } else if (code === CCIR.LTRS) {
-            this.shifted = false;
-        } else if (code === CCIR.FIGS) {
-            this.shifted = true;
+        } else if (code === LTRS) {
+            this._shifted = false;
+        } else if (code === FIGS) {
+            this._shifted = true;
         } else {
-            let v = CCIR.t[code];
+            let v = CCIR[code];
             if (v !== undefined) {
-                var c = (this.shifted) ? v[1] : v[0];
-                this.par.puttext(c);
+                var c = (this._shifted) ? v[1] : v[0];
+                this.par.putText(c);
                 res = c;
             }
         }
-        this.lastChar = res;
+        this._lastChar = res;
         return res;
     }
 
 }// NavtexMode
-
-
-export {NavtexMode};
