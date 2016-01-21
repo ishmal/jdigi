@@ -25,10 +25,9 @@ import {FIR} from "../filter";
  * These are the ITU codes for 5-bit Baudot code and 7-bit SITOR
  * in the same table
  */
-const Baudot = {
+const Baudot = [
 
-    t: [
-        [0, 0], // 0x00 NUL
+        [null, null], // 0x00 NUL
         ['E', '3'], // 0x01
         ['\n', '\n'], // 0x02 LF
         ['A', '-'], // 0x03
@@ -39,7 +38,7 @@ const Baudot = {
         ['\n', '\n'], // 0x08 CR
         ['D', '$'], // 0x09
         ['R', '4'], // 0x0a
-        ['J', 7], // 0x0b 7=bell
+        ['J', '\07'], // 0x0b 7=bell
         ['N', ','], // 0x0c
         ['F', '!'], // 0x0d
         ['C', ':'], // 0x0e
@@ -55,19 +54,19 @@ const Baudot = {
         ['O', '9'], // 0x18
         ['B', '?'], // 0x19
         ['G', '&'], // 0x1a
-        [0, 0], // 0x1b FIGS
+        [null, null], // 0x1b FIGS
         ['M', '.'], // 0x1c
         ['X', '/'], // 0x1d
         ['V', '='], // 0x1e
-        [0, 0]  // 0x1f LTRS
-    ],
-    NUL: 0x00,
-    SPACE: 0x04,
-    CR: 0x08,
-    LF: 0x02,
-    LTRS: 0x1f,
-    FIGS: 0x1b
-};
+        [null, null]  // 0x1f LTRS
+];
+
+const NUL = 0x00;
+const SPACE = 0x04;
+const CR = 0x08;
+const LF = 0x02;
+const LTRS = 0x1f;
+const FIGS = 0x1b;
 
 const NRBITS = 5;
 
@@ -162,32 +161,46 @@ class RttyMode extends FskBase {
         };
     }
 
+    _unshiftOnSpace : boolean;
+    _symbollen: number;
+    _halfsym: number;
+    _symarray: boolean[];
+    _symptr: number;
+    _parityType: number;
+    _state: number;
+    _bitcount: number;
+    _code: number;
+    _parityBit: boolean;
+    _counter: number;
+    _msbit: number;
+    _shifted: boolean;
+
     constructor(par) {
-        super(par, RttyMode.props, 1000.0);
-        this.unshiftOnSpace = false;
-        this.symbollen = 0;
-        this.halfsym = 0;
-        this.symarray = 0;
-        this.symptr = 0;
+        super(par, RttyMode.props);
+        this._unshiftOnSpace = false;
+        this._symbollen = 0;
+        this._halfsym = 0;
+        this._symarray = [];
+        this._symptr = 0;
         this.rate = 45.45;
-        this.parityType = ParityNone;
-        this.state = RxIdle;
-        this.bitcount = 0;
-        this.code = 0;
-        this.parityBit = false;
-        this.counter = 0;
-        this.msbit = 1 << (NRBITS - 1);
-        this.shifted = false;
+        this._parityType = ParityNone;
+        this._state = RxIdle;
+        this._bitcount = 0;
+        this._code = 0;
+        this._parityBit = false;
+        this._counter = 0;
+        this._msbit = 1 << (NRBITS - 1);
+        this._shifted = false;
     }
 
 
     setRate(v) {
-        super.rate = v;
-        this.symbollen = Math.round(this.samplesPerSymbol);
-        this.halfsym = this.symbollen >> 1;
-        this.symarray = new Array(this.symbollen);
-        for (let pp = 0; pp < this.symbollen; pp++) {
-            this.symarray[pp] = false;
+        super._setRate(v);
+        this._symbollen = Math.round(this.samplesPerSymbol);
+        this._halfsym = this._symbollen >> 1;
+        this._symarray = new Array(this._symbollen);
+        for (let pp = 0; pp < this._symbollen; pp++) {
+            this._symarray[pp] = false;
         }
     }
 
@@ -202,11 +215,11 @@ class RttyMode extends FskBase {
     }
 
     parityOf(c) {
-        switch (this.parityType) {
+        switch (this._parityType) {
             case ParityOdd  :
-                return (countbits(c) & 1) !== 0;
+                return false; // FIXME!! (this.countbits(c) & 1) !== 0;
             case ParityEven :
-                return (countbits(c) & 1) === 0;
+                return false;  //FIXME!!  (this.countbits(c) & 1) === 0;
             case ParityZero :
                 return false;
             case ParityOne  :
@@ -243,75 +256,75 @@ class RttyMode extends FskBase {
      * -|                  |-
      *
      */
-    processBit(bit) {
+    processBit(bit: boolean) {
 
-        symarray[symptr++] = bit;
-        symptr %= symbollen;
-        this.last = symarray[symptr];
-        this.isMarkToSpace = false;
-        this.corr = 0;
-        this.ptr = symptr;
-        this.sum = 0;
-        for (this.pp = 0; pp < symbollen; pp++) {
-            sum += symarray[ptr++];
-            ptr %= symbollen;
+        this._symarray[this._symptr++] = bit;
+        this._symptr %= this._symbollen;
+        let last = this._symarray[this._symptr];
+        let isMarkToSpace = false;
+        let corr = 0;
+        let ptr = this._symptr;
+        let sum = 0;
+        for (let pp = 0; pp < this._symbollen; pp++) {
+            if (this._symarray[ptr++]) sum++;
+            ptr %= this._symbollen;
         }
-        this.isMark = (sum > halfsym);
+        let isMark = (sum > this._halfsym);
         if (last && !bit) {
-            if (Math.abs(halfsym - sum) < 6) {
+            if (Math.abs(this._halfsym - sum) < 6) {
                 isMarkToSpace = true;
                 corr = sum;
             }
         }
 
-        switch (state) {
+        switch (this._state) {
 
             case RxIdle :
                 //console.log("RxIdle");
                 if (isMarkToSpace) {
-                    state = RxStart;
-                    counter = corr; //lets us re-center
+                    this._state = RxStart;
+                    this._counter = corr; //lets us re-center
                 }
                 break;
             case RxStart :
                 //console.log("RxStart");
-                if (--counter <= 0) {
+                if (--this._counter <= 0) {
                     if (!isMark) {
-                        state = RxData;
-                        code = 0 | 0;
-                        parityBit = false;
-                        bitcount = 0;
-                        counter = symbollen;
+                        this._state = RxData;
+                        this._code = 0 | 0;
+                        this._parityBit = false;
+                        this._bitcount = 0;
+                        this._counter = this._symbollen;
                     } else {
-                        state = RxIdle;
+                        this._state = RxIdle;
                     }
                 }
                 break;
             case RxData :
                 //console.log("RxData");
-                if (--counter <= 0) {
-                    counter = symbollen;
+                if (--this._counter <= 0) {
+                    this._counter = this._symbollen;
                     //code = (code<<1) + isMark; //msb
-                    code = ((code >>> 1) + ((isMark) ? msbit : 0)) | 0; //lsb
-                    if (++bitcount >= NRBITS) {
-                        state = (parityType === ParityNone) ? RxStop : RxParity;
+                    this._code = ((this._code >>> 1) + ((isMark) ? this._msbit : 0)) | 0; //lsb
+                    if (++this._bitcount >= NRBITS) {
+                        this._state = (this._parityType === ParityNone) ? RxStop : RxParity;
                     }
                 }
                 break;
             case RxParity :
                 //console.log("RxParity");
-                if (--counter <= 0) {
-                    state = RxStop;
-                    parityBit = isMark;
+                if (--this._counter <= 0) {
+                    this._state = RxStop;
+                    this._parityBit = isMark;
                 }
                 break;
             case RxStop :
                 //console.log("RxStop");
-                if (--counter <= 0) {
+                if (--this._counter <= 0) {
                     if (isMark) {
-                        outCode(code);
+                        this.outCode(this._code);
                     }
-                    state = RxIdle;
+                    this._state = RxIdle;
                 }
                 break;
         }
@@ -332,26 +345,26 @@ class RttyMode extends FskBase {
     outCode(rawcode) {
         //println("raw:" + rawcode)
         //rawcode = reverse(rawcode, 5);
-        this.code = rawcode & 0x1f;
-        if (code === Baudot.NUL) {
-        } else if (code === Baudot.FIGS) {
-            this.shifted = true;
-        } else if (code === Baudot.LTRS) {
-            this.shifted = false;
-        } else if (code === Baudot.SPACE) {
-            this.par.puttext(" ");
-            if (this.unshiftOnSpace)
-                this.shifted = false;
-        } else if (code === Baudot.CR || code === Baudot.LF) {
-            this.par.puttext("\n");
-            if (this.unshiftOnSpace)
-                this.shifted = false;
+        let code = rawcode & 0x1f;
+        if (code === NUL) {
+        } else if (code === FIGS) {
+            this._shifted = true;
+        } else if (code === LTRS) {
+            this._shifted = false;
+        } else if (code === SPACE) {
+            this.par.putText(" ");
+            if (this._unshiftOnSpace)
+                this._shifted = false;
+        } else if (code === CR || code === LF) {
+            this.par.putText("\n");
+            if (this._unshiftOnSpace)
+                this._shifted = false;
         } else {
-            this.v = Baudot.t[code];
+            let v = Baudot[code];
             if (v) {
-                this.c = (this.shifted) ? v[1] : v[0];
-                if (c !== 0)
-                    this.par.puttext(c);
+                let c = (this._shifted) ? v[1] : v[0];
+                if (c)
+                    this.par.putText(c);
             }
         }
     }

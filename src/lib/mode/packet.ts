@@ -101,60 +101,66 @@ const CrcTables = {
 
 class Crc {
 
+  _crc: number;
+
     constructor() {
         this.reset();
     }
 
     update(c) {
         let table = CrcTables.crcTable;
-        let crc = this.crc;
+        let crc = this._crc;
         let j = (c ^ (crc >> 8)) & 0xff;
-        this.crc = table[j] ^ (crc << 8);
+        this._crc = table[j] ^ (crc << 8);
     }
 
     value() {
-        return (this.crc ^ 0) & 0xffff;
+        return (this._crc ^ 0) & 0xffff;
     }
 
     updateLE(c) {
         let table = CrcTables.crcTableLE;
-        let crc = this.crc;
-        this.crc = ((crc >> 8) ^ table[(crc ^ c) & 0xff]) & 0xffff;
+        let crc = this._crc;
+        this._crc = ((crc >> 8) ^ table[(crc ^ c) & 0xff]) & 0xffff;
     }
 
     valueLE() {
-        return this.crc;
+        return this._crc;
     }
 
     reset() {
-        this.crc = 0xffff;
+        this._crc = 0xffff;
     }
 }
 
 
 class PacketAddr {
 
-    constructor(call, ssid) {
-        this.call = call;
-        this.ssid = ssid;
-        this.add = null;
+  _call: string;
+  _ssid: number;
+  _add: string;
+
+    constructor(call: string, ssid: number) {
+        this._call = call;
+        this._ssid = ssid;
+        this._add = null;
     }
 
     encoded() {
-        let add = this.add;
+        let add = this._add;
         if (add === null) {
-            let call = this.call;
-            add = new Array(7);
+            let call = this._call;
+            let newadd = new Array(7);
             let len = call.length;
             for (let i = 0; i < 7; i++) {
                 if (i < len)
-                    add[i] = ((call[i].toInt) << 1);
+                    newadd[i] = (parseInt(call[i]) << 1);
                 else if (i == 6)
-                    add[i] = (0x60 | (this.ssid << 1));
+                    newadd[i] = (0x60 | (this._ssid << 1));
                 else
-                    add[i] = 0x40;   // shifted space
+                    newadd[i] = 0x40;   // shifted space
             }
-            this.add = add;
+            this._add = newadd.toString();
         }
         return add;
     }
@@ -171,7 +177,7 @@ class PacketAddr {
 
 
     toString() {
-        return (this.ssid >= 0) ? this.call + "-" + this.ssid : this.call;
+        return (this._ssid >= 0) ? this._call + "-" + this._ssid : this._call;
     }
 
 }
@@ -219,28 +225,40 @@ const Types = {
     UFRAME: 2
 };
 
+const IFRAME = 0;
+const SFRAME = 1;
+const UFRAME = 2;
+
 
 class Packet {
 
-    constructor(dest, src, rpts, ctrl, pid, info) {
-        this.dest = dest;
-        this.src = src;
-        this.rpts = rpts;
-        this.ctrl = ctrl;
-        this.pid = pid;
-        this.info = info;
+  _src: PacketAddr;
+  _dest: PacketAddr;
+  _rpts: PacketAddr[];
+  _ctrl: number;
+  _pid: number;
+  _info: string;
+
+    constructor(dest: PacketAddr, src: PacketAddr, rpts: PacketAddr[], ctrl:number, pid: number, info: string) {
+        this._dest = dest;
+        this._src = src;
+        this._rpts = rpts;
+        this._ctrl = ctrl;
+        this._pid = pid;
+        this._info = info;
     }
 
     toOctets() {
         let buf = [];
         buf[buf.length] = 0x7e; // flag
-        buf = buf.concat(this.dest.encoded());
-        buf = buf.concat(this.src.encoded());
-        for (let ridx = 0; ridx < this.rpts.length; ridx++) {
-            buf = buf.concat(this.rpts[ridx].encoded());
+        buf = buf.concat(this._dest.encoded());
+        buf = buf.concat(this._src.encoded());
+        for (let ridx = 0; ridx < this._rpts.length; ridx++) {
+            buf = buf.concat(this._rpts[ridx].encoded());
         }
-        buf[buf.length] = this.ctrl;
-        buf[buf.length] = this.pid;
+        buf[buf.length] = this._ctrl;
+        buf[buf.length] = this._pid;
+        let info = this._info;
         let ilen = info.length;
         for (let iidx = 0; iidx < ilen; iidx++) {
             buf[buf.length] = info[iidx];
@@ -258,16 +276,16 @@ class Packet {
         return buf;
     }
 
-    static create() {
+    static create(data) {
         var pos = 0;
-        var dest = getAddr(data, pos);
+        var dest = null; //FIXME this.getAddr(data, pos);
         pos += 7;
-        var src = getAddr(data, pos);
+        var src = null; //FIXME this.getAddr(data, pos);
         pos += 7;
         var rpts = [];
         //println("lastbyte:"+data(pos-1))
         while (rpts.length < 8 && pos < data.length - 7 && ((data[pos - 1] & 128) !== 0)) {
-            rpts[rpts.length] = getAddr(data, pos);
+            // FIXME rpts[rpts.length] = getAddr(data, pos);
             pos += 7;
         }
 
@@ -284,21 +302,22 @@ class Packet {
     }
 
     toString() {
-        let buf = src.toString() + "=>" + dest.toString();
+        let buf = this._src.toString() + "=>" + this._dest.toString();
 
-        let len = rpts.length;
+        let r = this._rpts;
+        let len = r.length;
         for (let ridx = 0; ridx < len; ridx++) {
             buf += ":";
             buf += r.toString();
         }
-        buf += " [" + pid.toString() + "]: ";
-        if (pid !== 0) {
-            buf += String.fromCharCode.apply(null, info);
+        buf += " [" + this._pid.toString() + "]: ";
+        if (this._pid !== 0) {
+            buf += String.fromCharCode.apply(null, this._info);
         } else {
             //for (v <- info)
             //    buf.append(",").append(v.toString)
-            buf += "{" + info(0) + "," + info.size + "}";
-            buf += String.fromCharCode.apply(null, info);
+            buf += "{" + this._info[0] + "," + this._info.length + "}";
+            buf += String.fromCharCode.apply(null, this._info);
         }
         return buf;
     }
@@ -368,17 +387,25 @@ class PacketMode extends FskBase {
         };
     }
 
+    _state: number;
+    _bitcount: number;
+    _octet: number;
+    _ones: number;
+    _bufPtr: number;
+    _rxbuf: number[];
+    _lastBit: boolean;
+
     constructor(par) {
-        super(par, PacketMode.props, 4800.0);
+        super(par, PacketMode.props);
         this.shift = 200.0;
         this.rate = 300.0;
-        this.state = RxStart;
-        this.bitcount = 0;
-        this.octet = 0;
-        this.ones = 0;
-        this.bufPtr = 0;
-        this.rxbuf = new Array(RXLEN);
-        this.lastBit = false;
+        this._state = RxStart;
+        this._bitcount = 0;
+        this._octet = 0;
+        this._ones = 0;
+        this._bufPtr = 0;
+        this._rxbuf = new Array(RXLEN);
+        this._lastBit = false;
     }
 
 
@@ -397,53 +424,53 @@ class PacketMode extends FskBase {
         }
 
         //shift right for the next bit, since ax.25 is lsb-first
-        let octet = (this.octet >> 1) & 0x7f;  //0xff? we dont want the msb
-        this.octet = octet;
-        let bit = (inBit === this.lastBit); //google "nrzi"
-        this.lastBit = inBit;
+        let octet = (this._octet >> 1) & 0x7f;  //0xff? we dont want the msb
+        this._octet = octet;
+        let bit = (inBit === this._lastBit); //google "nrzi"
+        this._lastBit = inBit;
         if (bit) {
-            this.ones += 1;
+            this._ones += 1;
             octet |= 128;
         }
         else
-            this.ones = 0;
+            this._ones = 0;
 
-        switch (this.state) {
+        switch (this._state) {
 
             case RxStart :
                 //trace("RxStart");
                 //trace("st octet: %02x".format(octet));
                 if (octet === FLAG) {
-                    this.state = RxTxd;
-                    this.bitcount = 0;
+                    this._state = RxTxd;
+                    this._bitcount = 0;
                 }
                 break;
 
             case RxTxd :
                 //trace("RxTxd");
-                if (++this.bitcount >= 8) {
+                if (++this._bitcount >= 8) {
                     //trace("txd octet: %02x".format(octet));
-                    this.bitcount = 0;
+                    this._bitcount = 0;
                     if (octet !== FLAG) {
-                        this.state = RxData;
-                        this.rxbuf[0] = octet & 0xff;
-                        this.bufPtr = 1;
+                        this._state = RxData;
+                        this._rxbuf[0] = octet & 0xff;
+                        this._bufPtr = 1;
                     }
                 }
                 break;
 
             case RxData :
                 //trace("RxData");
-                if (this.ones === 5) { // 111110nn, next bit will determine
-                    this.state = RxFlag1;
+                if (this._ones === 5) { // 111110nn, next bit will determine
+                    this._state = RxFlag1;
                 } else {
-                    if (++this.bitcount >= 8) {
-                        this.bitcount = 0;
-                        if (this.bufPtr >= RXLEN) {
+                    if (++this._bitcount >= 8) {
+                        this._bitcount = 0;
+                        if (this._bufPtr >= RXLEN) {
                             //trace("drop")
-                            this.state = RxStart;
+                            this._state = RxStart;
                         } else {
-                            this.rxbuf[this.bufPtr++] = octet & 0xff;
+                            this._rxbuf[this._bufPtr++] = octet & 0xff;
                         }
                     }
                 }
@@ -452,19 +479,19 @@ class PacketMode extends FskBase {
             case RxFlag1 :
                 //trace("RxFlag");
                 if (bit) { //was really a 6th bit.
-                    this.state = RxFlag2;
+                    this._state = RxFlag2;
                 } else { //was a zero.  drop it and continue
                     octet = (octet << 1) & 0xfe;
-                    this.state = RxData;
+                    this._state = RxData;
                 }
                 break;
 
             case RxFlag2 :
                 //we simply wanted that last bit
-                this.processPacket(this.rxbuf, this.bufPtr);
+                this.processPacket(this._rxbuf, this._bufPtr);
                 for (let rdx = 0; rdx < RXLEN; rdx++)
-                    this.rxbuf[rdx] = 0;
-                this.state = RxStart;
+                    this._rxbuf[rdx] = 0;
+                this._state = RxStart;
                 break;
 
             default :
@@ -499,8 +526,8 @@ class PacketMode extends FskBase {
         //theory is, if you calculate the CRC of the data, -including- the crc field,
         //a correct result will always be 0xf0b8
         if (v === 0xf0b8) {
-            let p = Packets.create(data);
-            this.par.puttext(p.toString() + "\n");
+            let p = Packet.create(data);
+            this.par.putText(p.toString() + "\n");
         }
         return true;
     }
