@@ -13,7 +13,7 @@
         <span>Jdigi  <a target="_new" href="http://github.com/ishmal/jdigi">http://github.com/ishmal/jdigi</a></span>
     </div>
 	<tabset>
-	    <tab ng-repeat="mode in modes" heading="{{mode.properties.name}}" select="changeMode(mode)">
+	    <tab ng-repeat="mode in modes" select="changeMode(mode)">
 			<span ng-repeat="control in mode.properties.controls" ng-switch="control.type">
 				<span ng-switch-when="boolean">
 					<button type="button" class="btn btn-primary btn-sm"
@@ -45,4 +45,3 @@
 NOTE: You can select the audio input source on Firefox when it asks permission. You can <b>also</b> select
 the input source on Chrome by going to chrome://settings/content .
 </p>
-

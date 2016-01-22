@@ -3,7 +3,6 @@ var ts = require('gulp-typescript');
 var gutil = require("gulp-util");
 var rimraf = require('rimraf');
 var browserSync = require('browser-sync');
-var webpack = require('webpack');
 var jshint = require('gulp-jshint');
 
 
@@ -14,7 +13,7 @@ gulp.task('lint', function() {
 });
 
 
-gulp.task('copylibs', function(done) {
+gulp.task('copylibs', done => {
     gulp.src(['node_modules/angular2/**/*'], {base: "node_modules/angular2"} )
       .pipe(gulp.dest('web/lib/angular2'));
     gulp.src(['node_modules/reflect-metadata/**/*'], {base: "node_modules/reflect-metadata"} )
@@ -31,6 +30,7 @@ gulp.task('copylibs', function(done) {
         .pipe(gulp.dest('web/lib/jquery'));
     gulp.src(['node_modules/rxjs/**/*'], {base: "node_modules/rxjs"} )
         .pipe(gulp.dest('web/lib/rxjs'));
+    done();
 });
 
 gulp.task('assets', function() {
