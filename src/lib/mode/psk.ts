@@ -248,42 +248,6 @@ const HALFPI = Math.PI * 0.5;
  */
 class PskMode extends Mode {
 
-    static props(self) {
-        return {
-            name: "psk",
-            tooltip: "phase shift keying",
-            controls: [
-                {
-                    name: "rate",
-                    type: "choice",
-                    tooltip: "PSK data rate",
-                    get value() {
-                        return self.rate;
-                    },
-                    set value(v) {
-                        self.rate = parseFloat(v);
-                    },
-                    values: [
-                        {name: "31", value: 31.25},
-                        {name: "63", value: 62.50},
-                        {name: "125", value: 125.00}
-                    ]
-                },
-                {
-                    name: "qpsk",
-                    type: "boolean",
-                    tooltip: "not yet implemented",
-                    get value() {
-                        return self.qpskMode;
-                    },
-                    set value(v) {
-                        self.qpskMode = v;
-                    }
-                }
-            ]
-        };
-    }
-
     _timer: Timer;
     _bpf: Filter;
     _scopedata: number[][];
@@ -318,6 +282,42 @@ class PskMode extends Mode {
 
     }
 
+    @Override
+    get properties():Properties {
+        return {
+            name: "psk",
+            tooltip: "phase shift keying",
+            controls: [
+                {
+                    name: "rate",
+                    type: "choice",
+                    tooltip: "PSK data rate",
+                    get value() {
+                        return this.rate;
+                    },
+                    set value(v) {
+                        this.rate = parseFloat(v);
+                    },
+                    values: [
+                        {name: "31", value: 31.25},
+                        {name: "63", value: 62.50},
+                        {name: "125", value: 125.00}
+                    ]
+                },
+                {
+                    name: "qpsk",
+                    type: "boolean",
+                    tooltip: "not yet implemented",
+                    get value() {
+                        return this.qpskMode;
+                    },
+                    set value(v) {
+                        this.qpskMode = v;
+                    }
+                }
+            ]
+        };
+    }
 
     _setRate(v) {
         super._setRate(v);
@@ -470,10 +470,10 @@ class PskMode2 extends Mode {
                     name: "rate",
                     type: "choice",
                     get value() {
-                        return self.rate;
+                        return this.rate;
                     },
                     set value(v) {
-                        self.rate = parseFloat(v);
+                        this.rate = parseFloat(v);
                     },
                     values: [
                         {name: "31", value: 31.25},
@@ -485,10 +485,10 @@ class PskMode2 extends Mode {
                     name: "qpsk",
                     type: "boolean",
                     get value() {
-                        return self.qpskMode;
+                        return this.qpskMode;
                     },
                     set value(v) {
-                        self.qpskMode = v;
+                        this.qpskMode = v;
                     }
                 }
             ]

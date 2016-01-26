@@ -1,27 +1,21 @@
 {
+  "version": "1.6.2",
   "compilerOptions": {
-    "target": "ES5",
-    "module": "system",
-    "moduleResolution": "node",
+    "target": "es5",
+    "module": "commonjs",
     "sourceMap": true,
+    "declaration": true,
+    "removeComments": true,
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
-    "removeComments": false,
-    "noImplicitAny": false
+    "listFiles": false,
+    "noLib": false
   },
-  "filesGlob": [
-    "./typings/*.ts",
-    "./src/*.ts",
-    "!./node_modules/**/*.ts",
-    "!./web/**/*.ts"
+  "exclude": [
+    "node_modules"
   ],
   "files": [
-    "./typings/MediaStream.d.ts",
-    "./typings/webaudio.d.ts",
-    "./src/boot.ts"
-  ],
-  "exclude": [],
-  "atom": {
-    "rewriteTsconfig": true
-  }
+    "src/components/app/app.ts",
+    "src/vendor.ts"
+  ]
 }

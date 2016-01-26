@@ -134,34 +134,6 @@ function reverse(v, len) {
  */
 export class NavtexMode extends FskBase {
 
-    static props(self) {
-        return {
-            name: "navtex",
-            tooltip: "international naval teleprinter",
-            controls: [
-                {
-                    name: "inv",
-                    type: "boolean",
-                    get value() {
-                        return self.inverted;
-                    },
-                    set value(v) {
-                        self.inverted = v;
-                    }
-                },
-                {
-                    name: "UoS",
-                    type: "boolean",
-                    get value() {
-                        return self.unshiftOnSpace;
-                    },
-                    set value(v) {
-                        self.unshiftOnSpace = v;
-                    }
-                }
-            ]
-        };
-    }
 
     _unshiftOnSpace: boolean;
     _state: number;
@@ -182,7 +154,7 @@ export class NavtexMode extends FskBase {
     _lastChar: string;
 
     constructor(par) {
-        super(par, NavtexMode.props);
+        super(par);
         this._unshiftOnSpace = false;
         this.shift = 170.0;
         this.rate = 100.0;
@@ -213,6 +185,36 @@ export class NavtexMode extends FskBase {
         this._q1 = 0;
 
         this._lastChar = '@';
+    }
+
+    @Override
+    get properties: Properties {
+        return {
+            name: "navtex",
+            tooltip: "international naval teleprinter",
+            controls: [
+                {
+                    name: "inv",
+                    type: "boolean",
+                    get value() {
+                        return this.inverted;
+                    },
+                    set value(v) {
+                        this.inverted = v;
+                    }
+                },
+                {
+                    name: "UoS",
+                    type: "boolean",
+                    get value() {
+                        return this.unshiftOnSpace;
+                    },
+                    set value(v) {
+                        this.unshiftOnSpace = v;
+                    }
+                }
+            ]
+        };
     }
 
 

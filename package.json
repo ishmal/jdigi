@@ -1,34 +1,54 @@
 {
-  "name": "jdigi",
-  "version": "1.0.0",
-  "scripts": {},
+  "name": "angular2-bootstrap-starter",
+  "version": "1.0.0-beta.1",
+  "description": "Angular2-bootstrap starter repo",
+  "main": "index.js",
+  "scripts": {
+    "deploy": "NODE_ENV=production webpack -p --progress --color --optimize-minimize --optimize-dedupe --optimize-occurence-order",
+    "dev": "webpack-dev-server --progress --display-cached --hot --inline --colors --display-error-details --display-cached --port 3000",
+    "start": "npm run dev",
+    "test": "gulp lint"
+  },
+  "keywords": [
+    "angular2",
+    "n2-bootstrap",
+    "angular2-bootstrap",
+    "starter",
+    "angular2-bootstrap-started"
+  ],
+  "author": "Dmitriy Shekhovtsov <valorkin@gmail.com>",
   "license": "ISC",
   "repository": {
     "type": "git",
     "url": "https://github.com/ishmal/jdigi.git"
   },
+  "bugs": {
+    "url": "https://github.com/valor-software/angular2-bootstrap-starter/issues"
+  },
+  "homepage": "https://github.com/valor-software/angular2-bootstrap-starter#readme",
   "dependencies": {
-    "angular2": "2.0.0-beta.0",
-    "babel-runtime": "^6.3.19",
-    "bootstrap": "^3.3.6",
-    "es6-promise": "^3.0.2",
-    "es6-shim": "^0.33.13",
+    "es6-promise": "3.0.2",
+    "es6-shim": "0.33.13",
     "reflect-metadata": "0.1.2",
     "rxjs": "5.0.0-beta.0",
-    "systemjs": "0.19.6",
-    "zone.js": "0.5.10"
+    "zone.js": "0.5.10",
+    "angular2": "2.0.0-beta.0",
+    "ng2-bootstrap": "1.0.0-beta.1"
   },
   "devDependencies": {
-    "browser-sync": "^2.11.0",
-    "concurrently": "^1.0.0",
+    "babel-eslint": "^5.0.0-beta6",
+    "compression-webpack-plugin": "^0.3.0",
+    "eslint": "^1.10.3",
     "gulp": "^3.9.0",
-    "gulp-jshint": "^2.0.0",
-    "gulp-typescript": "^2.9.2",
-    "gulp-util": "^3.0.7",
-    "gulp-webserver": "^0.9.1",
-    "jshint": "^2.8.0",
-    "rimraf": "^2.4.4",
-    "ts-loader": "^0.7.2",
-    "typescript": "^1.7.5"
+    "gulp-eslint": "^1.1.1",
+    "gulp-size": "^2.0.0",
+    "gulp-tslint": "^4.2.1",
+    "html-loader": "^0.4.0",
+    "pre-commit": "^1.1.2",
+    "require-dir": "^0.3.0",
+    "ts-loader": "^0.8.0",
+    "typescript": "^1.7.5",
+    "webpack": "^1.12.12",
+    "webpack-dev-server": "^1.14.1"
   }
 }

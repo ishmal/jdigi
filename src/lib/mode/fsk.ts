@@ -50,8 +50,8 @@ export class FskBase extends Mode {
     _symbollen: number;
     _halfsym: number;
 
-    constructor(par: Digi, props: any) {
-        super(par, props);
+    constructor(par: Digi) {
+        super(par);
         this._shift = 170.0;
         this._inverted = false;
         this.rate = 45.0;

@@ -98,69 +98,6 @@ const RxParity = 4;
  */
 class RttyMode extends FskBase {
 
-    static props(self) {
-        return {
-            name: "rtty",
-            tooltip: "radio teletype",
-            controls: [
-                {
-                    name: "rate",
-                    type: "choice",
-                    tooltip: "rtty baud rate",
-                    get value() {
-                        return self.rate;
-                    },
-                    set value(v) {
-                        self.rate = parseFloat(v);
-                    },
-                    values: [
-                        {name: "45", value: 45.45},
-                        {name: "50", value: 50.00},
-                        {name: "75", value: 75.00},
-                        {name: "100", value: 100.00}
-                    ]
-                },
-                {
-                    name: "shift",
-                    type: "choice",
-                    tooltip: "frequency distance between mark and space",
-                    get value() {
-                        return self.shift;
-                    },
-                    set value(v) {
-                        self.shift = parseFloat(v);
-                    },
-                    values: [
-                        {name: "85", value: 85.0},
-                        {name: "170", value: 170.0},
-                        {name: "450", value: 450.0},
-                        {name: "850", value: 850.0}
-                    ]
-                },
-                {
-                    name: "inv",
-                    type: "boolean",
-                    get value() {
-                        return self.inverted;
-                    },
-                    set value(v) {
-                        self.inverted = v;
-                    }
-                },
-                {
-                    name: "UoS",
-                    type: "boolean",
-                    get value() {
-                        return self.unshiftOnSpace;
-                    },
-                    set value(v) {
-                        self.unshiftOnSpace = v;
-                    }
-                }
-            ]
-        };
-    }
-
     _unshiftOnSpace : boolean;
     _symbollen: number;
     _halfsym: number;
@@ -191,6 +128,70 @@ class RttyMode extends FskBase {
         this._counter = 0;
         this._msbit = 1 << (NRBITS - 1);
         this._shifted = false;
+    }
+
+    @Override
+    get properties(): Properties {
+        return {
+            name: "rtty",
+            tooltip: "radio teletype",
+            controls: [
+                {
+                    name: "rate",
+                    type: "choice",
+                    tooltip: "rtty baud rate",
+                    get value() {
+                        return this.rate;
+                    },
+                    set value(v) {
+                        this.rate = parseFloat(v);
+                    },
+                    values: [
+                        {name: "45", value: 45.45},
+                        {name: "50", value: 50.00},
+                        {name: "75", value: 75.00},
+                        {name: "100", value: 100.00}
+                    ]
+                },
+                {
+                    name: "shift",
+                    type: "choice",
+                    tooltip: "frequency distance between mark and space",
+                    get value() {
+                        return this.shift;
+                    },
+                    set value(v) {
+                        this.shift = parseFloat(v);
+                    },
+                    values: [
+                        {name: "85", value: 85.0},
+                        {name: "170", value: 170.0},
+                        {name: "450", value: 450.0},
+                        {name: "850", value: 850.0}
+                    ]
+                },
+                {
+                    name: "inv",
+                    type: "boolean",
+                    get value() {
+                        return this.inverted;
+                    },
+                    set value(v) {
+                        this.inverted = v;
+                    }
+                },
+                {
+                    name: "UoS",
+                    type: "boolean",
+                    get value() {
+                        return this.unshiftOnSpace;
+                    },
+                    set value(v) {
+                        this.unshiftOnSpace = v;
+                    }
+                }
+            ]
+        };
     }
 
 

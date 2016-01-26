@@ -24,11 +24,28 @@ import {Nco, NcoCreate} from "../nco";
 import {Constants} from "../constants";
 import {Filter, Biquad} from "../filter";
 
+export interface Option {
+  name: string;
+  value: any;
+}
+
+export interface Control {
+  name: string;
+  type: string;
+  value: any;
+  options: Option[];
+}
+
+export interface Properties {
+  name: string;
+  tooltip: string;
+  controls: Control[];
+}
+
 
 export class Mode {
 
   par: Digi;
-  properties: any;
   _frequency: number;
   _afcFilter: Filter;
   _loBin: number;
@@ -44,9 +61,9 @@ export class Mode {
   _iptr: number;
 
 
-    constructor(par: Digi, props: any) {
+
+    constructor(par: Digi) {
         this.par = par;
-        this.properties = props(this);
         this._frequency = 1000;
         this._afcFilter = Biquad.lowPass(1.0, 100.0);
         this._loBin = 0;
@@ -56,6 +73,31 @@ export class Mode {
         this._useAfc = false;
         this._rate = 31.25;
         this._nco = NcoCreate(this._frequency, par.sampleRate);
+    }
+
+    /**
+     * Override this
+     */
+    get properties: Properties {
+      return {
+        name: "mode",
+        tooltip: "Base mode class.  Please override this method",
+        controls: []
+      };
+    }
+
+    /**
+     * Override this
+     */
+    get tooltip: string = {
+      return "mode";
+    }
+
+    /**
+     * Override this
+     */
+    get controls: Control[] = {
+      return [];
     }
 
 

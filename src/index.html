@@ -1,34 +1,29 @@
+<!DOCTYPE html>
+<html>
 <head>
-    <title>Jdigi</title>
+  <title>Jdigi</title>
 
-    <!-- 1. Load libraries -->
-    <script src="lib/systemjs/dist/system.js"></script>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="description" content="Angular2 Bootstrap">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" href="data:;base64,iVBORw0KGgo=">
+  <base href="/">
 
-    <!-- 2. Configure SystemJS -->
-    <script>
-      System.config({
-        defaultJSExtensions: true,
-        format: 'register',
-        meta: {
-          '*': { format: 'register' }
-        },
-        paths: {
-        	"angular2/*" : "lib/angular2/*.js",
-        	"rxjs/*" : "lib/rxjs/*.js"
-        }
-      });
-      System.import('./boot')
-            .then(null, console.error.bind(console));
-    </script>
-    <script src="lib/angular2/bundles/angular2-polyfills.js"></script>
-    <script src="lib/rxjs/bundles/Rx.js"></script>
-    <script src="lib/angular2/bundles/angular2.dev.js"></script>
+  <!--link to bootstrap.css-->
+  <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css" rel="stylesheet">
 
-  </head>
-
-  <!-- 3. Display the application -->
-  <body>
-    <jdigi-app>Loading...</jdigi-app>
-  </body>
-
+</head>
+<body>
+<div class="container">
+  <h2>Jdigi</h2>
+  <app>
+    Loading...
+  </app>
+</div>
+<!-- Angular2 files -->
+<script src="/build/vendor.bundle.js"></script>
+<!-- App script -->
+<script src="/build/app.js"></script>
+</body>
 </html>

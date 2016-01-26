@@ -1,19 +1,17 @@
+# Dependency directory
+# https://www.npmjs.org/doc/misc/npm-faq.html#should-i-check-my-node_modules-folder-into-git
+/node_modules
+npm-debug.log
 
+# type script artifacts
+/typings
 
-.DS_Store
-node_modules
-builds
-dist
-tmp
-
+# WebStorm
 .idea
-*.iml
-*.bak
-gulp-debug.bat
 
-### Bob
-web
-src/**/*.js
-src/**/*.map
-
-
+# ignore build and dist for now
+/build
+/dist
+/samples/**/*.js
+/samples/**/*.js.map
+/samples/**/*.d.ts

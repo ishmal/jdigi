@@ -348,45 +348,6 @@ const RXLEN = 4096;
  */
 class PacketMode extends FskBase {
 
-    static props(self) {
-        return {
-            name: "packet",
-            tooltip: "AX.25 and APRS",
-            controls: [
-                {
-                    name: "rate",
-                    type: "choice",
-                    tooltip: "packet data rate",
-                    get value() {
-                        return self.rate;
-                    },
-                    set value(v) {
-                        self.rate = parseFloat(v);
-                    },
-                    values: [
-                        {name: "300", value: 300.0},
-                        {name: "1200", value: 1200.0}
-                    ]
-                },
-                {
-                    name: "shift",
-                    type: "choice",
-                    tooltip: "frequency distance between mark and space",
-                    get value() {
-                        return self.shift;
-                    },
-                    set value(v) {
-                        self.shift = parseFloat(v);
-                    },
-                    values: [
-                        {name: "200", value: 200.0},
-                        {name: "1000", value: 1000.0}
-                    ]
-                }
-            ]
-        };
-    }
-
     _state: number;
     _bitcount: number;
     _octet: number;
@@ -408,6 +369,45 @@ class PacketMode extends FskBase {
         this._lastBit = false;
     }
 
+    @Override
+    get properties():Properties {
+        return {
+            name: "packet",
+            tooltip: "AX.25 and APRS",
+            controls: [
+                {
+                    name: "rate",
+                    type: "choice",
+                    tooltip: "packet data rate",
+                    get value() {
+                        return this.rate;
+                    },
+                    set value(v) {
+                        this.rate = parseFloat(v);
+                    },
+                    values: [
+                        {name: "300", value: 300.0},
+                        {name: "1200", value: 1200.0}
+                    ]
+                },
+                {
+                    name: "shift",
+                    type: "choice",
+                    tooltip: "frequency distance between mark and space",
+                    get value() {
+                        return this.shift;
+                    },
+                    set value(v) {
+                        this.shift = parseFloat(v);
+                    },
+                    values: [
+                        {name: "200", value: 200.0},
+                        {name: "1000", value: 1000.0}
+                    ]
+                }
+            ]
+        };
+    }
 
     /**
      * Attempt to decode a packet.  It will be in NRZI form, so when
