@@ -17,9 +17,9 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import {FskBase} from "./fsk";
-import {FIR} from "../filter";
-
+import {FskBase} from './fsk';
+import {FIR} from '../filter';
+import {Properties} from './mode';
 
 /**
  * These are the ITU codes for 5-bit Baudot code and 7-bit SITOR
@@ -113,7 +113,7 @@ class RttyMode extends FskBase {
     _shifted: boolean;
 
     constructor(par) {
-        super(par, RttyMode.props);
+        super(par);
         this._unshiftOnSpace = false;
         this._symbollen = 0;
         this._halfsym = 0;
@@ -130,7 +130,6 @@ class RttyMode extends FskBase {
         this._shifted = false;
     }
 
-    @Override
     get properties(): Properties {
         return {
             name: "rtty",
@@ -140,13 +139,13 @@ class RttyMode extends FskBase {
                     name: "rate",
                     type: "choice",
                     tooltip: "rtty baud rate",
-                    get value() {
+                    get value(): number {
                         return this.rate;
                     },
-                    set value(v) {
-                        this.rate = parseFloat(v);
+                    set value(v: number) {
+                        this.rate = v;
                     },
-                    values: [
+                    options: [
                         {name: "45", value: 45.45},
                         {name: "50", value: 50.00},
                         {name: "75", value: 75.00},
@@ -157,13 +156,13 @@ class RttyMode extends FskBase {
                     name: "shift",
                     type: "choice",
                     tooltip: "frequency distance between mark and space",
-                    get value() {
+                    get value(): number {
                         return this.shift;
                     },
-                    set value(v) {
-                        this.shift = parseFloat(v);
+                    set value(v: number) {
+                        this.shift = v;
                     },
-                    values: [
+                    options: [
                         {name: "85", value: 85.0},
                         {name: "170", value: 170.0},
                         {name: "450", value: 450.0},

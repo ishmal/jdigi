@@ -32,8 +32,9 @@ export interface Option {
 export interface Control {
   name: string;
   type: string;
+  tooltip?: string;
   value: any;
-  options: Option[];
+  options?: Option[];
 }
 
 export interface Properties {
@@ -78,28 +79,13 @@ export class Mode {
     /**
      * Override this
      */
-    get properties: Properties {
+    get properties(): Properties {
       return {
         name: "mode",
         tooltip: "Base mode class.  Please override this method",
         controls: []
       };
     }
-
-    /**
-     * Override this
-     */
-    get tooltip: string = {
-      return "mode";
-    }
-
-    /**
-     * Override this
-     */
-    get controls: Control[] = {
-      return [];
-    }
-
 
     set frequency(freq: number) {
         this._frequency = freq;

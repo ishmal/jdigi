@@ -20,7 +20,7 @@
 import {Mode} from "./mode";
 import {Filter, FIR, Biquad} from "../filter";
 import {Complex, ComplexOps} from '../complex';
-
+import {Properties} from './mode';
 
 /**
  * This contains the definitions of the bit patterns for the Varicode set
@@ -164,8 +164,8 @@ import {Complex, ComplexOps} from '../complex';
  * this is a table of index->bit seqs.  Ex: 116('t') is Seq(true, false, true)
  */
 const encodeTable = descriptions.map(s => {
-      var chars = s.split("");
-      var bools = chars.map(c => {
+      let chars = s.split("");
+      let bools = chars.map(c => {
           return (c === '1');
       });
       return bools;
@@ -173,9 +173,9 @@ const encodeTable = descriptions.map(s => {
 
 
 function createDecodeTable() {
-      var dec = {};
-      for (var i = 0; i < descriptions.length; i++) {
-          var key = parseInt(descriptions[i], 2);
+      let dec = {};
+      for (let i = 0; i < descriptions.length; i++) {
+          let key = parseInt(descriptions[i], 2);
           dec[key] = i;
       }
       return dec;
@@ -186,41 +186,41 @@ const decodeTable = createDecodeTable();
 function printTables() {
 
       console.log("Encode Table =================");
-      for (var i = 0; i < encodeTable.length; i++) {
+      for (let i = 0; i < encodeTable.length; i++) {
           console.log("" + i + " : " + encodeTable[i].join(","));
       }
       console.log("Decode Table =================");
-      for (var key in decodeTable) {
-          var asc = decodeTable[key];
+      for (let key in decodeTable) {
+          let asc = decodeTable[key];
           console.log(key.toString(2) + " : " + asc);
       }
 }
 
 
-interface Timer {
+export interface Timer {
    update(z: Complex, f: (Complex)=> void)
 }
 
 function createEarlyLate(samplesPerSymbol): Timer {
-    var size = samplesPerSymbol | 0;
-    var half = size >> 1;
-    var buf = new Float32Array(size);
-    var bitclk = 0.0;
+    let size = samplesPerSymbol | 0;
+    let half = size >> 1;
+    let buf = new Float32Array(size);
+    let bitclk = 0.0;
 
 
     function update(z: Complex, f: (Complex)=>void) {
-        var idx = bitclk | 0;
-        var sum = 0.0;
-        var ampsum = 0.0;
-        var mag = ComplexOps.mag(z);
+        let idx = bitclk | 0;
+        let sum = 0.0;
+        let ampsum = 0.0;
+        let mag = ComplexOps.mag(z);
         buf[idx] = 0.8 * buf[idx] + 0.2 * mag;
 
-        for (var i = 0; i < half; i++) {
+        for (let i = 0; i < half; i++) {
             sum += (buf[i] - buf[i + half]);
             ampsum += (buf[i] + buf[i + half]);
         }
 
-        var err = (ampsum === 0.0) ? 0.0 : sum / ampsum * 0.2;
+        let err = (ampsum === 0.0) ? 0.0 : sum / ampsum * 0.2;
 
         bitclk += (1.0 - err);
         if (bitclk < 0)
@@ -261,7 +261,7 @@ class PskMode extends Mode {
     _txPtr: number;
 
     constructor(par) {
-        super(par, PskMode.props);
+        super(par);
 
         this._timer = createEarlyLate(this.samplesPerSymbol);
         this._bpf = FIR.bandpass(13, -0.7 * this.rate, 0.7 * this.rate, this.par.sampleRate);
@@ -282,8 +282,7 @@ class PskMode extends Mode {
 
     }
 
-    @Override
-    get properties():Properties {
+    get properties(): Properties {
         return {
             name: "psk",
             tooltip: "phase shift keying",
@@ -292,13 +291,13 @@ class PskMode extends Mode {
                     name: "rate",
                     type: "choice",
                     tooltip: "PSK data rate",
-                    get value() {
+                    get value(): number {
                         return this.rate;
                     },
-                    set value(v) {
-                        this.rate = parseFloat(v);
+                    set value(v: number) {
+                        this.rate = v;
                     },
-                    values: [
+                    options: [
                         {name: "31", value: 31.25},
                         {name: "63", value: 62.50},
                         {name: "125", value: 125.00}
@@ -364,7 +363,7 @@ class PskMode extends Mode {
      * 0 radians to +- pi
      */
     distance(v, from) {
-        var diff = Math.PI - Math.abs(Math.abs(v - from) - Math.PI);
+        let diff = Math.PI - Math.abs(Math.abs(v - from) - Math.PI);
         return Math.floor(diff * diffScale);
     }
 
@@ -373,7 +372,7 @@ class PskMode extends Mode {
 
     processSymbol(v) {
 
-        var vn, dv, d00, d01, d10, d11;
+        let vn, dv, d00, d01, d10, d11;
 
         if (this._qpskMode) {
             /**/
@@ -412,9 +411,9 @@ class PskMode extends Mode {
             this._code >>= 1;   //remove trailing 0
             if (this._code !== 0) {
                 //println("code:" + Varicode.toString(code))
-                var ascii = decodeTable[this._code];
+                let ascii = decodeTable[this._code];
                 if (ascii) {
-                    var chr = ascii;
+                    let chr = ascii;
                     if (chr == 10 || chr == 13)
                         this.par.putText("\n");
                     else
@@ -461,40 +460,6 @@ const LOG = Math.log;
  */
 class PskMode2 extends Mode {
 
-    static props(self) {
-        return {
-            name: "psk",
-            tooltip: "phase shift keying",
-            controls: [
-                {
-                    name: "rate",
-                    type: "choice",
-                    get value() {
-                        return this.rate;
-                    },
-                    set value(v) {
-                        this.rate = parseFloat(v);
-                    },
-                    values: [
-                        {name: "31", value: 31.25},
-                        {name: "63", value: 62.50},
-                        {name: "125", value: 125.00}
-                    ]
-                },
-                {
-                    name: "qpsk",
-                    type: "boolean",
-                    get value() {
-                        return this.qpskMode;
-                    },
-                    set value(v) {
-                        this.qpskMode = v;
-                    }
-                }
-            ]
-        };
-    }
-
     _ilp: Filter;
     _qlp: Filter;
     _symbollen: number;
@@ -514,7 +479,7 @@ class PskMode2 extends Mode {
 
 
     constructor(par) {
-        super(par, PskMode2.props);
+        super(par);
         this._ilp = null;
         this._qlp = null;
         this._symbollen = 0;
@@ -541,6 +506,40 @@ class PskMode2 extends Mode {
         this._txPtr = 0;
 
         this.rate = 31.25;
+    }
+
+    get properties(): Properties {
+        return {
+            name: "psk",
+            tooltip: "phase shift keying",
+            controls: [
+                {
+                    name: "rate",
+                    type: "choice",
+                    get value(): number {
+                        return this.rate;
+                    },
+                    set value(v: number) {
+                        this.rate = v;
+                    },
+                    options: [
+                        {name: "31", value: 31.25},
+                        {name: "63", value: 62.50},
+                        {name: "125", value: 125.00}
+                    ]
+                },
+                {
+                    name: "qpsk",
+                    type: "boolean",
+                    get value(): boolean {
+                        return this.qpskMode;
+                    },
+                    set value(v: boolean) {
+                        this.qpskMode = v;
+                    }
+                }
+            ]
+        };
     }
 
 

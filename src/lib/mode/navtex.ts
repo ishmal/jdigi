@@ -20,6 +20,7 @@
 "use strict";
 
 import {FskBase} from "./fsk";
+import {Properties} from './mode';
 
 
 const NUL = 0x2b;
@@ -187,8 +188,7 @@ export class NavtexMode extends FskBase {
         this._lastChar = '@';
     }
 
-    @Override
-    get properties: Properties {
+    get properties(): Properties {
         return {
             name: "navtex",
             tooltip: "international naval teleprinter",
@@ -196,20 +196,20 @@ export class NavtexMode extends FskBase {
                 {
                     name: "inv",
                     type: "boolean",
-                    get value() {
+                    get value(): boolean {
                         return this.inverted;
                     },
-                    set value(v) {
+                    set value(v: boolean) {
                         this.inverted = v;
                     }
                 },
                 {
                     name: "UoS",
                     type: "boolean",
-                    get value() {
+                    get value():boolean {
                         return this.unshiftOnSpace;
                     },
-                    set value(v) {
+                    set value(v: boolean) {
                         this.unshiftOnSpace = v;
                     }
                 }

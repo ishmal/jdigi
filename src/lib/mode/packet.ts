@@ -20,6 +20,7 @@
 
 import {FskBase} from "./fsk";
 import {Biquad,FIR} from "../filter";
+import {Properties} from './mode';
 
 /**
  * CRC-CCITT-16 calculator, that handles both big and little-endian byte
@@ -357,7 +358,7 @@ class PacketMode extends FskBase {
     _lastBit: boolean;
 
     constructor(par) {
-        super(par, PacketMode.props);
+        super(par);
         this.shift = 200.0;
         this.rate = 300.0;
         this._state = RxStart;
@@ -369,8 +370,7 @@ class PacketMode extends FskBase {
         this._lastBit = false;
     }
 
-    @Override
-    get properties():Properties {
+    get properties(): Properties {
         return {
             name: "packet",
             tooltip: "AX.25 and APRS",
@@ -379,13 +379,13 @@ class PacketMode extends FskBase {
                     name: "rate",
                     type: "choice",
                     tooltip: "packet data rate",
-                    get value() {
+                    get value(): number {
                         return this.rate;
                     },
-                    set value(v) {
-                        this.rate = parseFloat(v);
+                    set value(v: number) {
+                        this.rate = v;
                     },
-                    values: [
+                    options: [
                         {name: "300", value: 300.0},
                         {name: "1200", value: 1200.0}
                     ]
@@ -394,13 +394,13 @@ class PacketMode extends FskBase {
                     name: "shift",
                     type: "choice",
                     tooltip: "frequency distance between mark and space",
-                    get value() {
+                    get value(): number {
                         return this.shift;
                     },
-                    set value(v) {
-                        this.shift = parseFloat(v);
+                    set value(v: number) {
+                        this.shift = v;
                     },
-                    values: [
+                    options: [
                         {name: "200", value: 200.0},
                         {name: "1000", value: 1000.0}
                     ]

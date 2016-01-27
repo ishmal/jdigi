@@ -18,6 +18,7 @@
  */
 
  import {Digi} from './digi';
+ import {Mode} from './mode/mode';
 
 /**
  * @param par Digi
