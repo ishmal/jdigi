@@ -16,6 +16,7 @@
   ],
   "files": [
     "src/components/app/app.ts",
-    "src/vendor.ts"
+    "src/vendor.ts",
+    "typings/webaudio-missing.d.ts"
   ]
 }
