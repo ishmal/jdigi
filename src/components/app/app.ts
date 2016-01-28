@@ -8,6 +8,8 @@ import {Tuner} from '../tuner/tuner';
 import {Input} from '../input/input';
 import {Output} from '../output/output';
 import {Status} from '../status/status';
+import {DigiService} from '../../services/DigiService';
+import {Mode} from '../../lib/mode/mode';
 
 @Component({
     selector: 'app',
@@ -16,7 +18,21 @@ import {Status} from '../status/status';
 })
 export class AppComponent {
 
+  _digi: Digi;
+
+  constructor(digiService: DigiService) {
+    this._digi = digiService.digi;
+  }
+
+  get modes(): Mode[] {
+    return this._digi.modes;
+  }
+
+  get modeNames(): string[] {
+    return this._digi.modes.map(_ => _.properties.name);
+  }
+
 
 }
 
-bootstrap(AppComponent);
+bootstrap(AppComponent, [DigiService]);

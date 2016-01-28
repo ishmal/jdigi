@@ -27,9 +27,10 @@ import {Digi} from "./digi";
 import {Resampler} from "./resample";
 
 
-const AudioContextImpl = /* window.AudioContext || */ window.webkitAudioContext;
+const AudioContext: AudioContext = window.AudioContext || window.webkitAudioContext;
 
-navigator.getUserMedia = navigator.getUserMedia ||
+const getUserMedia = navigator.mediaDevices.getUserMedia ||  //this one is "standard"
+    navigator.getUserMedia ||
     navigator.webkitGetUserMedia ||
     navigator.mozGetUserMedia;
 
@@ -92,9 +93,7 @@ class AudioInput {
     start() {
         navigator.getUserMedia(
             { audio: true },
-            newStream => {
-                this.startStream(newStream);
-            },
+            this.startStream,
             userMediaError => {
                 this.par.error(userMediaError.name + " : " + userMediaError.message);
             }

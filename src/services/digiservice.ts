@@ -1,5 +1,6 @@
 import {Digi} from '../lib/digi';
 
+
 /**
  * Simple service to allow all components to get
  * a handle to the Digi instance.

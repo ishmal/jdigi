@@ -26,8 +26,8 @@ var config = {
   },
 
   entry: {
-    app: [ src+'/components/app/app' ],
-    vendor: [ src+'/vendor.ts' ]
+    app: [ src + '/components/app/app' ],
+    vendor: [ src + '/vendor.ts' ]
   },
 
   output: {
