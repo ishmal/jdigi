@@ -172,8 +172,12 @@ const encodeTable = descriptions.map(s => {
 });
 
 
-function createDecodeTable() {
-      let dec = {};
+interface DecodeTable {
+    [K: number]: number;
+}
+
+function createDecodeTable(): DecodeTable {
+      let dec: DecodeTable = {};
       for (let i = 0; i < descriptions.length; i++) {
           let key = parseInt(descriptions[i], 2);
           dec[key] = i;
@@ -181,7 +185,7 @@ function createDecodeTable() {
       return dec;
 }
 
-const decodeTable = createDecodeTable();
+const decodeTable: DecodeTable = createDecodeTable();
 
 function printTables() {
 
@@ -192,7 +196,7 @@ function printTables() {
       console.log("Decode Table =================");
       for (let key in decodeTable) {
           let asc = decodeTable[key];
-          console.log(key.toString(2) + " : " + asc);
+          console.log(key + " : " + asc);
       }
 }
 

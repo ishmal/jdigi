@@ -70,7 +70,7 @@ export class TunerImpl implements Tuner {
   _indices: number[];
   _width: number;
   _height: number;
-  _ctx: any;
+  _ctx: CanvasRenderingContext2D;
   _imgData: ImageData;
   _imglen: number;
   _buf8: Uint8ClampedArray;
@@ -133,33 +133,23 @@ export class TunerImpl implements Tuner {
 
     resize(): void {
         let canvas = this._canvas;
-        let width = canvas.width;
-        let height = canvas.height;
-        let indices = this.createIndices(width, BINS);
-        let ctx = canvas.getContext('2d');
-        let imgData = ctx.createImageData(width, height);
-        let imglen = imgData.data.length;
-        let buf8 = new Uint8ClampedArray(imglen);
+        this._width = canvas.width;
+        this._height = canvas.height;
+        this._indices = this.createIndices(this._width, BINS);
+        this._ctx = canvas.getContext('2d');
+        let imgData = this._imgData = this._ctx.createImageData(this._width, this._height);
+        let imglen = this._imglen = imgData.data.length;
+        let buf8 = this._buf8 = imgData.data;
         for (let i = 0; i < imglen;) {
             buf8[i++] = 0;
             buf8[i++] = 0;
             buf8[i++] = 0;
             buf8[i++] = 255;
         }
-        imgData.data.set(buf8);
-        ctx.putImageData(imgData, 0, 0);
-        let rowsize = imglen / height;
-        let lastRow = imglen - rowsize;
-
-        this._width = width;
-        this._height = height;
-        this._indices = indices;
-        this._ctx = ctx;
-        this._imgData = imgData;
-        this._imglen = imglen;
-        this._buf8 = buf8;
-        this._rowsize = rowsize;
-        this._lastRow = lastRow;
+        //imgData.data.set(buf8);
+        this._ctx.putImageData(imgData, 0, 0);
+        this._rowsize = imglen / this._height;
+        this._lastRow = imglen - this._rowsize;
     }
 
     //####################################################################

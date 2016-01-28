@@ -28,6 +28,7 @@ import {Resampler} from "./resample";
 
 
 const AudioContextImpl = /* window.AudioContext || */ window.webkitAudioContext;
+
 navigator.getUserMedia = navigator.getUserMedia ||
     navigator.webkitGetUserMedia ||
     navigator.mozGetUserMedia;
@@ -41,7 +42,7 @@ class AudioInput {
     sampleRate: number;
     enabled: boolean;
     source: MediaStreamAudioSourceNode;
-    stream: LocalMediaStream;
+    stream: MediaStream;
 
     constructor(par: Digi) {
         this.par = par;
@@ -53,7 +54,7 @@ class AudioInput {
         this.enabled = false;
     }
 
-    startStream(newstream) {
+    startStream(newstream: MediaStream) {
 
         this.stream = newstream;
 
@@ -90,7 +91,7 @@ class AudioInput {
 
     start() {
         navigator.getUserMedia(
-            MediaStreamConstraints.prototype.audio,
+            { audio: true },
             newStream => {
                 this.startStream(newStream);
             },

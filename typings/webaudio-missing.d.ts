@@ -1,4 +1,5 @@
 
+
 interface MediaStream {
     id: string;
     active: boolean;
@@ -13,14 +14,16 @@ interface MediaStreamAudioDestinationNode extends AudioNode {
 }
 
 interface AudioContext {
-    state: string;
+    new(): AudioContext;
+    //state: string;
     close: () => void;
-    createMediaStreamSource: () => MediaStreamAudioSourceNode;
+    createMediaStreamSource: (MediaStream) => MediaStreamAudioSourceNode;
     createMediaStreamDestination: () => any;
     resume: () => void;
     suspend: () => void;
 }
 
 interface Window {
+  AudioContext: AudioContext;
   webkitAudioContext: AudioContext;
 }
