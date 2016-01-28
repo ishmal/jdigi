@@ -48,7 +48,6 @@
     "./src/lib/tuner.ts",
     "./src/lib/watch.ts",
     "./src/lib/window.ts",
-    "./src/services/DigiService.d.ts",
     "./src/services/digiservice.ts",
     "./src/vendor.ts",
     "./typings/MediaStream.d.ts",
