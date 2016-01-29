@@ -1,5 +1,7 @@
 <div id='content'>
+
      <jdigi-tuner></jdigi-tuner>
+
      <div id="toolbar">
         <button type="button" class="btn btn-primary btn-sm" ng-class="{btnselect:toolbar.tx}" ng-model="toolbar.tx"
                 btn-checkbox btn-checkbox-true="true" btn-checkbox-false="false"
@@ -12,9 +14,10 @@
                 tooltip="Show QRZ.com page for callsigns" tooltip-placement="right">QRZ</button>
         <span>Jdigi  <a target="_new" href="http://github.com/ishmal/jdigi">http://github.com/ishmal/jdigi</a></span>
     </div>
+
 	<tabset>
-	    <tab ng-repeat="mode in modes" select="changeMode(mode)">
-			<span ng-repeat="control in mode.properties.controls" ng-switch="control.type">
+	    <tab *ngFor="#mode of modes" select="changeMode(mode)">
+			<span *ngFor="#control of mode.properties.controls" ng-switch="control.type">
 				<span ng-switch-when="boolean">
 					<button type="button" class="btn btn-primary btn-sm"
                             ng-model="control.value" ng-class="{btnselect:control.value}"
@@ -25,7 +28,7 @@
 				<span ng-switch-when="choice">
 				    {{control.name}}
 					<span class="btn-group">
-						 <button class="btn btn-primary btn-sm" ng-repeat="v in control.values"
+						 <button class="btn btn-primary btn-sm" *ngFor="#v of control.values"
 						     ng-model="control.value" ng-class="{btnselect:control.value==v.value}"
                              btn-radio="v.value">{{v.name}}</button>
 					</span>
@@ -33,9 +36,11 @@
 			</span>
 		</tab>
 	</tabset>
+
 	<jdigi-status></jdigi-status>
 	<jdigi-input></jdigi-input>
 	<jdigi-output></jdigi-output>
+
 </div>
 
 

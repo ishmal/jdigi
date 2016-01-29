@@ -13,18 +13,21 @@ import {Mode} from '../../lib/mode/mode';
 
 @Component({
     selector: 'app',
-    directives: [ Tuner, Input, Output, Status, TAB_DIRECTIVES ],
+    directives: [ Tuner, Input, Output, Status,
+       CORE_DIRECTIVES, TAB_DIRECTIVES ],
     templateUrl: './components/app/app.html'
 })
 export class AppComponent {
 
   _digi: Digi;
+  public modes: Mode[];
 
   constructor(digiService: DigiService) {
     this._digi = digiService.digi;
+    this.modes = this._digi.modes;
   }
 
-  get modes(): Mode[] {
+  getModes(): Mode[] {
     return this._digi.modes;
   }
 
