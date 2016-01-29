@@ -15,7 +15,8 @@ import {Mode} from '../../lib/mode/mode';
     selector: 'app',
     directives: [ TunerComponent, InputComponent, OutputComponent,
        StatusComponent, CORE_DIRECTIVES, TAB_DIRECTIVES ],
-    templateUrl: './components/app/app.html'
+    templateUrl: './components/app/app.html',
+    styleUrls: ['./components/app/app.css']
 })
 export class AppComponent {
 

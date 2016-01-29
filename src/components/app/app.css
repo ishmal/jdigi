@@ -1,0 +1,32 @@
+jdigi-status {
+  display: block;
+  width: 800px;
+  background-color: gray;
+}
+
+jdigi-status textarea {
+  width: 800px;
+  background-color: gray;
+}
+
+jdigi-output {
+  display: block;
+  width: 800px;
+  background-color: yellow;
+}
+
+jdigi-output textarea {
+  width: 800px;
+  background-color: green;
+}
+
+jdigi-input {
+  display: block;
+  width: 800px;
+  background-color: red;
+}
+
+jdigi-input textarea {
+  width: 800px;
+  background-color: blue;
+}
