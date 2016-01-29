@@ -38,7 +38,7 @@ const Baudot = [
         ['\n', '\n'], // 0x08 CR
         ['D', '$'], // 0x09
         ['R', '4'], // 0x0a
-        ['J', '\07'], // 0x0b 7=bell
+        ['J', String.fromCharCode(7)], // 0x0b 7=bell
         ['N', ','], // 0x0c
         ['F', '!'], // 0x0d
         ['C', ':'], // 0x0e
