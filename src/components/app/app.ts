@@ -8,7 +8,7 @@ import {Tuner} from '../tuner/tuner';
 import {Input} from '../input/input';
 import {Output} from '../output/output';
 import {Status} from '../status/status';
-import {DigiService} from '../../services/DigiService';
+import {DigiService} from '../../services/digiservice';
 import {Mode} from '../../lib/mode/mode';
 
 @Component({
