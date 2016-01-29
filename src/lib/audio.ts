@@ -29,7 +29,7 @@ import {Resampler} from "./resample";
 
 const AudioContext: AudioContext = window.AudioContext || window.webkitAudioContext;
 
-navigator.getUserMedia = navigator.mediaDevices.getUserMedia ||  //this one is "standard"
+navigator.getUserMedia =
     navigator.getUserMedia ||
     navigator.webkitGetUserMedia ||
     navigator.mozGetUserMedia;
@@ -91,13 +91,21 @@ class AudioInput {
     }
 
     start() {
-        navigator.getUserMedia(
-            { audio: true },
-            stream => this.startStream(stream),
-            userMediaError => {
-                this.par.error(userMediaError.name + " : " + userMediaError.message);
-            }
-        );
+        if (navigator.getUserMedia) {
+          navigator.getUserMedia(
+              { audio: true },
+              stream => this.startStream(stream),
+              userMediaError => {
+                  this.par.error(userMediaError.name + " : " + userMediaError.message);
+              }
+          );
+        } else if (navigator.mediaDevices.getUserMedia) {
+          navigator.mediaDevices.getUserMedia({audio: true})
+          .then(stream => this.startStream(stream))
+          .catch(err => {
+            console.log("audioInput: " + err);
+          });
+        }
     }
 
     stop() {
