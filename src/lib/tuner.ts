@@ -62,7 +62,7 @@ export class TunerDummy implements Tuner {
  */
 export class TunerImpl implements Tuner {
 
-  par:  Digi;
+  _par:  Digi;
   _canvas: HTMLCanvasElement;
   _MAX_FREQ: number;
   _dragging: boolean;
@@ -86,7 +86,7 @@ export class TunerImpl implements Tuner {
           // || window.mozRequestAnimationFrame
           // || window.webkitRequestAnimationFrame;
 
-      this.par = par;
+      this._par = par;
       this._canvas = canvas;
       this._MAX_FREQ = par.sampleRate * 0.5;
       this._dragging = false;
@@ -114,7 +114,7 @@ export class TunerImpl implements Tuner {
     //note that this is different from the public method
     set frequency(freq: number) {
         this._frequency = freq;
-        this.par.frequency = freq;
+        this._par.frequency = freq;
     }
 
     get frequency(): number {
@@ -327,7 +327,7 @@ export class TunerImpl implements Tuner {
         let pixPerHz = 1 / MAX_FREQ * width;
 
         let x = frequency * pixPerHz;
-        let bw = this.par.bandwidth;
+        let bw = this._par.bandwidth;
         let bww = bw * pixPerHz;
         let bwlo = (frequency - bw * 0.5) * pixPerHz;
 

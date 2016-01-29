@@ -21,12 +21,11 @@
     "!./node_modules/**/*.ts"
   ],
   "files": [
-    "./src/components/app/app.ts",
-    "./src/components/input/input.ts",
-    "./src/components/output/output.ts",
-    "./src/components/status/status.ts",
-    "./src/components/tuner/tuner.ts",
-    "./src/index.ts",
+    "./src/components/app/appcomp.ts",
+    "./src/components/input/inputcomp.ts",
+    "./src/components/output/outputcomp.ts",
+    "./src/components/status/statuscomp.ts",
+    "./src/components/tuner/tunercomp.ts",
     "./src/lib/audio.ts",
     "./src/lib/complex.ts",
     "./src/lib/constants.ts",

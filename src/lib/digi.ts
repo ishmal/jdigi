@@ -67,11 +67,12 @@ export class Digi {
   packetMode: Mode;
   navtexMode: Mode;
   _mode: Mode;
-  modes: Array<Mode>;
+  _modes: Mode[];
 
   _tuner: Tuner;
   _outtext: OutText;
   _intext: InText;
+  _stattext: OutText;
   _receive: (data: number) => void;
 
 
@@ -88,11 +89,12 @@ export class Digi {
         this.packetMode = new PacketMode(this);
         this.navtexMode = new NavtexMode(this);
         this._mode = this.pskMode;
-        this.modes = [this.pskMode, this.rttyMode, this.packetMode, this.navtexMode];
+        this._modes = [this.pskMode, this.rttyMode, this.packetMode, this.navtexMode];
 
         this._tuner = new TunerDummy();
         this._outtext = new OutText();
         this._intext = new InText();
+        this._stattext = new OutText();
 
         this.setupReceive();
     }
@@ -152,6 +154,10 @@ export class Digi {
 
     get mode(): Mode {
         return this._mode;
+    }
+
+    get modes(): Mode[] {
+      return this._modes;
     }
 
 
@@ -243,6 +249,14 @@ export class Digi {
 
     set inText(val: InText) {
         this._intext = val;
+    }
+
+    get statText(): OutText {
+      return this._stattext;
+    }
+
+    set statText(v: OutText) {
+      this._stattext = v;
     }
 
     /**

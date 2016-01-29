@@ -1,6 +1,6 @@
 <div id='content'>
 
-     <jdigi-tuner></jdigi-tuner>
+     <canvas jdigiTuner class='jdigi-tuner' width='800px' height='250px'></canvas>
 
      <div id="toolbar">
         <button type="button" class="btn btn-primary btn-sm" ng-class="{btnselect:toolbar.tx}" ng-model="toolbar.tx"
@@ -16,7 +16,7 @@
     </div>
 
 	<tabset>
-	    <tab *ngFor="#mode of modes" select="changeMode(mode)">
+	    <tab *ngFor="#mode of modes" [heading]="mode.properties.name"select="changeMode(mode)">
 			<span *ngFor="#control of mode.properties.controls" ng-switch="control.type">
 				<span ng-switch-when="boolean">
 					<button type="button" class="btn btn-primary btn-sm"
@@ -38,8 +38,8 @@
 	</tabset>
 
 	<jdigi-status></jdigi-status>
+  <jdigi-output></jdigi-output>
 	<jdigi-input></jdigi-input>
-	<jdigi-output></jdigi-output>
 
 </div>
 

@@ -1,4 +1,7 @@
-var gulp = require('gulp');
+"use strict";
+
+let gulp = require('gulp');
+let del = require('del');
 
 gulp.paths = {
   tssrc: [
@@ -13,6 +16,14 @@ gulp.paths = {
 };
 
 require('require-dir')('./gulp-tasks');
+
+gulp.task('clean', function(cb) {
+  del([
+    "src/**/*.d.ts",
+    "src/**/*.js",
+    "src/**/*.js.map"
+  ]).then(paths => {cb()});
+});
 
 gulp.task('default', function () {
   gulp.start('lint');

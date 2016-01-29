@@ -29,7 +29,7 @@ import {Resampler} from "./resample";
 
 const AudioContext: AudioContext = window.AudioContext || window.webkitAudioContext;
 
-const getUserMedia = navigator.mediaDevices.getUserMedia ||  //this one is "standard"
+navigator.getUserMedia = navigator.mediaDevices.getUserMedia ||  //this one is "standard"
     navigator.getUserMedia ||
     navigator.webkitGetUserMedia ||
     navigator.mozGetUserMedia;
@@ -93,7 +93,7 @@ class AudioInput {
     start() {
         navigator.getUserMedia(
             { audio: true },
-            this.startStream,
+            stream => this.startStream(stream),
             userMediaError => {
                 this.par.error(userMediaError.name + " : " + userMediaError.message);
             }

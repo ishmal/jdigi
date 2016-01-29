@@ -128,10 +128,8 @@ class RttyMode extends FskBase {
         this._counter = 0;
         this._msbit = 1 << (NRBITS - 1);
         this._shifted = false;
-    }
 
-    get properties(): Properties {
-        return {
+        this._properties = {
             name: "rtty",
             tooltip: "radio teletype",
             controls: [
@@ -192,7 +190,6 @@ class RttyMode extends FskBase {
             ]
         };
     }
-
 
     setRate(v) {
         super._setRate(v);

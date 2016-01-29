@@ -60,6 +60,13 @@ export class Mode {
   _ibuf: number[];
   _ilen: number;
   _iptr: number;
+  /**
+   * We must set this property once at construction, and always
+   * return the same object in the getter, in order to avoid
+   * this issue in Angukar2:
+   * https://github.com/angular/angular/issues/5950
+   */
+  _properties: Properties;
 
 
 
@@ -74,17 +81,18 @@ export class Mode {
         this._useAfc = false;
         this._rate = 31.25;
         this._nco = NcoCreate(this._frequency, par.sampleRate);
+        this._properties = {
+          name: "mode",
+          tooltip: "Base mode class.  Please override this method",
+          controls: []
+        };
     }
 
     /**
      * Override this
      */
     get properties(): Properties {
-      return {
-        name: "mode",
-        tooltip: "Base mode class.  Please override this method",
-        controls: []
-      };
+      return this._properties;
     }
 
     set frequency(freq: number) {

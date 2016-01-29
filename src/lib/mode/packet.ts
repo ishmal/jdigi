@@ -368,10 +368,8 @@ class PacketMode extends FskBase {
         this._bufPtr = 0;
         this._rxbuf = new Array(RXLEN);
         this._lastBit = false;
-    }
 
-    get properties(): Properties {
-        return {
+        this._properties = {
             name: "packet",
             tooltip: "AX.25 and APRS",
             controls: [

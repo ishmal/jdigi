@@ -186,10 +186,8 @@ export class NavtexMode extends FskBase {
         this._q1 = 0;
 
         this._lastChar = '@';
-    }
 
-    get properties(): Properties {
-        return {
+        this._properties = {
             name: "navtex",
             tooltip: "international naval teleprinter",
             controls: [
@@ -216,7 +214,6 @@ export class NavtexMode extends FskBase {
             ]
         };
     }
-
 
     shift7(bit) {
         let a = (bit) ? 1 : 0;

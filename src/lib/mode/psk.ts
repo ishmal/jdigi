@@ -284,10 +284,7 @@ class PskMode extends Mode {
         this._txBuf = [];
         this._txPtr = 0;
 
-    }
-
-    get properties(): Properties {
-        return {
+        this._properties = {
             name: "psk",
             tooltip: "phase shift keying",
             controls: [
@@ -510,10 +507,8 @@ class PskMode2 extends Mode {
         this._txPtr = 0;
 
         this.rate = 31.25;
-    }
 
-    get properties(): Properties {
-        return {
+        this._properties = {
             name: "psk",
             tooltip: "phase shift keying",
             controls: [
@@ -545,7 +540,6 @@ class PskMode2 extends Mode {
             ]
         };
     }
-
 
     get bandwidth () {
         return this.rate;
