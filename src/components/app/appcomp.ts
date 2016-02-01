@@ -1,7 +1,7 @@
 import {bootstrap} from 'angular2/platform/browser'
 import {Component, View} from 'angular2/core';
-import {CORE_DIRECTIVES, FORM_DIRECTIVES} from 'angular2/common';
-import {TAB_DIRECTIVES} from 'ng2-bootstrap/ng2-bootstrap';
+import {CORE_DIRECTIVES, FORM_DIRECTIVES, NgSwitch, NgSwitchWhen, NgSwitchDefault} from 'angular2/common';
+import {BUTTON_DIRECTIVES, TAB_DIRECTIVES} from 'ng2-bootstrap/ng2-bootstrap';
 
 import {Digi} from '../../lib/digi';
 import {TunerComponent} from '../tuner/tunercomp';
@@ -14,7 +14,8 @@ import {Mode} from '../../lib/mode/mode';
 @Component({
     selector: 'app',
     directives: [ TunerComponent, InputComponent, OutputComponent,
-       StatusComponent, CORE_DIRECTIVES, TAB_DIRECTIVES ],
+       StatusComponent, CORE_DIRECTIVES, BUTTON_DIRECTIVES, TAB_DIRECTIVES,
+       NgSwitch, NgSwitchWhen, NgSwitchDefault ],
     templateUrl: './components/app/app.html',
     styleUrls: ['./components/app/app.css']
 })

@@ -16,21 +16,21 @@
     </div>
 
 	<tabset>
-	    <tab *ngFor="#mode of modes" [heading]="mode.properties.name"select="changeMode(mode)">
-			<span *ngFor="#control of mode.properties.controls" ng-switch="control.type">
-				<span ng-switch-when="boolean">
+	    <tab *ngFor="#mode of modes" [heading]="mode.properties.name" select="changeMode(mode)">
+			<span *ngFor="#control of mode.properties.controls" [ngSwitch]="control.type">
+				<span *ngSwitchWhen="boolean">
 					<button type="button" class="btn btn-primary btn-sm"
-                            ng-model="control.value" ng-class="{btnselect:control.value}"
-						    btn-checkbox btn-checkbox-true="true" btn-checkbox-false="false">
+                            [(ngModel)]="control.value" ngClass="{btnselect:control.value}"
+						    btnCheckbox btnCheckboxTrue="true" btnCheckboxFalse="false">
 						{{control.name}}
 					</button>
 				</span>
-				<span ng-switch-when="choice">
+				<span *ngSwitchWhen="choice">
 				    {{control.name}}
 					<span class="btn-group">
 						 <button class="btn btn-primary btn-sm" *ngFor="#v of control.values"
-						     ng-model="control.value" ng-class="{btnselect:control.value==v.value}"
-                             btn-radio="v.value">{{v.name}}</button>
+						     [(ngModel)]="control.value" ngClass="{btnselect:control.value==v.value}"
+                             btnRadio="v.value">{{v.name}}</button>
 					</span>
 				</span>
 			</span>
