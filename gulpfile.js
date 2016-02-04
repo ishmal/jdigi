@@ -6,6 +6,7 @@ let del = require('del');
 gulp.paths = {
   tssrc: [
     'src/**/*.ts',
+    '!src/**/*.d.ts',
     '!node_modules',
     '!**/*.{ts,coffee}.js'],
   jssrc: [
