@@ -44,6 +44,7 @@ class AudioInput {
     enabled: boolean;
     source: MediaStreamAudioSourceNode;
     stream: MediaStream;
+    inputNode: ScriptProcessorNode;
 
     constructor(par: Digi) {
         this.par = par;
@@ -52,6 +53,7 @@ class AudioInput {
         this.sampleRate = this.actx.sampleRate / this.decimation;
         this.source = null;
         this.stream = null;
+        this.inputNode = null;
         this.enabled = false;
     }
 
@@ -59,17 +61,19 @@ class AudioInput {
 
         this.stream = newstream;
 
-        // workaround for a Firefox bug.  Keep a global ref to source to prevent gc.
-        // http://goo.gl/LjEjUF2
-        // var source = actx.createMediaStreamSource(stream);
+        /**
+         * workaround for a Firefox bug.  Keep a global ref to source to prevent gc.
+         * http://goo.gl/LjEjUF2
+         * also a chrome bug
+         * save source and inputNode in something that lasts for the term of the program
+         */
         this.source = this.actx.createMediaStreamSource(newstream);
 
-        /**/
         let bufferSize = 8192;
         let decimator = Resampler.create(this.decimation);
-        let inputNode = this.actx.createScriptProcessor(4096, 1, 1);
+        this.inputNode = this.actx.createScriptProcessor(4096, 1, 1);
         this.enabled = true;
-        inputNode.onaudioprocess = (e) => {
+        this.inputNode.onaudioprocess = (e) => {
             if (!this.enabled) {
                 return;
             }
@@ -84,8 +88,8 @@ class AudioInput {
             }
         };
 
-        this.source.connect(inputNode);
-        inputNode.connect(this.actx.destination);
+        this.source.connect(this.inputNode);
+        this.inputNode.connect(this.actx.destination);
 
 
     }

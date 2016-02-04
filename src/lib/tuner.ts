@@ -159,10 +159,13 @@ export class TunerImpl implements Tuner {
     // ####################################################################
 
     setupEvents(canvas) {
+
+      let self = this;
+
       function mouseFreq(event) {
           let pt = getMousePos(canvas, event);
-          let freq = this._MAX_FREQ * pt.x / this._width;
-          this.frequency = freq;
+          let freq = self._MAX_FREQ * pt.x / self._width;
+          self.frequency = freq;
       }
 
       function getMousePos(cnv, evt) {
@@ -170,17 +173,17 @@ export class TunerImpl implements Tuner {
           return {x: evt.clientX - rect.left, y: evt.clientY - rect.top};
       }
 
-      canvas.onclick = function (event) {
+      canvas.onclick = (event) => {
           mouseFreq(event);
       };
-      canvas.onmousedown = function (event) {
-          this._dragging = true;
+      canvas.onmousedown = (event) => {
+          self._dragging = true;
       };
-      canvas.onmouseup = function (event) {
-          this._dragging = false;
+      canvas.onmouseup = (event) => {
+          self._dragging = false;
       };
       canvas.onmousemove = (event) => {
-          if (this._dragging) {
+          if (self._dragging) {
              mouseFreq(event);
           }
       };
@@ -188,9 +191,9 @@ export class TunerImpl implements Tuner {
       canvas.onkeydown = (evt) => {
           let key = evt.which;
           if (key === 37 || key === 40) {
-              this.frequency += 1;
+              self.frequency += 1;
           } else if (key === 38 || key === 39) {
-              this.frequency -= 1;
+              self.frequency -= 1;
           }
           evt.preventDefault();
           return false;
@@ -198,7 +201,7 @@ export class TunerImpl implements Tuner {
 
       function handleWheel(evt) {
           let delta = (evt.detail < 0 || evt.wheelDelta > 0) ? 1 : -1;
-          this.frequency += (delta * 1); // or other increments here
+          self.frequency += (delta * 1); // or other increments here
           evt.preventDefault();
           return false;
       }
