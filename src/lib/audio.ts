@@ -69,7 +69,7 @@ class AudioInput {
         let decimator = Resampler.create(this.decimation);
         let inputNode = this.actx.createScriptProcessor(4096, 1, 1);
         this.enabled = true;
-        inputNode.onaudioprocess = function (e) {
+        inputNode.onaudioprocess = (e) => {
             if (!this.enabled) {
                 return;
             }
@@ -94,7 +94,9 @@ class AudioInput {
         if (navigator.getUserMedia) {
           navigator.getUserMedia(
               { audio: true },
-              stream => this.startStream(stream),
+              stream => {
+                 this.startStream(stream);
+              },
               userMediaError => {
                   this.par.error(userMediaError.name + ' : ' + userMediaError.message);
               }
