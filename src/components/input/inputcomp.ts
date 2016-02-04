@@ -15,7 +15,7 @@ export class InputComponent extends InText {
   constructor(digiService: DigiService) {
     super();
     this._digi = digiService.digi;
-    this._text = "";
+    this._text = '';
     this._digi.inText = this;
   }
 
@@ -27,7 +27,7 @@ export class InputComponent extends InText {
    * @Override InputText
    */
   clear():void {
-    this._text = "";
+    this._text = '';
   }
 
   /**

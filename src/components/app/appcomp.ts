@@ -1,4 +1,4 @@
-import {bootstrap} from 'angular2/platform/browser'
+import {bootstrap} from 'angular2/platform/browser';
 import {Component, View} from 'angular2/core';
 import {CORE_DIRECTIVES, FORM_DIRECTIVES, NgSwitch, NgSwitchWhen, NgSwitchDefault} from 'angular2/common';
 import {BUTTON_DIRECTIVES, TAB_DIRECTIVES} from 'ng2-bootstrap/ng2-bootstrap';

@@ -7,7 +7,7 @@ var CompressionPlugin = require('compression-webpack-plugin');
 var isProduction = (process.env.NODE_ENV || 'development') === 'production';
 
 var src = './src';
-//var absSrc = path.join(__dirname, src);
+// var absSrc = path.join(__dirname, src);
 var dest = '/build';
 var absDest = path.join(__dirname, dest);
 
@@ -26,8 +26,8 @@ var config = {
   },
 
   entry: {
-    app: [ src + '/components/app/appcomp' ],
-    vendor: [ src + '/vendor' ]
+    app: [src + '/components/app/appcomp'],
+    vendor: [src + '/vendor']
   },
 
   output: {
@@ -69,7 +69,7 @@ var config = {
 
     ],
     noParse: [
-      /rtts_assert\/src\/rtts_assert/ ,
+      /rtts_assert\/src\/rtts_assert/,
       /angular2\/bundles\/.+/
     ]
   },
@@ -92,7 +92,7 @@ var config = {
     }
 
     this.plugins.push.apply(this.plugins, [
-       //production only
+       // production only
       new webpack.optimize.UglifyJsPlugin({
         compress: {
           warnings: false,

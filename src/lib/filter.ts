@@ -14,11 +14,11 @@
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *    along with this program.  If not, see <http:// www.gnu.org/licenses/>.
  */
 
-import {Window} from "./window";
-import {Complex} from "./complex";
+import {Window} from './window';
+import {Complex} from './complex';
 
 
 export interface Filter {
@@ -216,13 +216,14 @@ export class FIR {
               let nT = i / T;
               let anT = a * nT;
               let c = 0;
-              if (i === 0)
+              if (i === 0) {
                   c = 1.0;
-              else if (anT === 0.5 || anT === -0.5)//look at denominator below
+              } else if (anT === 0.5 || anT === -0.5) { // look at denominator below
                   c = Math.sin(Math.PI * nT) / (Math.PI * nT) * Math.PI / 4.0;
-              else
+              } else {
                   c = Math.sin(Math.PI * nT) / (Math.PI * nT) * Math.cos(Math.PI * anT) /
                       (1.0 - 4.0 * anT * anT);
+              }
               return c;
           });
           return (size === 13) ? newFilter13(coeffs) : newFilter(size, coeffs);
@@ -234,13 +235,13 @@ export class FIR {
 
 
 
-//########################################################################
-//#  B I Q U A D
-//########################################################################
+// ########################################################################
+// #  B I Q U A D
+// ########################################################################
 
 /**
  * A biquad filter
- * @see http://en.wikipedia.org/wiki/Digital_biquad_filter
+ * @see http:// en.wikipedia.org/wiki/Digital_biquad_filter
  */
 function BiquadFilter(b0: number, b1: number,
     b2: number, a1: number, a2: number): Filter {
@@ -311,9 +312,9 @@ export class Biquad {
             q = typeof q !== 'undefined' ? q : 0.5;
             let freq = 2.0 * Math.PI * frequency / sampleRate;
             let alpha = Math.sin(freq) / (2.0 * q);
-            let b0 = Math.sin(freq) / 2.0;   // = q*alpha
+            let b0 = Math.sin(freq) / 2.0;   //  = q*alpha
             let b1 = 0.0;
-            let b2 = -Math.sin(freq) / 2.0;  // = -q*alpha
+            let b2 = -Math.sin(freq) / 2.0;  //  = -q*alpha
             let a0 = 1.0 + alpha;
             let a1 = -2.0 * Math.cos(freq);
             let a2 = 1.0 - alpha;

@@ -14,9 +14,9 @@
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *    along with this program.  If not, see <http:// www.gnu.org/licenses/>.
  */
-import {Complex} from "./complex";
+import {Complex} from './complex';
 
  export interface Resampler {
    decimate(v: number): number;
@@ -54,22 +54,22 @@ function Resampler1(): Resampler {
     };
 }
 
-//######################################
-//## GENERATED
-//######################################
+// ######################################
+// ## GENERATED
+// ######################################
 /**
  * ### decimation : 2
  */
 function Resampler2(): Resampler {
-    var idx = 0;
-    var r0 = 0;
-    var i0 = 0;
-    var r1 = 0;
-    var i1 = 0;
-    var r2 = 0;
-    var i2 = 0;
-    var r3 = 0;
-    var i3 = 0;
+    let idx = 0;
+    let r0 = 0;
+    let i0 = 0;
+    let r1 = 0;
+    let i1 = 0;
+    let r2 = 0;
+    let i2 = 0;
+    let r3 = 0;
+    let i3 = 0;
 
 
     function dec(v:number): number {
@@ -139,17 +139,17 @@ function Resampler2(): Resampler {
  * ### decimation : 3
  */
 function Resampler3(): Resampler {
-    var idx = 0;
-    var r0 = 0;
-    var i0 = 0;
-    var r1 = 0;
-    var i1 = 0;
-    var r2 = 0;
-    var i2 = 0;
-    var r3 = 0;
-    var i3 = 0;
-    var r4 = 0;
-    var i4 = 0;
+    let idx = 0;
+    let r0 = 0;
+    let i0 = 0;
+    let r1 = 0;
+    let i1 = 0;
+    let r2 = 0;
+    let i2 = 0;
+    let r3 = 0;
+    let i3 = 0;
+    let r4 = 0;
+    let i4 = 0;
 
     function dec(v:number): number {
         r0 = r1;
@@ -228,19 +228,19 @@ function Resampler3(): Resampler {
  * ### decimation : 4
  */
 function Resampler4(): Resampler {
-    var idx = 0;
-    var r0 = 0;
-    var i0 = 0;
-    var r1 = 0;
-    var i1 = 0;
-    var r2 = 0;
-    var i2 = 0;
-    var r3 = 0;
-    var i3 = 0;
-    var r4 = 0;
-    var i4 = 0;
-    var r5 = 0;
-    var i5 = 0;
+    let idx = 0;
+    let r0 = 0;
+    let i0 = 0;
+    let r1 = 0;
+    let i1 = 0;
+    let r2 = 0;
+    let i2 = 0;
+    let r3 = 0;
+    let i3 = 0;
+    let r4 = 0;
+    let i4 = 0;
+    let r5 = 0;
+    let i5 = 0;
 
     function dec(v:number): number {
         r0 = r1;
@@ -327,21 +327,21 @@ function Resampler4(): Resampler {
  * ### decimation : 5
  */
 function Resampler5(): Resampler {
-    var idx = 0;
-    var r0 = 0;
-    var i0 = 0;
-    var r1 = 0;
-    var i1 = 0;
-    var r2 = 0;
-    var i2 = 0;
-    var r3 = 0;
-    var i3 = 0;
-    var r4 = 0;
-    var i4 = 0;
-    var r5 = 0;
-    var i5 = 0;
-    var r6 = 0;
-    var i6 = 0;
+    let idx = 0;
+    let r0 = 0;
+    let i0 = 0;
+    let r1 = 0;
+    let i1 = 0;
+    let r2 = 0;
+    let i2 = 0;
+    let r3 = 0;
+    let i3 = 0;
+    let r4 = 0;
+    let i4 = 0;
+    let r5 = 0;
+    let i5 = 0;
+    let r6 = 0;
+    let i6 = 0;
 
     function dec(v:number): number {
         r0 = r1;
@@ -440,23 +440,23 @@ function Resampler5(): Resampler {
  * ### decimation : 6
  */
 function Resampler6(): Resampler {
-    var idx = 0;
-    var r0 = 0;
-    var i0 = 0;
-    var r1 = 0;
-    var i1 = 0;
-    var r2 = 0;
-    var i2 = 0;
-    var r3 = 0;
-    var i3 = 0;
-    var r4 = 0;
-    var i4 = 0;
-    var r5 = 0;
-    var i5 = 0;
-    var r6 = 0;
-    var i6 = 0;
-    var r7 = 0;
-    var i7 = 0;
+    let idx = 0;
+    let r0 = 0;
+    let i0 = 0;
+    let r1 = 0;
+    let i1 = 0;
+    let r2 = 0;
+    let i2 = 0;
+    let r3 = 0;
+    let i3 = 0;
+    let r4 = 0;
+    let i4 = 0;
+    let r5 = 0;
+    let i5 = 0;
+    let r6 = 0;
+    let i6 = 0;
+    let r7 = 0;
+    let i7 = 0;
 
     function dec(v:number): number {
         r0 = r1;
@@ -560,25 +560,25 @@ function Resampler6(): Resampler {
  * ### decimation : 7
  */
 function Resampler7(): Resampler {
-    var idx = 0;
-    var r0 = 0;
-    var i0 = 0;
-    var r1 = 0;
-    var i1 = 0;
-    var r2 = 0;
-    var i2 = 0;
-    var r3 = 0;
-    var i3 = 0;
-    var r4 = 0;
-    var i4 = 0;
-    var r5 = 0;
-    var i5 = 0;
-    var r6 = 0;
-    var i6 = 0;
-    var r7 = 0;
-    var i7 = 0;
-    var r8 = 0;
-    var i8 = 0;
+    let idx = 0;
+    let r0 = 0;
+    let i0 = 0;
+    let r1 = 0;
+    let i1 = 0;
+    let r2 = 0;
+    let i2 = 0;
+    let r3 = 0;
+    let i3 = 0;
+    let r4 = 0;
+    let i4 = 0;
+    let r5 = 0;
+    let i5 = 0;
+    let r6 = 0;
+    let i6 = 0;
+    let r7 = 0;
+    let i7 = 0;
+    let r8 = 0;
+    let i8 = 0;
 
     function dec(v:number): number {
         r0 = r1;
@@ -693,33 +693,33 @@ function Resampler7(): Resampler {
  * ### decimation : 11
  */
 function Resampler11(): Resampler {
-    var idx = 0;
-    var r0 = 0;
-    var i0 = 0;
-    var r1 = 0;
-    var i1 = 0;
-    var r2 = 0;
-    var i2 = 0;
-    var r3 = 0;
-    var i3 = 0;
-    var r4 = 0;
-    var i4 = 0;
-    var r5 = 0;
-    var i5 = 0;
-    var r6 = 0;
-    var i6 = 0;
-    var r7 = 0;
-    var i7 = 0;
-    var r8 = 0;
-    var i8 = 0;
-    var r9 = 0;
-    var i9 = 0;
-    var r10 = 0;
-    var i10 = 0;
-    var r11 = 0;
-    var i11 = 0;
-    var r12 = 0;
-    var i12 = 0;
+    let idx = 0;
+    let r0 = 0;
+    let i0 = 0;
+    let r1 = 0;
+    let i1 = 0;
+    let r2 = 0;
+    let i2 = 0;
+    let r3 = 0;
+    let i3 = 0;
+    let r4 = 0;
+    let i4 = 0;
+    let r5 = 0;
+    let i5 = 0;
+    let r6 = 0;
+    let i6 = 0;
+    let r7 = 0;
+    let i7 = 0;
+    let r8 = 0;
+    let i8 = 0;
+    let r9 = 0;
+    let i9 = 0;
+    let r10 = 0;
+    let i10 = 0;
+    let r11 = 0;
+    let i11 = 0;
+    let r12 = 0;
+    let i12 = 0;
 
     function dec(v:number): number {
         r0 = r1;
@@ -866,9 +866,9 @@ function Resampler11(): Resampler {
 }
 
 
-//######################################
-//## END GENERATED
-//######################################
+// ######################################
+// ## END GENERATED
+// ######################################
 
 
 
@@ -882,7 +882,7 @@ export class Resampler {
 
         function BadDecimationSpecException(message) {
             this.message = message;
-            this.name = "BadDecimationSpecException";
+            this.name = 'BadDecimationSpecException';
         }
 
 
@@ -904,9 +904,9 @@ export class Resampler {
             case 11 :
                 return Resampler11();
             default:
-                throw new BadDecimationSpecException("Decimation " +
-                    decimation + " not supported");
+                throw new BadDecimationSpecException('Decimation ' +
+                    decimation + ' not supported');
         }
-    }///create
+    }// /create
 
 }

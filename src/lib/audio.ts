@@ -21,10 +21,10 @@
 /* global window, navigator*/
 /* jslint node: true */
 
-"use strict";
+'use strict';
 
-import {Digi} from "./digi";
-import {Resampler} from "./resample";
+import {Digi} from './digi';
+import {Resampler} from './resample';
 
 
 const AudioContext: AudioContext = window.AudioContext || window.webkitAudioContext;
@@ -59,9 +59,9 @@ class AudioInput {
 
         this.stream = newstream;
 
-        //workaround for a Firefox bug.  Keep a global ref to source to prevent gc.
-        //http://goo.gl/LjEjUF2
-        //var source = actx.createMediaStreamSource(stream);
+        // workaround for a Firefox bug.  Keep a global ref to source to prevent gc.
+        // http://goo.gl/LjEjUF2
+        // var source = actx.createMediaStreamSource(stream);
         this.source = this.actx.createMediaStreamSource(newstream);
 
         /**/
@@ -96,24 +96,26 @@ class AudioInput {
               { audio: true },
               stream => this.startStream(stream),
               userMediaError => {
-                  this.par.error(userMediaError.name + " : " + userMediaError.message);
+                  this.par.error(userMediaError.name + ' : ' + userMediaError.message);
               }
           );
         } else if (navigator.mediaDevices.getUserMedia) {
           navigator.mediaDevices.getUserMedia({audio: true})
           .then(stream => this.startStream(stream))
           .catch(err => {
-            console.log("audioInput: " + err);
+            console.log('audioInput: ' + err);
           });
         }
     }
 
     stop() {
-        if (this.stream) this.stream.stop();
+        if (this.stream) {
+          this.stream.stop();
+        }
     }
 
 
-} //AudioInput
+} // AudioInput
 
 
 /**
@@ -170,6 +172,6 @@ class AudioOutput {
     }
 
 
-} //AudioOutput
+} // AudioOutput
 
 export {AudioInput, AudioOutput};

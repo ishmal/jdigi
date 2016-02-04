@@ -14,11 +14,11 @@
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *    along with this program.  If not, see <http:// www.gnu.org/licenses/>.
  */
 
-import {Complex, ComplexOps} from "./complex";
-import {Window} from "./window";
+import {Complex, ComplexOps} from './complex';
+import {Window} from './window';
 
 
 /**
@@ -29,7 +29,7 @@ function FFT(N) {
     let N2 = N / 2;
     let power = (Math.log(N) / Math.LN2) | 0;
     let nrStages = power;
-    //todo: validate power-of-2, throw IAE if not
+    // todo: validate power-of-2, throw IAE if not
 
     function createBitReversedIndices(n) {
         let xs = new Array(n);
@@ -83,7 +83,7 @@ function FFT(N) {
 
     function apply(input) {
 
-        //local refs
+        // local refs
         let n2 = N2;
         let nrStgs = nrStages;
         let stgs = stages;
@@ -91,7 +91,7 @@ function FFT(N) {
         let xr = new Array(N);
         let xi = new Array(N);
         for (let idx = 0; idx < N; idx++) {
-            //todo:  apply Hann window here
+            // todo:  apply Hann window here
             let bri = bitReversedIndices[idx];
             xr[idx] = input[bri];
             xi[idx] = 0;
@@ -137,7 +137,7 @@ function FFT(N) {
 
     this.powerSpectrum = powerSpectrum;
 
-} //FFT
+} // FFT
 
 
 /**
@@ -167,11 +167,11 @@ function FFTSR(N) {
 
     let bitReversedIndices = generateBitReversedIndices(N);
 
-    //let's pre-generate anything we can
+    // let's pre-generate anything we can
     function generateStageData(pwr) {
         let xs = [];
-        let n2 = N;// == n>>(k-1) == n, n/2, n/4, ..., 4
-        let n4 = n2 >> 2; // == n/4, n/8, ..., 1
+        let n2 = N; //  == n>>(k-1) == n, n/2, n/4, ..., 4
+        let n4 = n2 >> 2; //  == n/4, n/8, ..., 1
         for (let k = 1; k < pwr; k++, n2 >>= 1, n4 >>= 1) {
             let stage = [];
             let e = 2.0 * Math.PI / n2;
@@ -209,7 +209,7 @@ function FFTSR(N) {
     function applyX(input) {
         for (let idx = 0; idx < N; idx++) {
             let cx = input[idx];
-            xr[idx] = cx.r; // * W[idx];
+            xr[idx] = cx.r; //  * W[idx];
             xi[idx] = cx.i;
         }
         compute();
@@ -224,36 +224,36 @@ function FFTSR(N) {
 
         let stageidx = 0;
 
-        n2 = N;  // == n>>(k-1) == n, n/2, n/4, ..., 4
-        n4 = n2 >> 2; // == n/4, n/8, ..., 1
+        n2 = N;  //  == n>>(k-1) == n, n/2, n/4, ..., 4
+        n4 = n2 >> 2; //  == n/4, n/8, ..., 1
         for (k = 1; k < power; k++, n2 >>= 1, n4 >>= 1) {
 
             let stage = stages[stageidx++];
 
             id = (n2 << 1);
-            for (ix = 0; ix < N; ix = (id << 1) - n2, id <<= 2) { //ix=j=0
+            for (ix = 0; ix < N; ix = (id << 1) - n2, id <<= 2) { // ix=j=0
                 for (i0 = ix; i0 < N; i0 += id) {
                     i1 = i0 + n4;
                     i2 = i1 + n4;
                     i3 = i2 + n4;
 
-                    //sumdiff3(x[i0], x[i2], t0);
+                    // sumdiff3(x[i0], x[i2], t0);
                     tr0 = xr[i0] - xr[i2];
                     ti0 = xi[i0] - xi[i2];
                     xr[i0] += xr[i2];
                     xi[i0] += xi[i2];
-                    //sumdiff3(x[i1], x[i3], t1);
+                    // sumdiff3(x[i1], x[i3], t1);
                     tr1 = xr[i1] - xr[i3];
                     ti1 = xi[i1] - xi[i3];
                     xr[i1] += xr[i3];
                     xi[i1] += xi[i3];
 
-                    // t1 *= Complex(0, 1);  // +isign
+                    //  t1 *= Complex(0, 1);  //  +isign
                     tr = tr1;
                     tr1 = -ti1;
                     ti1 = tr;
 
-                    //sumdiff(t0, t1);
+                    // sumdiff(t0, t1);
                     tr = tr1 - tr0;
                     ti = ti1 - ti0;
                     tr0 += tr1;
@@ -261,10 +261,10 @@ function FFTSR(N) {
                     tr1 = tr;
                     ti1 = ti;
 
-                    xr[i2] = tr0;  // .mul(w1);
-                    xi[i2] = ti0;  // .mul(w1);
-                    xr[i3] = tr1;  // .mul(w3);
-                    xi[i3] = ti1;  // .mul(w3);
+                    xr[i2] = tr0;  //  .mul(w1);
+                    xi[i2] = ti0;  //  .mul(w1);
+                    xr[i3] = tr1;  //  .mul(w3);
+                    xi[i3] = ti1;  //  .mul(w3);
                 }
             }
 
@@ -286,23 +286,23 @@ function FFTSR(N) {
                         i2 = i1 + n4;
                         i3 = i2 + n4;
 
-                        //sumdiff3(x[i0], x[i2], t0);
+                        // sumdiff3(x[i0], x[i2], t0);
                         tr0 = xr[i0] - xr[i2];
                         ti0 = xi[i0] - xi[i2];
                         xr[i0] += xr[i2];
                         xi[i0] += xi[i2];
-                        //sumdiff3(x[i1], x[i3], t1);
+                        // sumdiff3(x[i1], x[i3], t1);
                         tr1 = xr[i1] - xr[i3];
                         ti1 = xi[i1] - xi[i3];
                         xr[i1] += xr[i3];
                         xi[i1] += xi[i3];
 
-                        // t1 *= Complex(0, 1);  // +isign
+                        //  t1 *= Complex(0, 1);  //  +isign
                         tr = tr1;
                         tr1 = -ti1;
                         ti1 = tr;
 
-                        //sumdiff(t0, t1);
+                        // sumdiff(t0, t1);
                         tr = tr1 - tr0;
                         ti = ti1 - ti0;
                         tr0 += tr1;
@@ -310,10 +310,10 @@ function FFTSR(N) {
                         tr1 = tr;
                         ti1 = ti;
 
-                        xr[i2] = tr0 * wr1 - ti0 * wi1;  // .mul(w1);
-                        xi[i2] = ti0 * wr1 + tr0 * wi1;  // .mul(w1);
-                        xr[i3] = tr1 * wr3 - ti1 * wi3;  // .mul(w3);
-                        xi[i3] = ti1 * wr3 + tr1 * wi3;  // .mul(w3);
+                        xr[i2] = tr0 * wr1 - ti0 * wi1;  //  .mul(w1);
+                        xi[i2] = ti0 * wr1 + tr0 * wi1;  //  .mul(w1);
+                        xr[i3] = tr1 * wr3 - ti1 * wi3;  //  .mul(w3);
+                        xi[i3] = ti1 * wr3 + tr1 * wi3;  //  .mul(w3);
                     }
                 }
             }
@@ -329,10 +329,10 @@ function FFTSR(N) {
                 xr[i1] = tr;
                 xi[i1] = ti;
             }
-            ix = id + id - 2; //2*(id-1);
+            ix = id + id - 2; // 2*(id-1);
         }
 
-    }//apply
+    }// apply
 
 
     function computePowerSpectrum(ps) {
@@ -361,16 +361,16 @@ function FFTSR(N) {
     this.powerSpectrumX = powerSpectrumX;
 
 
-} //FFTSR
+} // FFTSR
 
 
 function SimpleGoertzel(frequency, binWidth, sampleRate) {
 
-    //how many bins would there be for this binWidth? Integer
+    // how many bins would there be for this binWidth? Integer
     let N = (sampleRate / binWidth) | 0;
-    //which bin out of N are we? Must be an integer.
+    // which bin out of N are we? Must be an integer.
     let bin = (0.5 + frequency / sampleRate * N) | 0;
-    let w = 2.0 * Math.PI / N * bin;  //omega
+    let w = 2.0 * Math.PI / N * bin;  // omega
     let wr = Math.cos(w);
     let wr2 = 2.0 * wr;
     let wi = Math.sin(w);
@@ -386,12 +386,12 @@ function SimpleGoertzel(frequency, binWidth, sampleRate) {
         pi2 = 0;
     };
 
-    //use this if computed with update()
+    // use this if computed with update()
     this.x = function () {
         return {r: wr * pr1 - pr2, i: wi * pr1};
     };
 
-    //use this if computed with updateX()
+    // use this if computed with updateX()
     this.X = function () {
         let realr = wr * pr1 - pr2;
         let reali = wi * pr1;
@@ -400,17 +400,17 @@ function SimpleGoertzel(frequency, binWidth, sampleRate) {
         return {r: realr - imagi, i: reali + imagr};
     };
 
-    //faster for power spectrum
+    // faster for power spectrum
     this.mag = function () {
         return pr1 * pr1 + pr2 * pr2;
     };
 
-    //correct
+    // correct
     this.mag2 = function () {
         return pr1 * pr1 + pr2 * pr2 - wr2 * pr1 * pr2;
     };
 
-    //for complex values
+    // for complex values
     this.magX = function () {
         return ComplexOps.mag(this.X());
     };
@@ -430,8 +430,7 @@ function SimpleGoertzel(frequency, binWidth, sampleRate) {
         pi1 = i * damping;
     };
 
-
 }
 
 
-export {FFT,FFTSR,SimpleGoertzel};
+export {FFT, FFTSR, SimpleGoertzel};

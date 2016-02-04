@@ -14,19 +14,19 @@
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *    along with this program.  If not, see <http:// www.gnu.org/licenses/>.
  */
 
-import {Constants} from "./constants";
-import {FFT,FFTSR} from "./fft";
-import {AudioInput,AudioOutput} from "./audio";
-import {Mode} from "./mode/mode";
-import {PskMode,PskMode2} from "./mode/psk";
-import {RttyMode} from "./mode/rtty";
-import {PacketMode} from "./mode/packet";
-import {NavtexMode} from "./mode/navtex";
-import {Watcher} from "./watch";
-import {Tuner, TunerImpl, TunerDummy} from "./tuner";
+import {Constants} from './constants';
+import {FFT, FFTSR} from './fft';
+import {AudioInput, AudioOutput} from './audio';
+import {Mode} from './mode/mode';
+import {PskMode, PskMode2} from './mode/psk';
+import {RttyMode} from './mode/rtty';
+import {PacketMode} from './mode/packet';
+import {NavtexMode} from './mode/navtex';
+import {Watcher} from './watch';
+import {Tuner, TunerImpl, TunerDummy} from './tuner';
 
 
 /**
@@ -48,7 +48,7 @@ export class InText {
     }
 
     getText(): string {
-      return "";
+      return '';
     }
 }
 
@@ -115,7 +115,7 @@ export class Digi {
           if (++icnt >= FFT_WINDOW) {
               icnt = 0;
               fft.powerSpectrum(ibuf, psbuf);
-              //console.log("ps: " + ps[100]);
+              // console.log('ps: ' + ps[100]);
               this.tuner.update(psbuf);
               this.mode.receiveFft(psbuf);
           }
@@ -128,18 +128,21 @@ export class Digi {
     }
 
     trace(msg) {
-        if (typeof console !== "undefined")
-            console.log("Digi: " + msg);
+        if (typeof console !== 'undefined') {
+            console.log('Digi: ' + msg);
+        }
     }
 
     error(msg) {
-        if (typeof console !== "undefined")
-            console.log("Digi error: " + msg);
+        if (typeof console !== 'undefined') {
+            console.log('Digi error: ' + msg);
+        }
     }
 
     status(str) {
-        if (typeof console !== "undefined")
-            console.log("status: " + str);
+        if (typeof console !== 'undefined') {
+            console.log('status: ' + str);
+        }
     }
 
     get sampleRate() {
@@ -149,7 +152,7 @@ export class Digi {
 
     set mode(v: Mode) {
         this._mode = v;
-        //this.status("mode switched");
+        // this.status('mode switched');
     }
 
     get mode(): Mode {
@@ -166,7 +169,7 @@ export class Digi {
     }
 
     set frequency(freq: number) {
-        this._mode.frequency= freq;
+        this._mode.frequency = freq;
     }
 
     get frequency(): number {
@@ -288,4 +291,4 @@ export class Digi {
     }
 
 
-} //Digi
+} // Digi

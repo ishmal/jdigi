@@ -14,22 +14,24 @@
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *    along with this program.  If not, see <http:// www.gnu.org/licenses/>.
  */
 
-import {Constants} from "./constants";
+import {Constants} from './constants';
 import {Digi} from './digi';
 
 const BINS = Constants.BINS;
 
 function trace(msg) {
-    if (typeof console !== "undefined")
-        console.log("Tuner: " + msg);
+    if (typeof console !== 'undefined') {
+        console.log('Tuner: ' + msg);
+    }
 }
 
 function error(msg) {
-    if (typeof console !== "undefined")
-        console.log("Tuner error : " + msg);
+    if (typeof console !== 'undefined') {
+        console.log('Tuner error : ' + msg);
+    }
 }
 
 export interface Tuner {
@@ -82,9 +84,9 @@ export class TunerImpl implements Tuner {
     constructor(par: Digi, canvas: HTMLCanvasElement) {
 
       window.requestAnimationFrame = window.requestAnimationFrame
-          || window.msRequestAnimationFrame
-          // || window.mozRequestAnimationFrame
-          // || window.webkitRequestAnimationFrame;
+          || window.msRequestAnimationFrame;
+          //  || window.mozRequestAnimationFrame
+          //  || window.webkitRequestAnimationFrame;
 
       this._par = par;
       this._canvas = canvas;
@@ -92,7 +94,7 @@ export class TunerImpl implements Tuner {
       this._dragging = false;
       this._frequency = 1000;
       this._indices = null;
-      this._width= 100;
+      this._width = 100;
       this._height = 100;
       this._ctx = null;
       this._imgData = null;
@@ -104,14 +106,14 @@ export class TunerImpl implements Tuner {
 
       this.resize();
 
-      canvas.setAttribute("tabindex", "1");
+      canvas.setAttribute('tabindex', '1');
 
       this._palette = this.makePalette();
 
       this.setupEvents(canvas);
   }
 
-    //note that this is different from the public method
+    // note that this is different from the public method
     set frequency(freq: number) {
         this._frequency = freq;
         this._par.frequency = freq;
@@ -140,31 +142,31 @@ export class TunerImpl implements Tuner {
         let imgData = this._imgData = this._ctx.createImageData(this._width, this._height);
         let imglen = this._imglen = imgData.data.length;
         let buf8 = this._buf8 = imgData.data;
-        for (let i = 0; i < imglen;) {
+        for (let i = 0; i < imglen; ) {
             buf8[i++] = 0;
             buf8[i++] = 0;
             buf8[i++] = 0;
             buf8[i++] = 255;
         }
-        //imgData.data.set(buf8);
+        // imgData.data.set(buf8);
         this._ctx.putImageData(imgData, 0, 0);
         this._rowsize = imglen / this._height;
         this._lastRow = imglen - this._rowsize;
     }
 
-    //####################################################################
-    //#   MOUSE and KEY EVENTS
-    //####################################################################
+    // ####################################################################
+    // #   MOUSE and KEY EVENTS
+    // ####################################################################
 
     setupEvents(canvas) {
       function mouseFreq(event) {
           let pt = getMousePos(canvas, event);
-          let freq = this.MAX_FREQ * pt.x / this._width;
+          let freq = this._MAX_FREQ * pt.x / this._width;
           this.frequency = freq;
       }
 
-      function getMousePos(canvas, evt) {
-          let rect = canvas.getBoundingClientRect();
+      function getMousePos(cnv, evt) {
+          let rect = cnv.getBoundingClientRect();
           return {x: evt.clientX - rect.left, y: evt.clientY - rect.top};
       }
 
@@ -178,9 +180,11 @@ export class TunerImpl implements Tuner {
           this._dragging = false;
       };
       canvas.onmousemove = (event) => {
-          if (this._dragging) mouseFreq(event);
+          if (this._dragging) {
+             mouseFreq(event);
+          }
       };
-      //fine tuning, + or - one hertz
+      // fine tuning, + or - one hertz
       canvas.onkeydown = (evt) => {
           let key = evt.which;
           if (key === 37 || key === 40) {
@@ -194,18 +198,18 @@ export class TunerImpl implements Tuner {
 
       function handleWheel(evt) {
           let delta = (evt.detail < 0 || evt.wheelDelta > 0) ? 1 : -1;
-          this.frequency += (delta * 1); //or other increments here
+          this.frequency += (delta * 1); // or other increments here
           evt.preventDefault();
           return false;
       }
 
       canvas.onmousewheel = handleWheel;
-      canvas.addEventListener("DOMMouseScroll", handleWheel, false);
+      canvas.addEventListener('DOMMouseScroll', handleWheel, false);
     }
 
-    //####################################################################
-    //#  R E N D E R I N G
-    //####################################################################
+    // ####################################################################
+    // #  R E N D E R I N G
+    // ####################################################################
 
     /**
      * Make a palette. tweak this often
@@ -232,29 +236,29 @@ export class TunerImpl implements Tuner {
         let ctx = this._ctx;
         let indices = this._indices;
 
-        //ctx.fillStyle = 'red';
+        // ctx.fillStyle = 'red';
         ctx.fillStyle = 'rgba(255, 255, 255, 0.50)';
-        //ctx.lineWidth = 1;
+        // ctx.lineWidth = 1;
         ctx.beginPath();
-        let base = height >> 1; //move this around
+        let base = height >> 1; // move this around
         ctx.moveTo(0, base);
         let log = Math.log;
         for (let x = 0; x < width; x++) {
             let v = log(1.0 + data[indices[x]]) * 12.0;
             let y = base - v;
-            //trace("x:" + x + " y:" + y);
+            // trace('x:' + x + ' y:' + y);
             ctx.lineTo(x, y);
         }
         ctx.lineTo(width - 1, base);
         for (let x = width - 1; x >= 0; x--) {
             let v = log(1.0 + data[indices[x]]) * 12.0;
             let y = base + v;
-            //trace("x:" + x + " y:" + y);
+            // trace('x:' + x + ' y:' + y);
             ctx.lineTo(x, y);
         }
         ctx.lineTo(0, base);
         ctx.closePath();
-        //var bbox = ctx.getBBox();
+        // let bbox = ctx.getBBox();
         ctx.fill();
     }
 
@@ -268,14 +272,14 @@ export class TunerImpl implements Tuner {
         let indices = this._indices;
         let palette = this._palette;
 
-        buf8.set(buf8.subarray(rowsize, imglen)); //<-cool, if this works
-        //trace("data:" + data[50]);
+        buf8.set(buf8.subarray(rowsize, imglen)); // <-cool, if this works
+        // trace('data:' + data[50]);
 
         let idx = this._lastRow;
         for (let x = 0; x < width; x++) {
             let v = data[indices[x]];
             let pix = palette[v & 255];
-            //if (x==50)trace("p:" + p + "  pix:" + pix.toString(16));
+            // if (x==50)trace('p:' + p + '  pix:' + pix.toString(16));
             buf8[idx++] = pix[0];
             buf8[idx++] = pix[1];
             buf8[idx++] = pix[2];
@@ -296,17 +300,17 @@ export class TunerImpl implements Tuner {
         let imglen = this._imglen;
         let ctx = this._ctx;
 
-        buf8.set(buf8.subarray(rowsize, imglen)); //<-cool, if this works
+        buf8.set(buf8.subarray(rowsize, imglen)); // <-cool, if this works
         let idx = lastRow;
         let abs = Math.abs;
         let log = Math.log;
         for (let x = 0; x < width; x++) {
             let v = abs(data[indices[x]]);
-            //if (x==50) trace("v:" + v);
+            // if (x==50) trace('v:' + v);
             let p = log(1.0 + v) * 30;
-            //if (x==50)trace("x:" + x + " p:" + p);
+            // if (x==50)trace('x:' + x + ' p:' + p);
             let pix = palette[p & 255];
-            //if (x==50)trace("p:" + p + "  pix:" + pix.toString(16));
+            // if (x==50)trace('p:' + p + '  pix:' + pix.toString(16));
             buf8[idx++] = pix[0];
             buf8[idx++] = pix[1];
             buf8[idx++] = pix[2];
@@ -331,9 +335,9 @@ export class TunerImpl implements Tuner {
         let bww = bw * pixPerHz;
         let bwlo = (frequency - bw * 0.5) * pixPerHz;
 
-        ctx.fillStyle = "rgba(255,255,255,0.25)";
+        ctx.fillStyle = 'rgba(255,255,255,0.25)';
         ctx.fillRect(bwlo, 0, bww, height);
-        ctx.strokeStyle = "red";
+        ctx.strokeStyle = 'red';
         ctx.beginPath();
         ctx.moveTo(x, 0);
         ctx.lineTo(x, height);
@@ -343,14 +347,14 @@ export class TunerImpl implements Tuner {
 
         for (let hz = 0; hz < MAX_FREQ; hz += 100) {
             if ((hz % 1000) === 0) {
-                ctx.strokeStyle = "red";
+                ctx.strokeStyle = 'red';
                 ctx.beginPath();
                 x = hz * pixPerHz;
                 ctx.moveTo(x, top);
                 ctx.lineTo(x, height);
                 ctx.stroke();
             } else {
-                ctx.strokeStyle = "white";
+                ctx.strokeStyle = 'white';
                 ctx.beginPath();
                 x = hz * pixPerHz;
                 ctx.moveTo(x, top + 10);
@@ -359,7 +363,7 @@ export class TunerImpl implements Tuner {
             }
         }
 
-        ctx.fillStyle = "gray";
+        ctx.fillStyle = 'gray';
         for (let hz = 0; hz < MAX_FREQ; hz += 500) {
             x = hz * pixPerHz - 10;
             ctx.fillText(hz.toString(), x, top + 14);
@@ -374,8 +378,9 @@ export class TunerImpl implements Tuner {
      */
     drawScope() {
         let len = this._scopeData.length;
-        if (len < 1)
+        if (len < 1) {
             return;
+        }
         let ctx = this._ctx;
         let boxW = 100;
         let boxH = 100;
@@ -386,7 +391,7 @@ export class TunerImpl implements Tuner {
 
         ctx.save();
         ctx.beginPath();
-        ctx.strokeStyle = "white";
+        ctx.strokeStyle = 'white';
         ctx.rect(boxX, boxY, boxW, boxH);
         ctx.stroke();
         ctx.clip();
@@ -401,22 +406,22 @@ export class TunerImpl implements Tuner {
         ctx.lineTo(boxX + boxW, centerY);
         ctx.stroke();
 
-        ctx.strokeStyle = "yellow";
+        ctx.strokeStyle = 'yellow';
         ctx.beginPath();
-        var pt = this._scopeData[0];
-        var x = centerX + pt[0] * 50.0;
-        var y = centerY + pt[1] * 50.0;
+        let pt = this._scopeData[0];
+        let x = centerX + pt[0] * 50.0;
+        let y = centerY + pt[1] * 50.0;
         ctx.moveTo(x, y);
-        for (var i = 1; i < len; i++) {
+        for (let i = 1; i < len; i++) {
             pt = this._scopeData[i];
             x = centerX + pt[0] * 50.0;
             y = centerY + pt[1] * 50.0;
-            //console.log("pt:" + x + ":" + y);
+            // console.log('pt:' + x + ':' + y);
             ctx.lineTo(x, y);
         }
         ctx.stroke();
 
-        //all done
+        // all done
         ctx.restore();
     }
 
@@ -437,4 +442,4 @@ export class TunerImpl implements Tuner {
         });
     }
 
-} //Tuner
+} // Tuner

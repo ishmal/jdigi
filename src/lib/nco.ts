@@ -14,11 +14,11 @@
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *    along with this program.  If not, see <http:// www.gnu.org/licenses/>.
  */
-"use strict";
+'use strict';
 
-import {Complex} from "./complex";
+import {Complex} from './complex';
 
 function createCossinTable(): Complex[] {
     let twopi = Math.PI * 2.0;
@@ -36,10 +36,10 @@ function createCossinTable(): Complex[] {
 const ncoTable = createCossinTable();
 
 export interface Nco {
-  setFrequency(v: number): void,
-  setError(v: number): void,
-  next(): Complex,
-  mixNext(v: number): Complex
+  setFrequency(v: number): void;
+  setError(v: number): void;
+  next(): Complex;
+  mixNext(v: number): Complex;
 }
 
 /**
@@ -53,23 +53,24 @@ export function NcoCreate(frequency, sampleRate): Nco {
     let phase = 0 | 0;
     let table = ncoTable;
     let err = 0;
-    let maxErr = (50 * hzToInt) | 0;  //in hertz
-    console.log("NCO maxErr: " + maxErr);
-    let minErr = -(50 * hzToInt) | 0;  //in hertz
+    let maxErr = (50 * hzToInt) | 0;  // in hertz
+    console.log('NCO maxErr: ' + maxErr);
+    let minErr = -(50 * hzToInt) | 0;  // in hertz
     setFrequency(frequency);
 
-    function setFrequency(frequency: number): void {
-        freq = (frequency * hzToInt) | 0;
+    function setFrequency(v: number): void {
+        freq = (v * hzToInt) | 0;
     }
 
 
     function setError(v: number): void {
         err = (err * 0.9 + v * 100000.0) | 0;
-        //console.log("err:" + err + "  v:" + v);
-        if (err > maxErr)
+        // console.log('err:' + err + '  v:' + v);
+        if (err > maxErr) {
             err = maxErr;
-        else if (err < minErr)
+        } else if (err < minErr) {
             err = minErr;
+        }
     }
 
     function next(): Complex {

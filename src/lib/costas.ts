@@ -16,11 +16,11 @@
  *    You should have received a copy of the GNU General Public License
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-"use strict";
+'use strict';
 /* jslint node: true */
 
-import {Complex} from "./complex";
-import {Biquad} from "./filter";
+import {Complex} from './complex';
+import {Biquad} from './filter';
 
 function createCossinTable() {
     let twopi = Math.PI * 2.0;
@@ -65,14 +65,14 @@ function LowPassIIR(cutoff: number, sampleRate: number) {
 function CostasIIR(frequency, dataRate, sampleRate) {
     let freq = 0;
     let err = 0;
-    let phase = 0 | 0;
+    let phase = 0;
     let table = cossinTable;
     let iqa, iqb, iz = 0, qz = 0;
     let da, db, dz = 0;
 
 
-    function setFrequency(frequency) {
-        freq = (4294967296.0 * frequency / sampleRate) | 0;
+    function setFrequency(val) {
+        freq = (4294967296.0 * val / sampleRate) | 0;
     }
 
     this.setFrequency = setFrequency;
@@ -101,8 +101,8 @@ function CostasIIR(frequency, dataRate, sampleRate) {
         let cross = Math.atan2(qz, iz);
         dz = cross * da + dz * db;
         err = dz * 100000.0; // this too coarse?
-        console.log("freq: " + freq + "  err: " + err);
-        //console.log("iz: " + iz);
+        console.log('freq: ' + freq + '  err: ' + err);
+        // console.log('iz: ' + iz);
         return {r: iz, i: qz};
     };
 
@@ -136,8 +136,8 @@ function Costas(frequency: number, dataRate: number, sampleRate: number) {
     }
 
 
-    function setFrequency(frequency) {
-        freq0 = frequency * omega;
+    function setFrequency(v) {
+        freq0 = v * omega;
         freq = freq0;
         minFreq = freq0 - dataRate * omega;
         maxFreq = freq0 + dataRate * omega;
@@ -166,24 +166,27 @@ function Costas(frequency: number, dataRate: number, sampleRate: number) {
         agcint1 = agcint2 + agcgain * agcerr;
 
         freq = freq + beta * err;
-        if (freq < minFreq)
+        if (freq < minFreq) {
             freq = minFreq;
-        else if (freq > maxFreq)
+        } else if (freq > maxFreq) {
             freq = maxFreq;
+        }
         phase = phase + freq + alpha * err;
-        while (phase > twopi) phase -= twopi;
+        while (phase > twopi) {
+          phase -= twopi;
+        }
         let cs = table[(phase * tabRate) & 0xffff];
         let i = v * cs.cos;
         let q = v * cs.sin;
         let iz = ilp.update(i);
         let qz = qlp.update(q);
-        //console.log("qz: " + qz);
+        // console.log('qz: ' + qz);
         let angle = -Math.atan2(qz, iz);
         err = dlp.update(angle);
-        //console.log("" + iz + " " + qz + " " + angle + " " + err);
-        //if (++counter % 10 === 0)
+        // console.log('' + iz + ' ' + qz + ' ' + angle + ' ' + err);
+        // if (++counter % 10 === 0)
         //    plotter.update([iz, qz, angle, err, freq, minFreq, maxFreq]);
-        //console.log("iq: " + iz + ", " + qz);
+        // console.log('iq: ' + iz + ', ' + qz);
         return {r: iz, i: qz};
     };
 }

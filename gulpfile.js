@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 let gulp = require('gulp');
 let del = require('del');
@@ -19,10 +19,10 @@ require('require-dir')('./gulp-tasks');
 
 gulp.task('clean', function(cb) {
   del([
-    "src/**/*.d.ts",
-    "src/**/*.js",
-    "src/**/*.js.map"
-  ]).then(paths => {cb()});
+    'src/**/*.d.ts',
+    'src/**/*.js',
+    'src/**/*.js.map'
+  ]).then(() => {cb();});
 });
 
 gulp.task('default', function () {

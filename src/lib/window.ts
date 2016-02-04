@@ -24,55 +24,62 @@ let Window = {
 
     rectangle: function (size: number): number[] {
         let xs = new Array(size);
-        for (let i = 0; i < size; i++)
+        for (let i = 0; i < size; i++) {
             xs[i] = 1.0;
+        }
         return xs;
     },
 
     bartlett: function (size: number): number[] {
         let xs = new Array(size);
-        for (let i = 0; i < size; i++)
+        for (let i = 0; i < size; i++) {
             xs[i] = 2 / (size - 1) * ((size - 1) / 2 - Math.abs(i - (size - 1) / 2));
+        }
         return xs;
     },
 
     blackman: function (size: number): number[] {
-        let alpha = 0.16; //the "exact" Blackman
+        let alpha = 0.16; // the "exact" Blackman
         let a0 = (1 - alpha) / 2;
         let a1 = 0.5;
         let a2 = alpha * 0.5;
         let xs = new Array(size);
-        for (let i = 0; i < size; i++)
+        for (let i = 0; i < size; i++) {
             xs[i] = a0 - a1 * Math.cos(2.0 * Math.PI * i / (size - 1)) + a2 * Math.cos(4 * Math.PI * i / (size - 1));
+        }
         return xs;
     },
 
     cosine: function (size: number): number[] {
         let xs = new Array(size);
-        for (let i = 0; i < size; i++)
+        for (let i = 0; i < size; i++) {
             xs[i] = Math.cos(Math.PI * i / (size - 1) - Math.PI / 2);
+        }
         return xs;
     },
 
     gauss: function (size: number): number[] {
         let xs = new Array(size);
         let alpha = 1.0;
-        for (let i = 0; i < size; i++)
+        for (let i = 0; i < size; i++) {
             xs[i] = Math.pow(Math.E, -0.5 * Math.pow((i - (size - 1) / 2) / (alpha * (size - 1) / 2), 2));
+        }
         return xs;
     },
 
     hamming: function (size: number): number[] {
         let xs = new Array(size);
-        for (let i = 0; i < size; i++)
+        for (let i = 0; i < size; i++) {
             xs[i] = 0.54 - 0.46 * Math.cos(2.0 * Math.PI * i / (size - 1));
+        }
         return xs;
     },
 
     hann: function (size: number): number[] {
         let xs = new Array(size);
-        for (let i = 0; i < size; i++)
+        for (let i = 0; i < size; i++) {
             xs[i] = 0.5 - 0.5 * Math.cos(2.0 * Math.PI * i / (size - 1));
+        }
         return xs;
     }
 

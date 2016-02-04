@@ -18,8 +18,8 @@
  */
 /* jslint node: true */
 
-import {FskBase} from "./fsk";
-import {Biquad,FIR} from "../filter";
+import {FskBase} from './fsk';
+import {Biquad, FIR} from '../filter';
 import {Properties} from './mode';
 
 /**
@@ -154,12 +154,13 @@ class PacketAddr {
             let newadd = new Array(7);
             let len = call.length;
             for (let i = 0; i < 7; i++) {
-                if (i < len)
-                    newadd[i] = (parseInt(call[i]) << 1);
-                else if (i == 6)
+                if (i < len) {
+                    newadd[i] = (call.charCodeAt(i) << 1);
+                } else if (i === 6) {
                     newadd[i] = (0x60 | (this._ssid << 1));
-                else
-                    newadd[i] = 0x40;   // shifted space
+                } else {
+                    newadd[i] = 0x40;   //  shifted space
+                }
             }
             this._add = newadd.toString();
         }
@@ -167,7 +168,7 @@ class PacketAddr {
     }
 
     static fromData(arr, offset) {
-        let buf = "";
+        let buf = '';
         let bytes = arr.slice(offset, offset + 6).map(function (v) {
             return v >> 1;
         });
@@ -178,48 +179,48 @@ class PacketAddr {
 
 
     toString() {
-        return (this._ssid >= 0) ? this._call + "-" + this._ssid : this._call;
+        return (this._ssid >= 0) ? this._call + '-' + this._ssid : this._call;
     }
 
 }
 
 
 const Types = {
-    PID_X25: 0x01,  // ISO 8208/CCITT X.25 PLP
-    PID_TCPIP_COMP: 0x06,  // Compressed TCP/IP packet. Van Jacobson (RFC 1144)
-    PID_TCPIP_UNCOMP: 0x07,  // Uncompressed TCP/IP packet. Van Jacobson (RFC 1144)
-    PID_FRAG: 0x08,  // Segmentation fragment
-    PID_AX25_FLAG1: 0x10,  // AX.25 layer 3 implemented.
-    PID_AX25_FLAG2: 0x20,  // AX.25 layer 3 implemented.
-    PID_AX25_MASK: 0x30,  // AX.25 layer 3 implemented.
-    PID_TEXNET: 0xc3,  // TEXNET datagram protocol
-    PID_LQP: 0xc4,  // Link Quality Protocol
-    PID_APPLETALK: 0xca,  // Appletalk
-    PID_APPLETALK_ARP: 0xcb,  // Appletalk ARP
-    PID_ARPA_IP: 0xcc,  // ARPA Internet Protocol
-    PID_ARPA_ARP: 0xcd,  // ARPA Address Resolution
-    PID_FLEXNET: 0xce,  // FlexNet
-    PID_NETROM: 0xcf,  // NET/ROM
-    PID_NO_3: 0xf0,  // No layer 3 protocol implemented.
-    PID_ESCAPE: 0xff,  // Escape character. Next octet contains more Level 3 protocol information.
+    PID_X25: 0x01,  //  ISO 8208/CCITT X.25 PLP
+    PID_TCPIP_COMP: 0x06,  //  Compressed TCP/IP packet. Van Jacobson (RFC 1144)
+    PID_TCPIP_UNCOMP: 0x07,  //  Uncompressed TCP/IP packet. Van Jacobson (RFC 1144)
+    PID_FRAG: 0x08,  //  Segmentation fragment
+    PID_AX25_FLAG1: 0x10,  //  AX.25 layer 3 implemented.
+    PID_AX25_FLAG2: 0x20,  //  AX.25 layer 3 implemented.
+    PID_AX25_MASK: 0x30,  //  AX.25 layer 3 implemented.
+    PID_TEXNET: 0xc3,  //  TEXNET datagram protocol
+    PID_LQP: 0xc4,  //  Link Quality Protocol
+    PID_APPLETALK: 0xca,  //  Appletalk
+    PID_APPLETALK_ARP: 0xcb,  //  Appletalk ARP
+    PID_ARPA_IP: 0xcc,  //  ARPA Internet Protocol
+    PID_ARPA_ARP: 0xcd,  //  ARPA Address Resolution
+    PID_FLEXNET: 0xce,  //  FlexNet
+    PID_NETROM: 0xcf,  //  NET/ROM
+    PID_NO_3: 0xf0,  //  No layer 3 protocol implemented.
+    PID_ESCAPE: 0xff,  //  Escape character. Next octet contains more Level 3 protocol information.
 
     /**
      * Frame identifiers
      */
-    FID_NONE: 0,  // Not an ID
-    FID_C: 1,  // Layer 2 Connect Request
-    FID_SABM: 2,  // Layer 2 Connect Request
-    FID_D: 3,  // Layer 2 Disconnect Request
-    FID_DISC: 4,  // Layer 2 Disconnect Request
-    FID_I: 5,  // Information frame
-    FID_RR: 6,  // Receive Ready. System Ready To Receive
-    FID_RNR: 7,  // Receive Not Ready. TNC Buffer Full
-    FID_NR: 8,  // Receive Not Ready. TNC Buffer Full
-    FID_RJ: 9,  // Reject Frame. Out of Sequence or Duplicate
-    FID_REJ: 10,  // Reject Frame. Out of Sequence or Duplicate
-    FID_FRMR: 11,  // Frame Reject. Fatal Error
-    FID_UI: 12,  // Unnumbered Information Frame. "Unproto"
-    FID_DM: 13,  // Disconnect Mode. System Busy or Disconnected.
+    FID_NONE: 0,  //  Not an ID
+    FID_C: 1,  //  Layer 2 Connect Request
+    FID_SABM: 2,  //  Layer 2 Connect Request
+    FID_D: 3,  //  Layer 2 Disconnect Request
+    FID_DISC: 4,  //  Layer 2 Disconnect Request
+    FID_I: 5,  //  Information frame
+    FID_RR: 6,  //  Receive Ready. System Ready To Receive
+    FID_RNR: 7,  //  Receive Not Ready. TNC Buffer Full
+    FID_NR: 8,  //  Receive Not Ready. TNC Buffer Full
+    FID_RJ: 9,  //  Reject Frame. Out of Sequence or Duplicate
+    FID_REJ: 10,  //  Reject Frame. Out of Sequence or Duplicate
+    FID_FRMR: 11,  //  Frame Reject. Fatal Error
+    FID_UI: 12,  //  Unnumbered Information Frame. 'Unproto'
+    FID_DM: 13,  //  Disconnect Mode. System Busy or Disconnected.
 
     IFRAME: 0,
     SFRAME: 1,
@@ -251,7 +252,7 @@ class Packet {
 
     toOctets() {
         let buf = [];
-        buf[buf.length] = 0x7e; // flag
+        buf[buf.length] = 0x7e; //  flag
         buf = buf.concat(this._dest.encoded());
         buf = buf.concat(this._src.encoded());
         for (let ridx = 0; ridx < this._rpts.length; ridx++) {
@@ -273,51 +274,53 @@ class Packet {
         let fcshi = (crcv >> 8) ^ 0xff;
         buf[buf.length] = fcslo;
         buf[buf.length] = fcshi;
-        buf[buf.length] = 0x7e; // flag
+        buf[buf.length] = 0x7e; //  flag
         return buf;
     }
 
     static create(data) {
-        var pos = 0;
-        var dest = null; //FIXME this.getAddr(data, pos);
+        let pos = 0;
+        let dest = null; // FIXME this.getAddr(data, pos);
         pos += 7;
-        var src = null; //FIXME this.getAddr(data, pos);
+        let src = null; // FIXME this.getAddr(data, pos);
         pos += 7;
-        var rpts = [];
-        //println("lastbyte:"+data(pos-1))
+        let rpts = [];
+        // println('lastbyte:'+data(pos-1))
         while (rpts.length < 8 && pos < data.length - 7 && ((data[pos - 1] & 128) !== 0)) {
-            // FIXME rpts[rpts.length] = getAddr(data, pos);
+            //  FIXME rpts[rpts.length] = getAddr(data, pos);
             pos += 7;
         }
 
-        var ctrl = data[pos++];
+        let ctrl = data[pos++];
 
-        var typ = ((ctrl & 1) === 0) ? IFRAME : ((ctrl & 2) === 0) ? SFRAME : UFRAME;
+        let typ = ((ctrl & 1) === 0) ? IFRAME : ((ctrl & 2) === 0) ? SFRAME : UFRAME;
 
-        var pid = (typ === IFRAME) ? data[pos] : 0;
-        if (typ === IFRAME) pos++;
+        let pid = (typ === IFRAME) ? data[pos] : 0;
+        if (typ === IFRAME) {
+          pos++;
+        }
 
-        var info = data.slice(pos, data.length);
+        let info = data.slice(pos, data.length);
 
         return new Packet(dest, src, rpts, 0, 0, info);
     }
 
     toString() {
-        let buf = this._src.toString() + "=>" + this._dest.toString();
+        let buf = this._src.toString() + '=>' + this._dest.toString();
 
         let r = this._rpts;
         let len = r.length;
         for (let ridx = 0; ridx < len; ridx++) {
-            buf += ":";
+            buf += ':';
             buf += r.toString();
         }
-        buf += " [" + this._pid.toString() + "]: ";
+        buf += ' [' + this._pid.toString() + ']: ';
         if (this._pid !== 0) {
             buf += String.fromCharCode.apply(null, this._info);
         } else {
-            //for (v <- info)
-            //    buf.append(",").append(v.toString)
-            buf += "{" + this._info[0] + "," + this._info.length + "}";
+            // for (v <- info)
+            //     buf.append(',').append(v.toString)
+            buf += '{' + this._info[0] + ',' + this._info.length + '}';
             buf += String.fromCharCode.apply(null, this._info);
         }
         return buf;
@@ -331,12 +334,12 @@ function trace(msg) {
 }
 
 
-const RxStart = 0;  //the initial state
-const RxTxd = 1;  //after the first flag, wait until no more flags
-const RxData = 2;  //after the flag.  all octets until another flag
-const RxFlag1 = 3;  //Test whether we have a flag or a stuffed bit
-const RxFlag2 = 4;  //It was a flag.  grab the last bit
-const FLAG = 0x7e;   // 01111110 , the start/stop flag
+const RxStart = 0;  // the initial state
+const RxTxd = 1;  // after the first flag, wait until no more flags
+const RxData = 2;  // after the flag.  all octets until another flag
+const RxFlag1 = 3;  // Test whether we have a flag or a stuffed bit
+const RxFlag2 = 4;  // It was a flag.  grab the last bit
+const FLAG = 0x7e;   //  01111110 , the start/stop flag
 const RXLEN = 4096;
 
 
@@ -345,7 +348,7 @@ const RXLEN = 4096;
  *
  * Note:  apparently 4800s/s seems to be necessary for this to work on 1200baud
  *
- * @see http://www.tapr.org/pub_ax25.html
+ * @see http:// www.tapr.org/pub_ax25.html
  */
 class PacketMode extends FskBase {
 
@@ -370,13 +373,13 @@ class PacketMode extends FskBase {
         this._lastBit = false;
 
         this._properties = {
-            name: "packet",
-            tooltip: "AX.25 and APRS",
+            name: 'packet',
+            tooltip: 'AX.25 and APRS',
             controls: [
                 {
-                    name: "rate",
-                    type: "choice",
-                    tooltip: "packet data rate",
+                    name: 'rate',
+                    type: 'choice',
+                    tooltip: 'packet data rate',
                     get value(): number {
                         return this.rate;
                     },
@@ -384,14 +387,14 @@ class PacketMode extends FskBase {
                         this.rate = v;
                     },
                     options: [
-                        {name: "300", value: 300.0},
-                        {name: "1200", value: 1200.0}
+                        {name: '300', value: 300.0},
+                        {name: '1200', value: 1200.0}
                     ]
                 },
                 {
-                    name: "shift",
-                    type: "choice",
-                    tooltip: "frequency distance between mark and space",
+                    name: 'shift',
+                    type: 'choice',
+                    tooltip: 'frequency distance between mark and space',
                     get value(): number {
                         return this.shift;
                     },
@@ -399,8 +402,8 @@ class PacketMode extends FskBase {
                         this.shift = v;
                     },
                     options: [
-                        {name: "200", value: 200.0},
-                        {name: "1000", value: 1000.0}
+                        {name: '200', value: 200.0},
+                        {name: '1000', value: 1000.0}
                     ]
                 }
             ]
@@ -421,23 +424,23 @@ class PacketMode extends FskBase {
             return;
         }
 
-        //shift right for the next bit, since ax.25 is lsb-first
-        let octet = (this._octet >> 1) & 0x7f;  //0xff? we dont want the msb
+        // shift right for the next bit, since ax.25 is lsb-first
+        let octet = (this._octet >> 1) & 0x7f;  // 0xff? we dont want the msb
         this._octet = octet;
-        let bit = (inBit === this._lastBit); //google "nrzi"
+        let bit = (inBit === this._lastBit); // google 'nrzi'
         this._lastBit = inBit;
         if (bit) {
             this._ones += 1;
             octet |= 128;
-        }
-        else
+        } else {
             this._ones = 0;
+        }
 
         switch (this._state) {
 
             case RxStart :
-                //trace("RxStart");
-                //trace("st octet: %02x".format(octet));
+                // trace('RxStart');
+                // trace('st octet: %02x'.format(octet));
                 if (octet === FLAG) {
                     this._state = RxTxd;
                     this._bitcount = 0;
@@ -445,9 +448,9 @@ class PacketMode extends FskBase {
                 break;
 
             case RxTxd :
-                //trace("RxTxd");
+                // trace('RxTxd');
                 if (++this._bitcount >= 8) {
-                    //trace("txd octet: %02x".format(octet));
+                    // trace('txd octet: %02x'.format(octet));
                     this._bitcount = 0;
                     if (octet !== FLAG) {
                         this._state = RxData;
@@ -458,14 +461,14 @@ class PacketMode extends FskBase {
                 break;
 
             case RxData :
-                //trace("RxData");
-                if (this._ones === 5) { // 111110nn, next bit will determine
+                // trace('RxData');
+                if (this._ones === 5) { //  111110nn, next bit will determine
                     this._state = RxFlag1;
                 } else {
                     if (++this._bitcount >= 8) {
                         this._bitcount = 0;
                         if (this._bufPtr >= RXLEN) {
-                            //trace("drop")
+                            // trace('drop')
                             this._state = RxStart;
                         } else {
                             this._rxbuf[this._bufPtr++] = octet & 0xff;
@@ -475,34 +478,35 @@ class PacketMode extends FskBase {
                 break;
 
             case RxFlag1 :
-                //trace("RxFlag");
-                if (bit) { //was really a 6th bit.
+                // trace('RxFlag');
+                if (bit) { // was really a 6th bit.
                     this._state = RxFlag2;
-                } else { //was a zero.  drop it and continue
+                } else { // was a zero.  drop it and continue
                     octet = (octet << 1) & 0xfe;
                     this._state = RxData;
                 }
                 break;
 
             case RxFlag2 :
-                //we simply wanted that last bit
+                // we simply wanted that last bit
                 this.processPacket(this._rxbuf, this._bufPtr);
-                for (let rdx = 0; rdx < RXLEN; rdx++)
+                for (let rdx = 0; rdx < RXLEN; rdx++) {
                     this._rxbuf[rdx] = 0;
+                }
                 this._state = RxStart;
                 break;
 
             default :
-            //dont know
+            // dont know
 
-        }//switch
+        }// switch
     }
 
 
     rawPacket(ibytes, offset, len) {
-        let str = "";
+        let str = '';
         for (let i = 0; i < len; i++) {
-            let b = (ibytes[offset + i]); // >> 1;
+            let b = (ibytes[offset + i]); //  >> 1;
             str += String.fromCharCode(b);
         }
         return str;
@@ -510,34 +514,35 @@ class PacketMode extends FskBase {
 
     processPacket(data, len) {
 
-        //trace("raw:" + len)
-        if (len < 14)
+        // trace('raw:' + len)
+        if (len < 14) {
             return true;
+        }
         let str = this.rawPacket(data, 14, len - 2);
-        trace("txt: " + str);
+        trace('txt: ' + str);
         let crc = new Crc();
         for (let i = 0; i < len; i++) {
             crc.updateLE(data[i]);
         }
         let v = crc.valueLE();
-        trace("crc: " + v.toString(16));
-        //theory is, if you calculate the CRC of the data, -including- the crc field,
-        //a correct result will always be 0xf0b8
+        trace('crc: ' + v.toString(16));
+        // theory is, if you calculate the CRC of the data, -including- the crc field,
+        // a correct result will always be 0xf0b8
         if (v === 0xf0b8) {
             let p = Packet.create(data);
-            this.par.putText(p.toString() + "\n");
+            this.par.putText(p.toString() + '\n');
         }
         return true;
     }
 
     /*
-     //################################################
-     //# T R A N S M I T
-     //################################################
-     private var txShifted = false
+     // ################################################
+     // # T R A N S M I T
+     // ################################################
+     private let txShifted = false
      def txencode(str: String) : Seq[Int] =
      {
-     var buf = scala.collection.mutable.ListBuffer[Int]()
+     let buf = scala.collection.mutable.ListBuffer[Int]()
      for (c <- str)
      {
      if (c == ' ')
@@ -548,8 +553,8 @@ class PacketMode extends FskBase {
      buf += Baudot.BAUD_CR
      else
      {
-     var uc = c.toUpper
-     var code = Baudot.baudLtrsToCode.get(uc)
+     let uc = c.toUpper
+     let code = Baudot.baudLtrsToCode.get(uc)
      if (code.isDefined)
      {
      if (txShifted)
@@ -579,45 +584,45 @@ class PacketMode extends FskBase {
 
      def txnext : Seq[Int] =
      {
-     //var str = "the quick brown fox 1a2b3c4d"
-     var str = par.gettext
-     var codes = txencode(str)
+     // let str = 'the quick brown fox 1a2b3c4d'
+     let str = par.gettext
+     let codes = txencode(str)
      codes
      }
 
 
-     private var desiredOutput = 4096;
+     private let desiredOutput = 4096;
 
      /o*
      * Overridden from Mode.  This method is called by
      * the audio interface when it needs a fresh buffer
      * of sampled audio data at its sample rate.  If the
      * mode has no current data, then it should send padding
-     * in the form of what is considered to be an "idle" signal
+     * in the form of what is considered to be an 'idle' signal
      o/
      override def transmit : Option[Array[Complex]] =
      {
-     var symbollen = samplesPerSymbol.toInt
-     var buf = scala.collection.mutable.ListBuffer[Complex]()
-     var codes = txnext
+     let symbollen = samplesPerSymbol.toInt
+     let buf = scala.collection.mutable.ListBuffer[Complex]()
+     let codes = txnext
      for (code <- codes)
      {
      for (i <- 0 until symbollen) buf += spaceFreq
-     var mask = 1
+     let mask = 1
      for (i <- 0 until 5)
      {
-     var bit = (code & mask) == 0
-     var f = if (bit) spaceFreq else markFreq
+     let bit = (code & mask) == 0
+     let f = if (bit) spaceFreq else markFreq
      for (j <- 0 until symbollen) buf += f
      mask <<= 1
      }
      for (i <- 0 until symbollen) buf += spaceFreq
      }
 
-     var pad = desiredOutput - buf.size
+     let pad = desiredOutput - buf.size
      for (i <- 0 until pad)
      buf += spaceFreq
-     //var res = buf.toArray.map(txFilter.update)
+     // let res = buf.toArray.map(txFilter.update)
      None
      }
 
@@ -625,4 +630,4 @@ class PacketMode extends FskBase {
 
 }
 
-export {Crc,PacketMode};
+export {Crc, PacketMode};

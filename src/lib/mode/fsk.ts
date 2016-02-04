@@ -14,19 +14,19 @@
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *    along with this program.  If not, see <http:// www.gnu.org/licenses/>.
  */
 /* jslint node: true */
 
-import {Mode} from "./mode";
-import {Digi} from "../digi";
-import {Filter,Biquad,FIR} from "../filter";
+import {Mode} from './mode';
+import {Digi} from '../digi';
+import {Filter, Biquad, FIR} from '../filter';
 
 const SSIZE = 200;
 
 /**
  * This is a base class for all two-tone FSK modes.
- * @see http://en.wikipedia.org/wiki/Asynchronous_serial_communication
+ * @see http:// en.wikipedia.org/wiki/Asynchronous_serial_communication
  */
 export class FskBase extends Mode {
 
@@ -58,7 +58,7 @@ export class FskBase extends Mode {
         this._samplesSinceChange = 0;
         this._lastBit = false;
 
-        //receive
+        // receive
         this._loHys = -1.0;
         this._hiHys = 1.0;
         this._bit = false;
@@ -67,7 +67,7 @@ export class FskBase extends Mode {
         this._bitsum = 0;
 
 
-        //scope
+        // scope
         this._scopeData = new Array<number[]>(SSIZE);
         this._scnt = 0;
         this._sx = -1;
@@ -105,10 +105,10 @@ export class FskBase extends Mode {
     adjust() {
         this._sf = FIR.bandpass(13, -0.75 * this.shift, -0.25 * this.shift, this.par.sampleRate);
         this._mf = FIR.bandpass(13, 0.25 * this.shift, 0.75 * this.shift, this.par.sampleRate);
-        //dataFilter = FIR.boxcar((self.samplesPerSymbol * 0.7)|0 );
+        // dataFilter = FIR.boxcar((self.samplesPerSymbol * 0.7)|0 );
         this._dataFilter = FIR.raisedcosine(13, 0.5, this.rate, this.par.sampleRate);
-        //dataFilter = FIR.lowpass(13, this.rate * 0.5, this.sampleRate);
-        //dataFilter = Biquad.lowPass(this.rate * 0.5, this.sampleRate);
+        // dataFilter = FIR.lowpass(13, this.rate * 0.5, this.sampleRate);
+        // dataFilter = Biquad.lowPass(this.rate * 0.5, this.sampleRate);
         this._symbollen = Math.round(this.samplesPerSymbol);
         this._halfsym = this._symbollen >> 1;
     }
@@ -129,25 +129,25 @@ export class FskBase extends Mode {
         let i = space.i + mark.i;
         let x = r * lastr - i * lasti;
         let y = r * lasti + i * lastr;
-        this._lastr = r; //save the conjugate
+        this._lastr = r; // save the conjugate
         this._lasti = -i;
-        let angle = Math.atan2(y, x);  //arg
+        let angle = Math.atan2(y, x);  // arg
         let comp = (angle > 0) ? -10.0 : 10.0;
         let sig = this._dataFilter.update(comp);
-        //console.log("sig:" + sig + "  comp:" + comp)
+        // console.log('sig:' + sig + '  comp:' + comp)
 
         this.scopeOut(sig);
 
         let bit = this._bit;
 
-        //trace("sig:" + sig)
+        // trace('sig:' + sig)
         if (sig > this._hiHys) {
             bit = false;
         } else if (sig < this._loHys) {
             bit = true;
         }
 
-        bit = bit !== this._inverted; //user-settable
+        bit = bit !== this._inverted; // user-settable
 
         this.processBit(bit);
         this._bit = bit;
@@ -183,4 +183,4 @@ export class FskBase extends Mode {
         }
     }
 
-}// FskBase
+}//  FskBase

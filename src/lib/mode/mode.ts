@@ -14,15 +14,15 @@
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *    along with this program.  If not, see <http:// www.gnu.org/licenses/>.
  */
 /* jslint node: true */
 
 import {Digi} from '../digi';
-import {Complex} from "../complex"
-import {Nco, NcoCreate} from "../nco";
-import {Constants} from "../constants";
-import {Filter, Biquad} from "../filter";
+import {Complex} from '../complex';
+import {Nco, NcoCreate} from '../nco';
+import {Constants} from '../constants';
+import {Filter, Biquad} from '../filter';
 
 export interface Option {
   name: string;
@@ -64,7 +64,7 @@ export class Mode {
    * We must set this property once at construction, and always
    * return the same object in the getter, in order to avoid
    * this issue in Angukar2:
-   * https://github.com/angular/angular/issues/5950
+   * https:// github.com/angular/angular/issues/5950
    */
   _properties: Properties;
 
@@ -82,8 +82,8 @@ export class Mode {
         this._rate = 31.25;
         this._nco = NcoCreate(this._frequency, par.sampleRate);
         this._properties = {
-          name: "mode",
-          tooltip: "Base mode class.  Please override this method",
+          name: 'mode',
+          tooltip: 'Base mode class.  Please override this method',
           controls: []
         };
     }
@@ -117,7 +117,7 @@ export class Mode {
         this._loBin = ((freq - bw * 0.707) / binWidth) | 0;
         this._freqBin = (freq / binWidth) | 0;
         this._hiBin = ((freq + bw * 0.707) / binWidth) | 0;
-        //console.log("afc: " + loBin + "," + freqBin + "," + hiBin);
+        // console.log('afc: ' + loBin + ',' + freqBin + ',' + hiBin);
     }
 
     get useAfc(): boolean {
@@ -134,15 +134,18 @@ export class Mode {
         let freqBin = this._freqBin;
         let hiBin = this._hiBin;
         for (let i = loBin, j = hiBin; i < freqBin; i++, j--) {
-            if (ps[j] > ps[i]) sum++;
-            else if (ps[i] > ps[j]) sum--;
+            if (ps[j] > ps[i]) {
+              sum++;
+            } else if (ps[i] > ps[j]) {
+              sum--;
+            }
         }
         let filtered = this._afcFilter.update(sum);
         this._nco.setError(filtered);
     }
 
     status(msg) {
-        this.par.status(this.properties.name + " : " + msg);
+        this.par.status(this.properties.name + ' : ' + msg);
     }
 
     /**
@@ -154,8 +157,8 @@ export class Mode {
     _setRate(v: number) {
       this._rate = v;
       this.adjustAfc();
-      this.status("Fs: " + this.par.sampleRate + " rate: " + v +
-          " sps: " + this.samplesPerSymbol);
+      this.status('Fs: ' + this.par.sampleRate + ' rate: ' + v +
+          ' sps: ' + this.samplesPerSymbol);
     }
 
     set rate(v: number) {
@@ -172,9 +175,9 @@ export class Mode {
     }
 
 
-    //#######################
-    //# R E C E I V E
-    //#######################
+    // #######################
+    // # R E C E I V E
+    // #######################
 
     receiveFft(ps: number[]): void {
         if (this._useAfc) {
@@ -184,7 +187,7 @@ export class Mode {
 
 
     receiveData(v: number): void {
-        var cs = this._nco.next();
+        let cs = this._nco.next();
         this.receive({r:v * cs.r, i:-v * cs.i});
     }
 
@@ -196,17 +199,17 @@ export class Mode {
     }
 
 
-    //#######################
-    //# T R A N S M I T
-    //#######################
+    // #######################
+    // # T R A N S M I T
+    // #######################
 
 
     getTransmitData() {
 
         /*
-        //output buffer empty?
+        // output buffer empty?
         if (this.optr >= this.decimation) {
-            //input buffer empty?
+            // input buffer empty?
             if (this.iptr >= this.ilen) {
                 this.ibuf = this.getBasebandData();
                 this.ilen = this.ibuf.length;
@@ -216,12 +219,12 @@ export class Mode {
                 }
                 this.iptr = 0;
             }
-            var v = this.ibuf[this.iptr++];
+            let v = this.ibuf[this.iptr++];
             this.interpolator.interpolatex(v, this.interpbuf);
             this.optr = 0;
         }
-        var cx = this.obuf[this.optr];
-        var upmixed = this.nco.mixNext(cx);
+        let cx = this.obuf[this.optr];
+        let upmixed = this.nco.mixNext(cx);
         return upmixed.abs();
         */
     }

@@ -14,12 +14,12 @@
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *    along with this program.  If not, see <http:// www.gnu.org/licenses/>.
  */
 /* jslint node: true */
-"use strict";
+'use strict';
 
-import {FskBase} from "./fsk";
+import {FskBase} from './fsk';
 import {Properties} from './mode';
 
 
@@ -89,7 +89,7 @@ function createCCIR() {
     t[0x4e] = ['M', '.'];
     /*1001110*/
     t[0x1d] = [' ', ' '];
-    t[0x0f] = ['\n', '\n']; //actually \r
+    t[0x0f] = ['\n', '\n']; // actually \r
     t[0x1b] = ['\n', '\n'];
     return t;
 }
@@ -130,7 +130,7 @@ function reverse(v, len) {
 
 /**
  *
- * @see http://en.wikipedia.org/wiki/Asynchronous_serial_communication
+ * @see http:// en.wikipedia.org/wiki/Asynchronous_serial_communication
  *
  */
 export class NavtexMode extends FskBase {
@@ -140,7 +140,7 @@ export class NavtexMode extends FskBase {
     _state: number;
     _bitcount: number;
     _code: number;
-    _parityBit: boolean
+    _parityBit: boolean;
     _bitMask: number;
     _errs: number;
     _sync1: number;
@@ -178,7 +178,7 @@ export class NavtexMode extends FskBase {
         this._sync4 = 0;
 
         this._shifted = false;
-        //Sitor-B is in either DX (data) or RX (repeat) mode
+        // Sitor-B is in either DX (data) or RX (repeat) mode
         this._dxMode = true;
 
         this._q3 = 0;
@@ -188,12 +188,12 @@ export class NavtexMode extends FskBase {
         this._lastChar = '@';
 
         this._properties = {
-            name: "navtex",
-            tooltip: "international naval teleprinter",
+            name: 'navtex',
+            tooltip: 'international naval teleprinter',
             controls: [
                 {
-                    name: "inv",
-                    type: "boolean",
+                    name: 'inv',
+                    type: 'boolean',
                     get value(): boolean {
                         return this.inverted;
                     },
@@ -202,8 +202,8 @@ export class NavtexMode extends FskBase {
                     }
                 },
                 {
-                    name: "UoS",
-                    type: "boolean",
+                    name: 'UoS',
+                    type: 'boolean',
                     get value():boolean {
                         return this.unshiftOnSpace;
                     },
@@ -238,7 +238,7 @@ export class NavtexMode extends FskBase {
 
         switch (this._state) {
             case RxSync1 :
-                //trace("RxSync1")
+                // trace('RxSync1')
                 this._state = RxSync2;
                 this._bitcount = 0;
                 this._code = 0;
@@ -249,11 +249,11 @@ export class NavtexMode extends FskBase {
                 this._sync4 = 0;
                 break;
             case RxSync2 :
-                //trace("Rxthis.sync2")
+                // trace('Rxthis.sync2')
                 this.shift7(bit);
-                //trace(this.sync1.toHexString + ", "+  this.sync2.toHexString + ", " +
-                //     this.sync3.toHexString + ", " + this.sync4.toHexString);
-                //trace("bit: " + bit);
+                // trace(this.sync1.toHexString + ', '+  this.sync2.toHexString + ', ' +
+                //      this.sync3.toHexString + ', ' + this.sync4.toHexString);
+                // trace('bit: ' + bit);
                 if (ccirValid(this._sync1) && ccirValid(this._sync2) &&
                     ccirValid(this._sync3) && ccirValid(this._sync4)) {
                     this.processCode(this._sync1);
@@ -264,12 +264,12 @@ export class NavtexMode extends FskBase {
                 }
                 break;
             case RxData :
-                //trace("RxData");
+                // trace('RxData');
                 this._code = ((this._code << 1) + ((bit) ? 1 : 0)) & 0x7f;
-                //trace("code: " + code);
+                // trace('code: ' + code);
                 if (++this._bitcount >= 7) {
-                    if (this.processCode(this._code) != ResultFail) { //we want Ok or Soft
-                        //stay in RxData.  ready for next code
+                    if (this.processCode(this._code) !== ResultFail) { // we want Ok or Soft
+                        // stay in RxData.  ready for next code
                         this._code = 0;
                         this._bitcount = 0;
                     } else {
@@ -278,13 +278,13 @@ export class NavtexMode extends FskBase {
                         this._errs++;
                         if (this._errs > 3) {
                             this._state = RxSync1;
-                            //trace("return to sync")
+                            // trace('return to sync')
                         }
                     }
                 }
                 break;
             default:
-        }//switch
+        }// switch
     }
 
 
@@ -295,8 +295,8 @@ export class NavtexMode extends FskBase {
     }
 
     processCode(code) {
-        //trace("code: " + code.toHexString + " mode: " + dxMode)
-        var res = ResultOk;
+        // trace('code: ' + code.toHexString + ' mode: ' + dxMode)
+        let res = ResultOk;
         if (this._code === REPEAT) {
             this.qadd(this._code);
             this._shifted = false;
@@ -306,26 +306,27 @@ export class NavtexMode extends FskBase {
             this._dxMode = true;
         } else {
             if (this._dxMode) {
-                if (!ccirValid(this._code))
+                if (!ccirValid(this._code)) {
                     res = ResultSoft;
-                this.qadd(code); //dont think.  just queue it
-                this._dxMode = false; //for next time
-            } else { //symbol
+                }
+                this.qadd(code); // dont think.  just queue it
+                this._dxMode = false; // for next time
+            } else { // symbol
                 if (ccirValid(this._code)) {
                     this.processCode2(this._code);
                 } else {
                     if (ccirValid(this._q3)) {
-                        var c = this.processCode2(this._q3);
-                        this.par.status("FEC replaced :" + c);
+                        let c = this.processCode2(this._q3);
+                        this.par.status('FEC replaced :' + c);
                         res = ResultSoft;
                     } else {
                         this.processCode2(-1);
                         res = ResultFail;
                     }
                 }
-                this._dxMode = true; // next time
-            }//rxmode
-        }//symbol
+                this._dxMode = true; //  next time
+            }// rxmode
+        }// symbol
         return res;
     }
 
@@ -333,12 +334,12 @@ export class NavtexMode extends FskBase {
     processCode2(code) {
         let res = '@';
         if (code === 0) {
-            //shouldnt happen
+            // shouldnt happen
         } else if (code < 0) {
-            //par.puttext("_");
+            // par.puttext('_');
             res = '_';
         } else if (code === ALPHA || code === REPEAT) {
-            //shouldnt be here
+            // shouldnt be here
         } else if (code === LTRS) {
             this._shifted = false;
         } else if (code === FIGS) {
@@ -346,7 +347,7 @@ export class NavtexMode extends FskBase {
         } else {
             let v = CCIR[code];
             if (v !== undefined) {
-                var c = (this._shifted) ? v[1] : v[0];
+                let c = (this._shifted) ? v[1] : v[0];
                 this.par.putText(c);
                 res = c;
             }
@@ -355,4 +356,4 @@ export class NavtexMode extends FskBase {
         return res;
     }
 
-}// NavtexMode
+}//  NavtexMode

@@ -14,7 +14,7 @@
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *    along with this program.  If not, see <http:// www.gnu.org/licenses/>.
  */
 
  import {Digi} from './digi';
@@ -39,33 +39,34 @@ class Watcher {
     constructor(par: Digi) {
         this.par = par;
 
-        //This regex's groups are prefix, digit, suffix
-        this.prefix = "([A-Z]{1,2}|[0-9][A-Z]|[A-Z][0-9])";
-        this.digits = "([0-9])";
-        this.suffix = "(F[A-Z]{3}|[A-Z]{1,3})";  //note:  Fxxx is australian
+        // This regex's groups are prefix, digit, suffix
+        this.prefix = '([A-Z]{1,2}|[0-9][A-Z]|[A-Z][0-9])';
+        this.digits = '([0-9])';
+        this.suffix = '(F[A-Z]{3}|[A-Z]{1,3})';  // note:  Fxxx is australian
         this.call = this.prefix + this.digits + this.suffix;
-        this.spot = "[^a-z0-9](?:de|cq)\\s+(" + this.call + ")[^a-z0-9]";
-        //var spot2 = "\\s+(" + call + ")\\s+[Kk]\\s";
-        //var spot3 = "\\s+(" + call + ")\\s+[Cc][Qq]";
-        //var spot = spot1 + "|" + spot2 + "|" + spot3;
-        this.buf = "";
+        this.spot = '[^a-z0-9](?:de|cq)\\s+(' + this.call + ')[^a-z0-9]';
+        // var spot2 = '\\s+(' + call + ')\\s+[Kk]\\s';
+        // var spot3 = '\\s+(' + call + ')\\s+[Cc][Qq]';
+        // var spot = spot1 + '|' + spot2 + '|' + spot3;
+        this.buf = '';
         this.calls = {};
 
         this.useQrz = false;
 
-        this.timeout = 300000; //5 mins
+        this.timeout = 300000; // 5 mins
     }
 
 
     showQrz(call) {
-        if (this.useQrz)
-            window.open("http://qrz.com/db/" + call,
-                "qrzquery", "menubar=true,toolbar=true");
+        if (this.useQrz) {
+            window.open('http:// qrz.com/db/' + call,
+                'qrzquery', 'menubar=true,toolbar=true');
+        }
     }
 
     announce(call) {
-        let msg = call.ts.toUTCString() + " : " + call.call + " : " +
-            call.freq + " : " + call.mode + "/" + call.rate;
+        let msg = call.ts.toUTCString() + ' : ' + call.call + ' : ' +
+            call.freq + ' : ' + call.mode + '/' + call.rate;
         this.par.status(msg);
         this.showQrz(call.call);
     }
@@ -86,7 +87,7 @@ class Watcher {
     }
 
     searchBuffer(str) {
-        let rgx = new RegExp(this.spot, "ig");
+        let rgx = new RegExp(this.spot, 'ig');
         for (let res = rgx.exec(str); res !== null; res = rgx.exec(str)) {
             let mode = this.par.mode;
             let name = mode.properties.name;
@@ -99,7 +100,7 @@ class Watcher {
                 freq: this.par.frequency,
                 mode: name,
                 rate: rate,
-                ts: new Date() //timestamp
+                ts: new Date() // timestamp
             };
             this.check(call);
         }

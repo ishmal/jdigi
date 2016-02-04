@@ -15,7 +15,7 @@ export class OutputComponent extends OutText {
   constructor(digiService: DigiService) {
     super();
     this._digi = digiService.digi;
-    this._text = "";
+    this._text = '';
     this._digi.outText = this;
   }
 
@@ -27,7 +27,7 @@ export class OutputComponent extends OutText {
    * @Override OutputText
    */
   clear():void {
-    this._text = "";
+    this._text = '';
   }
 
   /**
