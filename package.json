@@ -1,7 +1,7 @@
 {
-  "name": "angular2-bootstrap-starter",
+  "name": "Jdigi DIgimodem App",
   "version": "1.0.0-beta.1",
-  "description": "Angular2-bootstrap starter repo",
+  "description": "Portable digimodem app imlpemented in Javascript",
   "main": "index.js",
   "scripts": {
     "deploy": "NODE_ENV=production webpack -p --progress --color --optimize-minimize --optimize-dedupe --optimize-occurence-order",
@@ -13,26 +13,22 @@
     "angular2",
     "n2-bootstrap",
     "angular2-bootstrap",
-    "starter",
-    "angular2-bootstrap-started"
+    "ham radio",
+    "digimodem"
   ],
-  "author": "Dmitriy Shekhovtsov <valorkin@gmail.com>",
+  "author": "Bob Jamison <ishmalius@gmail.com>",
   "license": "ISC",
   "repository": {
     "type": "git",
     "url": "https://github.com/ishmal/jdigi.git"
   },
-  "bugs": {
-    "url": "https://github.com/valor-software/angular2-bootstrap-starter/issues"
-  },
-  "homepage": "https://github.com/valor-software/angular2-bootstrap-starter#readme",
   "dependencies": {
     "es6-promise": "3.0.2",
     "es6-shim": "0.33.13",
     "reflect-metadata": "0.1.2",
     "rxjs": "5.0.0-beta.0",
     "zone.js": "0.5.10",
-    "angular2": "2.0.0-beta.2",
+    "angular2": "2.0.0-beta.3",
     "ng2-bootstrap": "1.0.1-beta.2"
   },
   "devDependencies": {
