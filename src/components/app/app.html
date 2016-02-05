@@ -1,10 +1,11 @@
 <div id='content' class='container'>
 
     <div class="row">
-      <canvas jdigiTuner class='jdigi-tuner' width='800px' height='250px'></canvas>
+      <canvas jdigiTuner class='jdigi-tuner col-md-12' width='800px' height='200px'></canvas>
     </div>
 
      <div id="toolbar" class="row">
+       <div class='col-md-12'>
         <button type="button" class="btn btn-primary btn-sm" ng-class="{btnselect:toolbar.tx}" ng-model="toolbar.tx"
                 btn-checkbox btn-checkbox-true="true" btn-checkbox-false="false"
                 tooltip="Toggle Tx/Rx" tooltip-placement="right">Tx</button>
@@ -14,11 +15,12 @@
         <button type="button" class="btn btn-primary btn-sm" ng-class="{btnselect:toolbar.qrz}" ng-model="toolbar.qrz"
                 btn-checkbox btn-checkbox-true="true" btn-checkbox-false="false"
                 tooltip="Show QRZ.com page for callsigns" tooltip-placement="right">QRZ</button>
-        <span>Jdigi  <a target="_new" href="http://github.com/ishmal/jdigi">http://github.com/ishmal/jdigi</a></span>
+        <span class='advert'>Jdigi  <a target="_new" href="http://github.com/ishmal/jdigi">http://github.com/ishmal/jdigi</a></span>
+      </div>
     </div>
 
   <div class="row">
-	<tabset>
+	<tabset class="col-md-12">
 	    <tab *ngFor="#mode of modes" [heading]="mode.properties.name" select="changeMode(mode)">
 			<span *ngFor="#control of mode.properties.controls" [ngSwitch]="control.type">
 				<span *ngSwitchWhen="boolean">
@@ -47,10 +49,7 @@
 
 </div> <!-- content -->
 
-
-<br />
-
-<p>
+<p class="footnote">
 NOTE: You can select the audio input source on Firefox when it asks permission. You can <b>also</b> select
 the input source on Chrome by going to chrome://settings/content .
 </p>

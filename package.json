@@ -1,7 +1,7 @@
 {
-  "name": "Jdigi DIgimodem App",
+  "name": "jdigi",
   "version": "1.0.0-beta.1",
-  "description": "Portable digimodem app imlpemented in Javascript",
+  "description": "Portable digimodem app imlplemented in Javascript",
   "main": "index.js",
   "scripts": {
     "deploy": "NODE_ENV=production webpack -p --progress --color --optimize-minimize --optimize-dedupe --optimize-occurence-order",

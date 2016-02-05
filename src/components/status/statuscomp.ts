@@ -5,7 +5,17 @@ import {Digi, OutText} from '../../lib/digi';
 
 @Component({
     selector: 'jdigi-status',
-    template: '<p class=\'statustxt col-md-12\'>{{text}}</p>',
+    template: '<textarea readonly class=\'statustxt col-md-12\'>{{text}}</textarea>',
+    styles: [
+      `
+      .statustxt {
+         overflow-y: scroll;
+         height: 30px;
+         resize: none;
+         background-color: #eeeeee;
+      }
+      `
+    ]
 })
 export class StatusComponent extends OutText {
 

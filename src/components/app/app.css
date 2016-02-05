@@ -1,20 +1,11 @@
 #content {
 }
 
-.statustxt {
-    border-style: solid;
-    border-width: 1px;
-    border-color: black;
+
+.advert {
+  font-size: smaller;
 }
 
-.jdigi-output {
-  background-color: yellow;
-}
-
-.jdigi-input {
-   background-color: red;
-}
-
-.console-area {
-
+.footnote {
+  font-size: smaller;
 }

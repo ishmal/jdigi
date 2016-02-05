@@ -5,7 +5,17 @@ import {Digi, InText} from '../../lib/digi';
 
 @Component({
     selector: 'jdigi-input',
-    template: '<textarea class=\'console-area col-md-12\'>{{text}}</textarea>'
+    template: '<textarea class=\'console-area col-md-12\'>{{text}}</textarea>',
+    styles: [
+      `
+      .console-area {
+         overflow-y: scroll;
+         height: 70px;
+         resize: none;
+         background-color: #eeaaaa;
+      }
+      `
+    ]
 })
 export class InputComponent extends InText {
 
