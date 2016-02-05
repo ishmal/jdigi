@@ -135,8 +135,11 @@ export class TunerImpl implements Tuner {
 
     resize(): void {
         let canvas = this._canvas;
+        canvas.width = canvas.clientWidth;
+        canvas.height = canvas.clientHeight;
         this._width = canvas.width;
         this._height = canvas.height;
+        // this._par.status('resize w:' + this._width + '  h:' + this._height);
         this._indices = this.createIndices(this._width, BINS);
         this._ctx = canvas.getContext('2d');
         let imgData = this._imgData = this._ctx.createImageData(this._width, this._height);
@@ -160,7 +163,22 @@ export class TunerImpl implements Tuner {
 
     setupEvents(canvas) {
 
+      // hate to use 'self' here, but it's a safe way
       let self = this;
+
+      let _checkResize = true;
+      function checkResize() {
+          if (_checkResize) {
+             self.resize();
+             _checkResize = false;
+             setTimeout(function() {
+                  _checkResize = true;
+                  self.resize();
+                }, 500);
+            }
+      }
+
+      window.addEventListener('resize', checkResize);
 
       function mouseFreq(event) {
           let pt = getMousePos(canvas, event);
