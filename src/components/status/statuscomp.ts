@@ -5,7 +5,7 @@ import {Digi, OutText} from '../../lib/digi';
 
 @Component({
     selector: 'jdigi-status',
-    template: '<textarea>{{text}}</textarea>'
+    template: '<p class=\'statustxt col-md-12\'>{{text}}</p>',
 })
 export class StatusComponent extends OutText {
 
@@ -15,7 +15,7 @@ export class StatusComponent extends OutText {
   constructor(digiService: DigiService) {
     super();
     this._digi = digiService.digi;
-    this._text = '';
+    this._text = 'ready';
     this._digi.statText = this;
   }
 

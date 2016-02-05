@@ -1,8 +1,10 @@
-<div id='content'>
+<div id='content' class='container'>
 
-     <canvas jdigiTuner class='jdigi-tuner' width='800px' height='250px'></canvas>
+    <div class="row">
+      <canvas jdigiTuner class='jdigi-tuner' width='800px' height='250px'></canvas>
+    </div>
 
-     <div id="toolbar">
+     <div id="toolbar" class="row">
         <button type="button" class="btn btn-primary btn-sm" ng-class="{btnselect:toolbar.tx}" ng-model="toolbar.tx"
                 btn-checkbox btn-checkbox-true="true" btn-checkbox-false="false"
                 tooltip="Toggle Tx/Rx" tooltip-placement="right">Tx</button>
@@ -15,6 +17,7 @@
         <span>Jdigi  <a target="_new" href="http://github.com/ishmal/jdigi">http://github.com/ishmal/jdigi</a></span>
     </div>
 
+  <div class="row">
 	<tabset>
 	    <tab *ngFor="#mode of modes" [heading]="mode.properties.name" select="changeMode(mode)">
 			<span *ngFor="#control of mode.properties.controls" [ngSwitch]="control.type">
@@ -36,12 +39,13 @@
 			</span>
 		</tab>
 	</tabset>
-
-	<jdigi-status></jdigi-status>
-  <jdigi-output></jdigi-output>
-	<jdigi-input></jdigi-input>
-
 </div>
+
+<jdigi-status class="row"></jdigi-status>
+<jdigi-output class="row"></jdigi-output>
+<jdigi-input class="row"></jdigi-input>
+
+</div> <!-- content -->
 
 
 <br />

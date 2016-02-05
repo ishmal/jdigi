@@ -5,7 +5,7 @@ import {Digi, OutText} from '../../lib/digi';
 
 @Component({
     selector: 'jdigi-output',
-    template: '<textarea>{{text}}</textarea>'
+    template: '<textarea class=\'console-area col-md-12\'>{{text}}</textarea>'
 })
 export class OutputComponent extends OutText {
 
